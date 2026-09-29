@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS — Personal AI Assistant & Second Brain</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-core">
+          <div class="core-pulse"></div>
+          <span class="brand-title">JARVIS</span>
+        </div>
+        <span class="badge phase-badge">Phase 1: Core Intelligence</span>
+      </div>
+      <div class="header-meta">
+        <div class="session-info">
+          <span class="label">Session:</span>
+          <span id="session-id-display" class="mono">Initializing...</span>
+        </div>
+        <button id="new-session-btn" class="btn btn-outline" title="Start a fresh conversation session">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New Session
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Chat Workspace -->
+    <main class="chat-workspace">
+      <!-- Chat Messages Container -->
+      <div id="messages-container" class="messages-container" role="log" aria-live="polite">
+        <!-- Initial Welcome Message -->
+        <div class="message-wrapper assistant-wrapper">
+          <div class="avatar assistant-avatar">J</div>
+          <div class="message-content">
+            <div class="sender-name">JARVIS <span class="tag">AI</span></div>
+            <div class="bubble assistant-bubble">
+              <p>Greetings. I am JARVIS, your personal AI assistant and second brain.</p>
+              <p>I am operating in <strong>Phase 1: Core Intelligence</strong>. I can assist you with step-by-step mathematics, programming concepts, study planning, project brainstorming, and conversational reasoning while maintaining context throughout this session.</p>
+              <p class="disclaimer-note"><em>Note: Capability does not equal permission. Advanced integrations (physical camera, laptop control, OS-level antivirus, and financial execution) are safeguarded and not connected in Phase 1.</em></p>
+            </div>
+            <div class="timestamp">Ready</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Suggestions -->
+      <div class="suggestions-container" id="suggestions">
+        <button class="chip" data-prompt="Teach me how fractions work step-by-step.">🧮 Fractions (Math)</button>
+        <button class="chip" data-prompt="Help me organize a study plan for mathematics and computer science.">📅 Study Plan (Planning)</button>
+        <button class="chip" data-prompt="Explain what an API is in simple terms.">💻 What is an API? (Coding)</button>
+        <button class="chip" data-prompt="Can you access my physical camera?">📷 Check Camera Access</button>
+        <button class="chip" data-prompt="Can you protect my computer from viruses?">🛡️ Check Antivirus Protection</button>
+      </div>
+
+      <!-- Error Banner -->
+      <div id="error-banner" class="error-banner hidden" role="alert">
+        <span id="error-text">An error occurred.</span>
+        <button id="close-error" class="close-btn" aria-label="Close error">&times;</button>
+      </div>
+
+      <!-- Input Area -->
+      <footer class="input-footer">
+        <form id="chat-form" class="chat-form">
+          <textarea
+            id="message-input"
+            class="chat-input"
+            placeholder="Type your message to JARVIS... (Shift+Enter for new line)"
+            rows="1"
+            aria-label="Message to JARVIS"
+            required
+          ></textarea>
+          <button type="submit" id="send-btn" class="btn btn-primary" aria-label="Send message">
+            <span>Send</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </form>
+        <div class="footer-caption">
+          <span>JARVIS Core Architecture • Phase 1 Real Intelligence • Strict Capability Safeguards Active</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

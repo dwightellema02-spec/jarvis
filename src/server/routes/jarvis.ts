@@ -1,0 +1,134 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { JarvisCore } from '../../core/jarvis-core.js';
+import { createRequestContext } from '../../core/request-context.js';
+import { ValidationError } from '../../utils/errors.js';
+
+export function createJarvisRouter(jarvisCore: JarvisCore): Router {
+  const router = Router();
+
+  // Status and subsystem overview
+  router.get('/status', (_req: Request, res: Response) => {
+    const agents = jarvisCore.getAgentRegistry().list();
+    const tools = jarvisCore.getToolRegistry().list();
+    const policy = jarvisCore.getGuardian().getPolicy();
+    const provider = jarvisCore.getAIProvider();
+
+    res.status(200).json({
+      status: 'operational',
+      architecture: 'JARVIS Master Architecture (Phase 1 — Core Intelligence)',
+      subsystems: {
+        guardian: {
+          active: true,
+          policy: policy.name,
+          strictDefaultDeny: policy.strictDefaultDeny,
+        },
+        permissionManager: {
+          active: true,
+          defaultDeny: true,
+          levels: ['READ', 'SUGGEST', 'WRITE', 'EXECUTE', 'ADMIN'],
+        },
+        aiProvider: {
+          id: provider.id,
+          name: provider.name,
+          active: true,
+        },
+        agentRegistry: {
+          registeredAgentsCount: agents.length,
+          implementedAgentsCount: agents.filter((a) => a.status === 'implemented').length,
+        },
+        toolRegistry: {
+          registeredToolsCount: tools.length,
+          implementedToolsCount: tools.filter((t) => t.status === 'implemented').length,
+        },
+        auditLogger: {
+          active: true,
+        },
+      },
+    });
+  });
+
+  // Phase 1: Chat API endpoint
+  router.post('/chat', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { message, sessionId, userId } = req.body;
+
+      if (message === undefined || message === null) {
+        throw new ValidationError('Message field is required');
+      }
+
+      if (typeof message !== 'string' || message.trim().length === 0) {
+        throw new ValidationError('Message must be a non-empty string');
+      }
+
+      const result = await jarvisCore.chat({
+        message,
+        sessionId: sessionId ? String(sessionId) : undefined,
+        userId: userId ? String(userId) : undefined,
+      });
+
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Create new conversation session
+  router.post('/session', (req: Request, res: Response) => {
+    const userId = req.body.userId ? String(req.body.userId) : 'default_user';
+    const session = jarvisCore.getSessionManager().createSession(userId);
+    res.status(201).json({
+      sessionId: session.id,
+      userId: session.userId,
+      createdAt: session.createdAt,
+    });
+  });
+
+  // Retrieve message history for a session
+  router.get('/session/:id/messages', (req: Request, res: Response) => {
+    const sessionId = req.params.id;
+    const session = jarvisCore.getSessionManager().getSession(sessionId);
+
+    if (!session) {
+      res.status(404).json({ error: `Session '${sessionId}' not found` });
+      return;
+    }
+
+    res.status(200).json({
+      sessionId: session.id,
+      messages: session.messages,
+      totalMessages: session.messages.length,
+    });
+  });
+
+  // Phase 0: Request processing endpoint (action + permissions)
+  router.post('/process', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId, input, source, intendedAction } = req.body;
+
+      if (!userId) {
+        throw new ValidationError('userId is required');
+      }
+
+      if (!input || (!input.text && !input.voiceSampleUri && !input.filePaths)) {
+        throw new ValidationError('input with text, voiceSampleUri, or filePaths is required');
+      }
+
+      const context = createRequestContext({
+        userId: String(userId),
+        input,
+        source: source || 'api',
+        securityContext: {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        },
+      });
+
+      const result = await jarvisCore.processRequest(context, intendedAction);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  return router;
+}

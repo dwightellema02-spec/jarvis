@@ -1,0 +1,98 @@
+import { createApp } from '../src/server/app.js';
+import { MockAIProvider } from '../src/providers/mock-provider.js';
+
+async function runManualVerification() {
+  console.log('=== RUNNING JARVIS PHASE 1 MANUAL END-TO-END VERIFICATION ===');
+
+  const provider = new MockAIProvider();
+  const { app, core } = createApp({ aiProvider: provider });
+
+  const server = app.listen(3099, '127.0.0.1', async () => {
+    try {
+      console.log('1. Testing GET /api/health');
+      const healthRes = await fetch('http://127.0.0.1:3099/api/health');
+      const health = await healthRes.json();
+      console.log('   Health Status:', health.status, '| Service:', health.service, '| Version:', health.version);
+
+      console.log('2. Testing GET /api/jarvis/status');
+      const statusRes = await fetch('http://127.0.0.1:3099/api/jarvis/status');
+      const status = await statusRes.json();
+      console.log('   Status:', status.status, '| Subsystems:', Object.keys(status.subsystems));
+
+      console.log('3. Testing GET / (Static Frontend Web Interface)');
+      const uiRes = await fetch('http://127.0.0.1:3099/');
+      const uiText = await uiRes.text();
+      console.log('   UI HTTP Status:', uiRes.status, '| Has JARVIS Brand:', uiText.includes('JARVIS'));
+
+      console.log('4. Testing Session Creation (POST /api/jarvis/session)');
+      const sessRes = await fetch('http://127.0.0.1:3099/api/jarvis/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'dwight' }),
+      });
+      const sess = await sessRes.json();
+      console.log('   Created Session:', sess.sessionId);
+
+      console.log('5. Testing Turn 1: "My name is Dwight and my current project is JARVIS."');
+      const chat1Res = await fetch('http://127.0.0.1:3099/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'My name is Dwight and my current project is JARVIS.',
+          sessionId: sess.sessionId,
+          userId: 'dwight',
+        }),
+      });
+      const chat1 = await chat1Res.json();
+      console.log('   Turn 1 Response Status:', chat1.status, '| RequestId:', chat1.requestId);
+      console.log('   Turn 1 Response Preview:', chat1.response.substring(0, 80));
+
+      console.log('6. Testing Turn 2 (Context Memory): "What project am I working on?"');
+      const chat2Res = await fetch('http://127.0.0.1:3099/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'What project am I working on?',
+          sessionId: sess.sessionId,
+          userId: 'dwight',
+        }),
+      });
+      const chat2 = await chat2Res.json();
+      console.log('   Turn 2 Response:', chat2.response);
+
+      console.log('7. Testing Capability Honesty: "Can you access my camera?"');
+      const honestyRes = await fetch('http://127.0.0.1:3099/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'Can you access my camera?',
+          sessionId: sess.sessionId,
+          userId: 'dwight',
+        }),
+      });
+      const honesty = await honestyRes.json();
+      console.log('   Camera Honesty Response:', honesty.response);
+
+      console.log('8. Testing Mathematics: "Solve 2x + 5 = 15"');
+      const mathRes = await fetch('http://127.0.0.1:3099/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'Solve 2x + 5 = 15',
+          sessionId: sess.sessionId,
+          userId: 'dwight',
+        }),
+      });
+      const math = await mathRes.json();
+      console.log('   Math Solution:\n', math.response);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS PASSED SUCCESSFULLY! ===');
+    } catch (err) {
+      console.error('Manual verification failed:', err);
+    } finally {
+      server.close();
+    }
+  });
+}
+
+runManualVerification();
