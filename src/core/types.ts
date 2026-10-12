@@ -1,4 +1,5 @@
 import { PermissionGrant, ResourceType, PermissionAction, SecurityDecision } from '../security/types.js';
+import { UserProfile } from '../profile/types.js';
 
 export type InputSource = 'web' | 'voice' | 'camera' | 'files' | 'terminal' | 'api';
 
@@ -17,6 +18,7 @@ export interface SecurityContext {
   userRole: 'user' | 'admin' | 'guest';
 }
 
+
 export interface RequestContext {
   requestId: string;
   userId: string;
@@ -28,6 +30,8 @@ export interface RequestContext {
   availableAgents: string[];
   availableTools: string[];
   securityContext: SecurityContext;
+  userProfile?: UserProfile;
+  profileSummary?: string;
 }
 
 export interface ActionPlanItem {

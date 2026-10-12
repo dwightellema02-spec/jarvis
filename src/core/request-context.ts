@@ -1,6 +1,8 @@
 import { RequestContext, UserInput, InputSource, SecurityContext } from './types.js';
 import { PermissionGrant } from '../security/types.js';
 
+import { UserProfile } from '../profile/types.js';
+
 export interface CreateRequestContextOptions {
   userId: string;
   sessionId?: string;
@@ -10,6 +12,8 @@ export interface CreateRequestContextOptions {
   availableAgents?: string[];
   availableTools?: string[];
   securityContext?: Partial<SecurityContext>;
+  userProfile?: UserProfile;
+  profileSummary?: string;
 }
 
 export function createRequestContext(options: CreateRequestContextOptions): RequestContext {
@@ -33,5 +37,7 @@ export function createRequestContext(options: CreateRequestContextOptions): Requ
       ipAddress: options.securityContext?.ipAddress,
       userAgent: options.securityContext?.userAgent,
     },
+    userProfile: options.userProfile,
+    profileSummary: options.profileSummary,
   };
 }

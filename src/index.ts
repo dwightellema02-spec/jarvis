@@ -59,5 +59,12 @@ export * from './orchestrator/failure-recovery.js';
 export * from './orchestrator/execution-manager.js';
 export * from './orchestrator/orchestrator.js';
 
+// Phase 3: Personal Identity & User Profile
+export * from './profile/types.js';
+export * from './profile/default-profile.js';
+export * from './profile/context-distiller.js';
+export * from './profile/profile-store.js';
+export * from './profile/profile-manager.js';
+
 // Server
 export * from './server/app.js';

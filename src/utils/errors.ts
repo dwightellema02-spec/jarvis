@@ -8,6 +8,7 @@ export type ErrorCode =
   | 'AI_PROVIDER_ERROR'
   | 'DATABASE_ERROR'
   | 'SECURITY_BLOCK'
+  | 'NOT_FOUND'
   | 'TIMEOUT'
   | 'UNKNOWN_ERROR';
 
@@ -112,3 +113,10 @@ export class TimeoutError extends JarvisError {
     super('TIMEOUT', `Operation '${operation}' timed out`, 504, { operation, ...details });
   }
 }
+
+export class NotFoundError extends JarvisError {
+  constructor(message = 'Requested resource not found', details?: Record<string, unknown>) {
+    super('NOT_FOUND', message, 404, details);
+  }
+}
+

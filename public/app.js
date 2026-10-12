@@ -11,10 +11,70 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeErrorBtn = document.getElementById('close-error');
   const suggestions = document.getElementById('suggestions');
 
+  // Phase 3 Profile Elements
+  const profileToggleBtn = document.getElementById('profile-toggle-btn');
+  const profileModal = document.getElementById('profile-modal');
+  const closeProfileModalBtn = document.getElementById('close-profile-modal');
+  const headerUserName = document.getElementById('header-user-name');
+  const profGoalsList = document.getElementById('prof-goals-list');
+  const profProjectsList = document.getElementById('prof-projects-list');
+  const profStudyList = document.getElementById('prof-study-list');
+  const profIdentityDesc = document.getElementById('prof-identity-desc');
+  const profTimezone = document.getElementById('prof-timezone');
+
   let currentSessionId = localStorage.getItem('jarvis_session_id');
+
+  // Fetch and display user profile
+  async function loadUserProfile() {
+    try {
+      const res = await fetch('/api/jarvis/profile?userId=default_user');
+      const data = await res.json();
+      if (data && data.profile) {
+        const p = data.profile;
+        if (headerUserName) headerUserName.textContent = p.identity.preferredName || p.identity.name;
+        if (profIdentityDesc) profIdentityDesc.textContent = `${p.identity.name} • ${p.identity.role}`;
+        if (profTimezone) profTimezone.textContent = `Timezone: ${p.identity.timezone} | Locale: ${p.identity.locale}`;
+
+        if (profGoalsList) {
+          profGoalsList.innerHTML = p.goals
+            .map((g) => `<li><strong>[${g.priority.toUpperCase()}] ${g.title}</strong> — ${g.description}</li>`)
+            .join('');
+        }
+        if (profProjectsList) {
+          profProjectsList.innerHTML = p.projects
+            .map((pr) => `<li><strong>${pr.name}</strong> (${pr.role}) — ${pr.description}</li>`)
+            .join('');
+        }
+        if (profStudyList) {
+          profStudyList.innerHTML = p.studyAreas
+            .map((s) => `<li><strong>${s.title}</strong>: Focus on ${s.currentTopic} [${s.masteryLevel}]</li>`)
+            .join('');
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load user profile:', err);
+    }
+  }
+
+  if (profileToggleBtn && profileModal) {
+    profileToggleBtn.addEventListener('click', () => {
+      profileModal.classList.remove('hidden');
+    });
+  }
+  if (closeProfileModalBtn && profileModal) {
+    closeProfileModalBtn.addEventListener('click', () => {
+      profileModal.classList.add('hidden');
+    });
+  }
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) profileModal.classList.add('hidden');
+    });
+  }
 
   // Initialize or restore session
   async function initSession() {
+    await loadUserProfile();
     if (!currentSessionId) {
       await createNewSession();
     } else {

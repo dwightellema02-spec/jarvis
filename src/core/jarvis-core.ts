@@ -23,6 +23,7 @@ import {
 } from '../utils/errors.js';
 import { Orchestrator } from '../orchestrator/orchestrator.js';
 import { OrchestrationResult, TaskStep } from '../orchestrator/types.js';
+import { UserProfileManager } from '../profile/profile-manager.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -34,6 +35,7 @@ export interface JarvisCoreConfig {
   aiProvider?: IAIProvider;
   sessionManager?: SessionManager;
   orchestrator?: Orchestrator;
+  userProfileManager?: UserProfileManager;
 }
 
 export interface JarvisChatRequest {
@@ -51,6 +53,11 @@ export interface JarvisChatResponse {
   model: string;
   durationMs: number;
   timestamp: string;
+  user?: {
+    name: string;
+    preferredName: string;
+    role: string;
+  };
 }
 
 export class JarvisCore {
@@ -62,6 +69,7 @@ export class JarvisCore {
   private aiProvider: IAIProvider;
   private sessionManager: SessionManager;
   private orchestrator: Orchestrator;
+  private userProfileManager: UserProfileManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -80,8 +88,13 @@ export class JarvisCore {
         guardian: this.guardian,
         auditLogger: this.auditLogger,
       });
+    this.userProfileManager =
+      config.userProfileManager ||
+      new UserProfileManager({
+        auditLogger: this.auditLogger,
+      });
 
-    logger.info('JARVIS Core initialized with Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
+    logger.info('JARVIS Core initialized with User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
   }
 
   /**
@@ -102,12 +115,17 @@ export class JarvisCore {
 
     const userId = request.userId || 'default_user';
 
-    // 2. Request context creation
+    // 2. Fetch User Profile and Request context creation
+    const userProfile = await this.userProfileManager.getProfile(userId);
+    const profilePromptContext = await this.userProfileManager.getPromptContext(userId);
+
     const context = createRequestContext({
       userId,
       sessionId: request.sessionId,
       input: { text: request.message },
       source: 'web',
+      userProfile,
+      profileSummary: profilePromptContext,
     });
 
     logger.info('REQUEST_RECEIVED', {
@@ -171,10 +189,12 @@ export class JarvisCore {
     });
 
     let providerResponse;
+    const systemInstruction = `${JARVIS_SYSTEM_INSTRUCTION}\n\n${profilePromptContext}`;
+
     try {
       providerResponse = await this.aiProvider.generate({
         messages: aiMessages,
-        systemInstruction: JARVIS_SYSTEM_INSTRUCTION,
+        systemInstruction,
       });
     } catch (err: any) {
       logger.error('AI_REQUEST_FAILED', {
@@ -226,6 +246,11 @@ export class JarvisCore {
       model: providerResponse.model,
       durationMs: totalDuration,
       timestamp: new Date().toISOString(),
+      user: {
+        name: userProfile.identity.name,
+        preferredName: userProfile.identity.preferredName,
+        role: userProfile.identity.role,
+      },
     };
   }
 
@@ -385,6 +410,10 @@ export class JarvisCore {
 
   public getOrchestrator(): Orchestrator {
     return this.orchestrator;
+  }
+
+  public getUserProfileManager(): UserProfileManager {
+    return this.userProfileManager;
   }
 
   public async orchestrate(

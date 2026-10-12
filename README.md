@@ -159,12 +159,33 @@ http://127.0.0.1:3000
 | `GET` | `/api/tools` | Query registered tools and their declared required permissions |
 | `POST` | `/api/permissions/check` | Check permission grants against resource and action |
 | `GET` | `/api/audit/logs` | Query sanitized audit records |
+| `POST` | `/api/jarvis/orchestrate` | Phase 2 Orchestrator executing verified plans with risk gating |
+| `GET` | `/api/jarvis/profile` | Phase 3 Retrieve user identity, goals, projects, and study tracks |
+| `PUT` | `/api/jarvis/profile` | Phase 3 Update user profile preferences and identity |
+| `POST` | `/api/jarvis/profile/goals` | Phase 3 Add/manage user goals with milestones and priorities |
+| `POST` | `/api/jarvis/profile/projects` | Phase 3 Add/manage user projects |
+| `POST` | `/api/jarvis/profile/study-areas` | Phase 3 Add/manage learning tracks (LET, Math, AI) |
+| `GET` | `/api/jarvis/profile/context` | Phase 3 Prompt context distillation & ephemeral vs persistent analysis |
+
+---
+
+## 👤 Phase 3 Architecture: Personal Identity & User Profile
+
+JARVIS establishes an explicit contract distinguishing:
+* **Temporary Conversation Information**: Ephemeral session messages, active in-flight reasoning, and scratchpad notes that vanish when the session closes.
+* **Persistent User Information**: Long-term profile stored permanently in the user profile store:
+  * **Identity**: User name, preferred address style, role, timezone, and locale.
+  * **Preferences**: Communication tone, proactivity level, Socratic vs first-principles learning style, mathematical pedagogy (proof-driven vs formula-driven).
+  * **Active Goals**: Milestones, priority levels (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), target completion dates (e.g. Philippine LET Licensure Examination).
+  * **Active Projects**: Workspace paths, associated goals, and statuses (e.g. JARVIS, Tuklas).
+  * **Study & Review Tracks**: Topic progression, mastery levels, and curriculum alignment.
+  * **Permission & Risk Presets**: Policy modes, whitelisted domains, and confirmation requirements.
 
 ---
 
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (44 automated tests covering unit, integration, and security specifications):
+Run the full Vitest suite (86 automated tests across 14 test files covering unit, integration, security, and orchestration specifications):
 ```bash
 # Run all tests
 npm test

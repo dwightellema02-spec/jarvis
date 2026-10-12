@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 1: Core Intelligence</span>
+        <span class="badge phase-badge">Phase 3: Identity & Profile Active</span>
       </div>
       <div class="header-meta">
+        <button id="profile-toggle-btn" class="btn btn-outline profile-pill" title="View User Profile & Identity">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="header-user-name">Dwight</span>
+        </button>
         <div class="session-info">
           <span class="label">Session:</span>
           <span id="session-id-display" class="mono">Initializing...</span>
@@ -42,9 +46,9 @@
           <div class="message-content">
             <div class="sender-name">JARVIS <span class="tag">AI</span></div>
             <div class="bubble assistant-bubble">
-              <p>Greetings. I am JARVIS, your personal AI assistant and second brain.</p>
-              <p>I am operating in <strong>Phase 1: Core Intelligence</strong>. I can assist you with step-by-step mathematics, programming concepts, study planning, project brainstorming, and conversational reasoning while maintaining context throughout this session.</p>
-              <p class="disclaimer-note"><em>Note: Capability does not equal permission. Advanced integrations (physical camera, laptop control, OS-level antivirus, and financial execution) are safeguarded and not connected in Phase 1.</em></p>
+              <p>Greetings, <strong>Dwight</strong>. I am JARVIS, your personal AI assistant and second brain.</p>
+              <p>I am operating in <strong>Phase 3: Personal Identity & User Profile Active</strong>. I recognize your active projects (<em>JARVIS</em>, <em>Tuklas</em>) and study tracks (<em>Higher Mathematics</em>, <em>LET Review</em>). How may I assist you today?</p>
+              <p class="disclaimer-note"><em>Note: Capability does not equal permission. Operations are guarded and verified before execution.</em></p>
             </div>
             <div class="timestamp">Ready</div>
           </div>
@@ -53,8 +57,9 @@
 
       <!-- Quick Prompt Suggestions -->
       <div class="suggestions-container" id="suggestions">
+        <button class="chip" data-prompt="What active goals and projects are registered in my profile?">🎯 My Goals & Projects</button>
+        <button class="chip" data-prompt="How can you help me prepare for the LET Licensure Examination in Mathematics?">📚 LET Exam Review</button>
         <button class="chip" data-prompt="Teach me how fractions work step-by-step.">🧮 Fractions (Math)</button>
-        <button class="chip" data-prompt="Help me organize a study plan for mathematics and computer science.">📅 Study Plan (Planning)</button>
         <button class="chip" data-prompt="Explain what an API is in simple terms.">💻 What is an API? (Coding)</button>
         <button class="chip" data-prompt="Can you access my physical camera?">📷 Check Camera Access</button>
         <button class="chip" data-prompt="Can you protect my computer from viruses?">🛡️ Check Antivirus Protection</button>
@@ -83,10 +88,51 @@
           </button>
         </form>
         <div class="footer-caption">
-          <span>JARVIS Core Architecture • Phase 1 Real Intelligence • Strict Capability Safeguards Active</span>
+          <span>JARVIS Core Architecture • Phase 3 Identity & User Profile Active • Verified Execution</span>
         </div>
       </footer>
     </main>
+  </div>
+
+  <!-- Profile Modal Overlay -->
+  <div id="profile-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+    <div class="profile-card-modal">
+      <div class="modal-header">
+        <h2 id="profile-title">👤 User Identity & Persistent Profile</h2>
+        <button id="close-profile-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box">
+          <h4>Architecture Contract: Temporary Session vs Persistent Profile</h4>
+          <p>Temporary conversation data (messages & in-flight tokens) is strictly separated from persistent identity, long-term goals, study tracks, and permissions.</p>
+        </div>
+        <div class="profile-grid">
+          <div class="profile-box">
+            <h3>Identity & Role</h3>
+            <p id="prof-identity-desc">Dwight • Lead Engineer, Researcher & Educator</p>
+            <p class="text-muted" id="prof-timezone">Timezone: Asia/Manila</p>
+          </div>
+          <div class="profile-box">
+            <h3>Active Goals</h3>
+            <ul id="prof-goals-list" class="profile-item-list">
+              <li>Loading goals...</li>
+            </ul>
+          </div>
+          <div class="profile-box">
+            <h3>Active Projects</h3>
+            <ul id="prof-projects-list" class="profile-item-list">
+              <li>Loading projects...</li>
+            </ul>
+          </div>
+          <div class="profile-box">
+            <h3>Study & Review Tracks</h3>
+            <ul id="prof-study-list" class="profile-item-list">
+              <li>Loading study tracks...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/app.js"></script>

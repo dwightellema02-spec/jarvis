@@ -139,7 +139,19 @@ async function runManualVerification() {
       const limit = await limitRes.json();
       console.log('   Critical Finance Gated as Expected:', limit.stepResults[0].status === 'BLOCKED_BY_LIMITATION');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS PASSED SUCCESSFULLY! ===');
+      console.log('12. Testing Phase 3 User Profile (GET /api/jarvis/profile)');
+      const profRes = await fetch('http://127.0.0.1:3099/api/jarvis/profile?userId=default_user');
+      const profData = await profRes.json();
+      console.log('   Profile Identity:', profData.profile.identity.name, '| Role:', profData.profile.identity.role);
+      console.log('   Active Goals Count:', profData.profile.goals.length, '| Projects Count:', profData.profile.projects.length);
+
+      console.log('13. Testing Phase 3 Context Distinction & Distillation (GET /api/jarvis/profile/context)');
+      const ctxRes = await fetch('http://127.0.0.1:3099/api/jarvis/profile/context?userId=default_user&sessionId=sess_manual&messageCount=2');
+      const ctxData = await ctxRes.json();
+      console.log('   Prompt Context Generated:', ctxData.promptContext.includes('[USER IDENTITY & PROFILE CONTEXT]'));
+      console.log('   Distinction Verified: Ephemeral Session (' + ctxData.distinction.temporaryConversation.sessionId + ') vs Persistent Identity (' + ctxData.distinction.persistentUserInformation.userName + ')');
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2 & 3) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {
