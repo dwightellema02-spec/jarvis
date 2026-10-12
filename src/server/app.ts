@@ -5,6 +5,7 @@ import fs from 'fs';
 import { JarvisCore } from '../core/jarvis-core.js';
 import { SecurityGuardian } from '../security/guardian.js';
 import { PermissionManager } from '../security/permission-manager.js';
+import { ResourceType, PermissionLevel } from '../security/types.js';
 import { AuditLogger } from '../audit/audit-logger.js';
 import { AgentRegistry } from '../agents/agent-registry.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
@@ -23,6 +24,7 @@ import { createToolsRouter } from './routes/tools.js';
 import { createSecurityRouter } from './routes/security.js';
 import { createAuditRouter } from './routes/audit.js';
 import { createProfileRouter } from './routes/profile.js';
+import { createMemoryRouter } from './routes/memory.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -45,6 +47,22 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   const auditLogger = deps.auditLogger || new AuditLogger();
   const agentRegistry = deps.agentRegistry || new AgentRegistry();
   const toolRegistry = deps.toolRegistry || new ToolRegistry();
+
+  // Provision baseline grants for authorized personal conversation memory
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.DATABASES,
+    level: PermissionLevel.WRITE,
+    allowedActions: ['read', 'write', 'modify', 'delete'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.DATABASES,
+    level: PermissionLevel.WRITE,
+    allowedActions: ['read', 'write', 'modify', 'delete'],
+    grantedBy: 'system',
+  });
 
   const core =
     deps.jarvisCore ||
@@ -109,10 +127,11 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.3.0-phase3';
+  const version = '0.4.0-phase4';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
+  app.use('/api/jarvis/memory', createMemoryRouter(core));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

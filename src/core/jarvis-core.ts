@@ -24,6 +24,8 @@ import {
 import { Orchestrator } from '../orchestrator/orchestrator.js';
 import { OrchestrationResult, TaskStep } from '../orchestrator/types.js';
 import { UserProfileManager } from '../profile/profile-manager.js';
+import { ConversationMemoryManager } from '../memory/conversation-memory-manager.js';
+import { MemoryType } from '../memory/memory.interface.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -36,6 +38,7 @@ export interface JarvisCoreConfig {
   sessionManager?: SessionManager;
   orchestrator?: Orchestrator;
   userProfileManager?: UserProfileManager;
+  memoryManager?: ConversationMemoryManager;
 }
 
 export interface JarvisChatRequest {
@@ -70,6 +73,7 @@ export class JarvisCore {
   private sessionManager: SessionManager;
   private orchestrator: Orchestrator;
   private userProfileManager: UserProfileManager;
+  private memoryManager: ConversationMemoryManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -93,8 +97,38 @@ export class JarvisCore {
       new UserProfileManager({
         auditLogger: this.auditLogger,
       });
+    this.memoryManager =
+      config.memoryManager ||
+      new ConversationMemoryManager({
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+        initialMemories: [
+          {
+            id: 'mem_tuklas_init',
+            type: MemoryType.PROJECT,
+            key: 'Tuklas Educational Platform',
+            value: 'Tuklas is an educational mathematics platform designed for Philippine students and teachers.',
+            userId: 'default_user',
+            confidence: 1.0,
+            tags: ['tuklas', 'education', 'math', 'project'],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: 'mem_let_init',
+            type: MemoryType.GOAL,
+            key: 'LET Licensure Examination',
+            value: 'Targeting mastery in Philippine LET Licensure Exam for Teachers (General & Professional Ed, Math Specialization).',
+            userId: 'default_user',
+            confidence: 1.0,
+            tags: ['let', 'exam', 'review', 'goal'],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      });
 
-    logger.info('JARVIS Core initialized with User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
+    logger.info('JARVIS Core initialized with Memory Manager, User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
   }
 
   /**
@@ -189,7 +223,8 @@ export class JarvisCore {
     });
 
     let providerResponse;
-    const systemInstruction = `${JARVIS_SYSTEM_INSTRUCTION}\n\n${profilePromptContext}`;
+    const memoryPromptContext = await this.memoryManager.getPromptMemoryContext(request.message, userId);
+    const systemInstruction = `${JARVIS_SYSTEM_INSTRUCTION}\n\n${profilePromptContext}\n\n${memoryPromptContext}`;
 
     try {
       providerResponse = await this.aiProvider.generate({
@@ -414,6 +449,10 @@ export class JarvisCore {
 
   public getUserProfileManager(): UserProfileManager {
     return this.userProfileManager;
+  }
+
+  public getMemoryManager(): ConversationMemoryManager {
+    return this.memoryManager;
   }
 
   public async orchestrate(

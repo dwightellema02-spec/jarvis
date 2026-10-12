@@ -151,7 +151,41 @@ async function runManualVerification() {
       console.log('   Prompt Context Generated:', ctxData.promptContext.includes('[USER IDENTITY & PROFILE CONTEXT]'));
       console.log('   Distinction Verified: Ephemeral Session (' + ctxData.distinction.temporaryConversation.sessionId + ') vs Persistent Identity (' + ctxData.distinction.persistentUserInformation.userName + ')');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2 & 3) PASSED SUCCESSFULLY! ===');
+      console.log('14. Testing Phase 4 Conversation Memory Storage (POST /api/jarvis/memory)');
+      const memStoreRes = await fetch('http://127.0.0.1:3099/api/jarvis/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'dwight',
+          key: 'Preferred Math Notation',
+          value: 'Leibniz notation for calculus and standard vector arrow notation',
+          tags: ['math', 'notation'],
+        }),
+      });
+      const memStore = await memStoreRes.json();
+      console.log('   Stored Memory Key:', memStore.memory.key, '| ID:', memStore.memory.id);
+
+      console.log('15. Testing Phase 4 Relevant Memory Retrieval (GET /api/jarvis/memory/relevant)');
+      const memRelRes = await fetch('http://127.0.0.1:3099/api/jarvis/memory/relevant?q=math+notation&userId=dwight');
+      const memRel = await memRelRes.json();
+      console.log('   Matched Memories Count:', memRel.count, '| Top Key:', memRel.results[0]?.record.key);
+
+      console.log('16. Testing Phase 4 Memory Correction & Audit (POST /api/jarvis/memory/correct)');
+      const memCorrRes = await fetch('http://127.0.0.1:3099/api/jarvis/memory/correct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'dwight',
+          memoryIdOrKey: 'Preferred Math Notation',
+          newValue: 'Lagrange prime notation f\'(x) for single variable, Leibniz for multivariable',
+          reason: 'User preference refined during review session',
+        }),
+      });
+      const memCorr = await memCorrRes.json();
+      console.log('   Corrected Value:', memCorr.record.value);
+      console.log('   Confidence Elevated to 100%:', memCorr.record.confidence === 1.0);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3 & 4) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

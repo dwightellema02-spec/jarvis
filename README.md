@@ -166,6 +166,12 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/profile/projects` | Phase 3 Add/manage user projects |
 | `POST` | `/api/jarvis/profile/study-areas` | Phase 3 Add/manage learning tracks (LET, Math, AI) |
 | `GET` | `/api/jarvis/profile/context` | Phase 3 Prompt context distillation & ephemeral vs persistent analysis |
+| `GET` | `/api/jarvis/memory` | Phase 4 Query conversation memories with filters |
+| `POST` | `/api/jarvis/memory` | Phase 4 Store episodic or semantic memory |
+| `GET` | `/api/jarvis/memory/relevant` | Phase 4 Query relevant memories with prompt context generation |
+| `POST` | `/api/jarvis/memory/correct` | Phase 4 Correct past memories with audit trail |
+| `GET` | `/api/jarvis/memory/corrections` | Phase 4 Query history of memory corrections |
+| `DELETE` | `/api/jarvis/memory/:id` | Phase 4 Delete memory record with permission checks |
 
 ---
 
@@ -183,9 +189,20 @@ JARVIS establishes an explicit contract distinguishing:
 
 ---
 
+## 🧠 Phase 4 Architecture: Conversation Memory
+
+JARVIS provides persistent conversational memory with strict anti-hallucination discipline:
+* **Short-Term & Multi-Session History**: Conversation messages indexed per session and retrievable across sessions.
+* **Relevance Engine**: Matches incoming queries by token overlap, keyword match, tag weights, confidence factor, and 30-day recency decay.
+* **Memory Corrections**: When the user corrects previous facts, the system archives the old value, elevates confidence to 100%, and records an immutable audit log entry.
+* **Default-Deny Memory Permissions**: Access to memory is gated through `ResourceType.DATABASES`. Unauthorized users are categorically blocked.
+* **Honesty Directive**: When query matching yields no records, JARVIS's prompt is injected with an explicit directive: `"No relevant past memories found. Do not invent past memories."`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (86 automated tests across 14 test files covering unit, integration, security, and orchestration specifications):
+Run the full Vitest suite (99 automated tests across 16 test files covering unit, integration, security, orchestration, profile, and memory specifications):
 ```bash
 # Run all tests
 npm test
