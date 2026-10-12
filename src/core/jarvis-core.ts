@@ -96,6 +96,11 @@ import {
   TuklasClient,
   createTuklasTools,
 } from '../tuklas/index.js';
+import {
+  CreativeManager,
+  CreativeAgent,
+  createCreativeTools,
+} from '../creative/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -117,6 +122,7 @@ export interface JarvisCoreConfig {
   codingManager?: CodingManager;
   devEnvManager?: DevEnvManager;
   tuklasManager?: TuklasManager;
+  creativeManager?: CreativeManager;
 }
 
 export interface JarvisChatRequest {
@@ -160,6 +166,7 @@ export class JarvisCore {
   private codingManager: CodingManager;
   private devEnvManager: DevEnvManager;
   private tuklasManager: TuklasManager;
+  private creativeManager: CreativeManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -334,7 +341,18 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Tuklas EdTech Engine, DevEnv Engine, Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Creative Studio Engine, Agent, and Tools
+    this.creativeManager =
+      config.creativeManager ||
+      new CreativeManager(this.permissionManager, this.guardian, this.auditLogger);
+    const creativeAgent = new CreativeAgent(this.creativeManager);
+    this.agentRegistry.registerImplementation(creativeAgent);
+
+    for (const tool of createCreativeTools(this.creativeManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -692,6 +710,10 @@ export class JarvisCore {
 
   public getTuklasManager(): TuklasManager {
     return this.tuklasManager;
+  }
+
+  public getCreativeManager(): CreativeManager {
+    return this.creativeManager;
   }
 
   public async orchestrate(

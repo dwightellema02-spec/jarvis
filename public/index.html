@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 12: Tuklas EdTech Active</span>
+        <span class="badge phase-badge">Phase 13: Creative Studio Active</span>
       </div>
       <div class="header-meta">
+        <button id="creative-toggle-btn" class="btn btn-outline" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc;" title="JARVIS Creative Studio (Images, Graphics, Decks, Storyboards)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          <span>Creative</span>
+        </button>
         <button id="tuklas-toggle-btn" class="btn btn-outline" style="border-color: rgba(236, 72, 153, 0.4); color: #ec4899;" title="Tuklas EdTech Platform Integration">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           <span>Tuklas</span>
@@ -762,6 +766,150 @@
           </div>
           <div id="tuklas-teacher-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 380px; overflow-y: auto;">
             <p style="color: #94a3b8; margin: 0;">Inspect anonymized cohort datasets (Data Privacy Act compliant) or manage classroom task assignments.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Creative Studio Modal (Phase 13) -->
+  <div id="creative-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="creative-modal-title">
+    <div class="modal-card" style="max-width: 900px; width: 95%;">
+      <div class="modal-header" style="border-bottom: 2px solid #a855f7;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          <h2 id="creative-modal-title" style="margin: 0; font-size: 1.25rem; color: #fff;">JARVIS Creative Studio (Phase 13)</h2>
+        </div>
+        <button id="close-creative-btn" class="close-btn" aria-label="Close Creative Studio modal">&times;</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="modal-tabs" style="display: flex; gap: 0.5rem; border-bottom: 1px solid #334155; padding: 0.75rem 1.5rem; background: #0b0f19; overflow-x: auto;">
+        <button id="tab-creative-image" class="tab-btn active" style="color: #c084fc; border-bottom: 2px solid #a855f7;">Vector Artwork</button>
+        <button id="tab-creative-graphic" class="tab-btn" style="color: #94a3b8;">Graphic Designer</button>
+        <button id="tab-creative-deck" class="tab-btn" style="color: #94a3b8;">Slide Decks</button>
+        <button id="tab-creative-subtitles" class="tab-btn" style="color: #94a3b8;">Subtitles (SRT/VTT)</button>
+        <button id="tab-creative-speech" class="tab-btn" style="color: #94a3b8;">Speech Spec (SSML)</button>
+        <button id="tab-creative-storyboard" class="tab-btn" style="color: #94a3b8;">Storyboard Planner</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
+        <!-- Tab 1: Vector Image Generator -->
+        <div id="creative-panel-image">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="creative-img-prompt" placeholder="Artwork prompt (e.g. Cyberpunk neural core glowing in dark space)" value="Cyberpunk neural core glowing in dark space" style="flex: 2; min-width: 260px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="creative-img-style" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="cyberpunk">Cyberpunk</option>
+              <option value="digital_art" selected>Digital Art</option>
+              <option value="vector">Vector</option>
+              <option value="minimalist">Minimalist</option>
+              <option value="photorealistic">Photorealistic</option>
+            </select>
+            <select id="creative-img-ar" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="16:9" selected>16:9 Landscape</option>
+              <option value="1:1">1:1 Square</option>
+              <option value="4:3">4:3 Presentation</option>
+              <option value="9:16">9:16 Mobile</option>
+            </select>
+            <button id="creative-gen-img-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Generate Artwork</button>
+          </div>
+          <div id="creative-img-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; text-align: center; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Generate rich, scale-independent vector SVG graphics with gradients, focal geometry, and styling.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Graphic Designer -->
+        <div id="creative-panel-graphic" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="creative-gfx-title" placeholder="Graphic Title" value="JARVIS AI Autonomous Network" style="flex: 2; min-width: 200px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <input type="text" id="creative-gfx-subtitle" placeholder="Subtitle" value="Production Grade Architecture • Verified Intelligence" style="flex: 2; min-width: 200px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="creative-gfx-layout" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="banner" selected>Banner (1200x630)</option>
+              <option value="poster">Poster (800x1200)</option>
+              <option value="badge">Badge (400x400)</option>
+              <option value="infographic">Infographic (900x1600)</option>
+            </select>
+            <select id="creative-gfx-theme" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="dark_neon" selected>Dark Neon</option>
+              <option value="academic_clean">Academic Clean</option>
+              <option value="modern_gradient">Modern Gradient</option>
+            </select>
+            <button id="creative-gen-gfx-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Compose Graphic</button>
+          </div>
+          <div id="creative-gfx-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; text-align: center; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Compose banners, posters, badges, and infographics with automated typography and layout frames.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: Slide Decks -->
+        <div id="creative-panel-deck" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="creative-deck-topic" placeholder="Presentation Topic" value="Architectural Blueprint for Autonomous Second Brains" style="flex: 2; min-width: 250px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <input type="text" id="creative-deck-aud" placeholder="Target Audience" value="Engineers & Researchers" style="flex: 1; min-width: 150px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="creative-deck-slides" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="5" selected>5 Slides</option>
+              <option value="7">7 Slides</option>
+              <option value="10">10 Slides</option>
+            </select>
+            <button id="creative-gen-deck-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Build Deck</button>
+          </div>
+          <div id="creative-deck-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Synthesize structured slide decks with speaker notes, visual cues, and exportable standalone HTML presentation code.</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Subtitles -->
+        <div id="creative-panel-subtitles" class="hidden">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <textarea id="creative-sub-transcript" placeholder="Enter transcript text..." rows="3" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; font-family: inherit;">Welcome to JARVIS, the personal AI assistant and second brain. In this module, we demonstrate real-time creative generation and autonomous multi-agent orchestration.</textarea>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="creative-sub-format" style="padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+                <option value="srt" selected>SubRip (SRT)</option>
+                <option value="vtt">WebVTT (VTT)</option>
+              </select>
+              <button id="creative-gen-sub-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Generate Subtitles</button>
+            </div>
+          </div>
+          <div id="creative-sub-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 350px; overflow-y: auto; font-family: monospace; white-space: pre-wrap;">
+            <p style="color: #94a3b8; margin: 0; font-family: sans-serif;">Precision subtitle cue timing generator formatted for standard video players and YouTube/Vimeo uploads.</p>
+          </div>
+        </div>
+
+        <!-- Tab 5: Speech Spec -->
+        <div id="creative-panel-speech" class="hidden">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <textarea id="creative-speech-text" placeholder="Text for speech synthesis specification..." rows="3" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; font-family: inherit;">Greetings Dwight. Security protocols are fully verified. All agent capabilities remain operational under your control.</textarea>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="creative-speech-gender" style="padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+                <option value="male" selected>Male Voice</option>
+                <option value="female">Female Voice</option>
+                <option value="neutral">Neutral Voice</option>
+              </select>
+              <label style="color: #cbd5e1; font-size: 0.85rem;">Rate:
+                <input type="number" id="creative-speech-rate" value="1.0" min="0.5" max="2.0" step="0.1" style="width: 60px; padding: 0.3rem; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #fff;" />
+              </label>
+              <button id="creative-gen-speech-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Generate SSML Spec</button>
+            </div>
+          </div>
+          <div id="creative-speech-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 350px; overflow-y: auto; font-family: monospace; white-space: pre-wrap;">
+            <p style="color: #94a3b8; margin: 0; font-family: sans-serif;">W3C-compliant SSML specification with prosody rate, pitch, sentence breaks, and duration telemetry.</p>
+          </div>
+        </div>
+
+        <!-- Tab 6: Storyboard Planner -->
+        <div id="creative-panel-storyboard" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="creative-sb-title" placeholder="Project Title" value="JARVIS: Dawn of Autonomous Intelligence" style="flex: 2; min-width: 220px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <input type="text" id="creative-sb-concept" placeholder="Visual Concept" value="A personal AI system protecting and elevating human potential in high security" style="flex: 3; min-width: 250px; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="creative-sb-scenes" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="5" selected>5 Scenes</option>
+              <option value="6">6 Scenes</option>
+              <option value="8">8 Scenes</option>
+            </select>
+            <button id="creative-gen-sb-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Plan Storyboard</button>
+          </div>
+          <div id="creative-sb-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Cinematic storyboard planner with scene-by-scene camera framing, dialogue, audio cues, transitions, and render manifest.</p>
           </div>
         </div>
       </div>

@@ -2495,6 +2495,356 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 13: CREATIVE STUDIO CONTROLLER ====================
+  const creativeModal = document.getElementById('creative-modal');
+  const creativeToggleBtn = document.getElementById('creative-toggle-btn');
+  const closeCreativeBtn = document.getElementById('close-creative-btn');
+
+  if (creativeModal && creativeToggleBtn) {
+    creativeToggleBtn.addEventListener('click', () => {
+      creativeModal.classList.remove('hidden');
+    });
+
+    if (closeCreativeBtn) {
+      closeCreativeBtn.addEventListener('click', () => {
+        creativeModal.classList.add('hidden');
+      });
+    }
+
+    creativeModal.addEventListener('click', (e) => {
+      if (e.target === creativeModal) {
+        creativeModal.classList.add('hidden');
+      }
+    });
+
+    // Subtab switching
+    const tabImage = document.getElementById('tab-creative-image');
+    const tabGraphic = document.getElementById('tab-creative-graphic');
+    const tabDeck = document.getElementById('tab-creative-deck');
+    const tabSubtitles = document.getElementById('tab-creative-subtitles');
+    const tabSpeech = document.getElementById('tab-creative-speech');
+    const tabStoryboard = document.getElementById('tab-creative-storyboard');
+
+    const panelImage = document.getElementById('creative-panel-image');
+    const panelGraphic = document.getElementById('creative-panel-graphic');
+    const panelDeck = document.getElementById('creative-panel-deck');
+    const panelSubtitles = document.getElementById('creative-panel-subtitles');
+    const panelSpeech = document.getElementById('creative-panel-speech');
+    const panelStoryboard = document.getElementById('creative-panel-storyboard');
+
+    const tabsList = [
+      { tab: tabImage, panel: panelImage },
+      { tab: tabGraphic, panel: panelGraphic },
+      { tab: tabDeck, panel: panelDeck },
+      { tab: tabSubtitles, panel: panelSubtitles },
+      { tab: tabSpeech, panel: panelSpeech },
+      { tab: tabStoryboard, panel: panelStoryboard },
+    ];
+
+    tabsList.forEach(({ tab, panel }) => {
+      if (!tab || !panel) return;
+      tab.addEventListener('click', () => {
+        tabsList.forEach(({ tab: t, panel: p }) => {
+          if (t) {
+            t.classList.remove('active');
+            t.style.color = '#94a3b8';
+            t.style.borderBottom = 'none';
+          }
+          if (p) p.classList.add('hidden');
+        });
+        tab.classList.add('active');
+        tab.style.color = '#c084fc';
+        tab.style.borderBottom = '2px solid #a855f7';
+        panel.classList.remove('hidden');
+      });
+    });
+
+    // 1. Vector Image Generator
+    const genImgBtn = document.getElementById('creative-gen-img-btn');
+    const imgPromptInput = document.getElementById('creative-img-prompt');
+    const imgStyleSelect = document.getElementById('creative-img-style');
+    const imgArSelect = document.getElementById('creative-img-ar');
+    const imgResult = document.getElementById('creative-img-result');
+
+    if (genImgBtn && imgResult) {
+      genImgBtn.addEventListener('click', async () => {
+        try {
+          const prompt = (imgPromptInput?.value || '').trim();
+          if (!prompt) return;
+          const style = imgStyleSelect?.value || 'digital_art';
+          const aspectRatio = imgArSelect?.value || '16:9';
+
+          imgResult.innerHTML = '<span style="color: #a855f7;">Synthesizing vector SVG artwork...</span>';
+          const res = await fetch('/api/jarvis/creative/image/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ prompt, style, aspectRatio }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            imgResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const img = data.data;
+          imgResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: bold; color: #c084fc;">Style: ${img.style} • ${img.width}x${img.height}</span>
+              <span class="badge" style="background: #334155; color: #a855f7;">SVG Vector Output</span>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid #334155; max-width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+              ${img.contentData}
+            </div>
+          `;
+        } catch (err) {
+          imgResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Graphic Designer
+    const genGfxBtn = document.getElementById('creative-gen-gfx-btn');
+    const gfxTitleInput = document.getElementById('creative-gfx-title');
+    const gfxSubtitleInput = document.getElementById('creative-gfx-subtitle');
+    const gfxLayoutSelect = document.getElementById('creative-gfx-layout');
+    const gfxThemeSelect = document.getElementById('creative-gfx-theme');
+    const gfxResult = document.getElementById('creative-gfx-result');
+
+    if (genGfxBtn && gfxResult) {
+      genGfxBtn.addEventListener('click', async () => {
+        try {
+          const title = (gfxTitleInput?.value || '').trim();
+          const subtitle = (gfxSubtitleInput?.value || '').trim();
+          const layout = gfxLayoutSelect?.value || 'banner';
+          const theme = gfxThemeSelect?.value || 'dark_neon';
+          if (!title) return;
+
+          gfxResult.innerHTML = '<span style="color: #a855f7;">Composing vector graphic layout...</span>';
+          const res = await fetch('/api/jarvis/creative/graphic/compose', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ title, subtitle, layout, theme }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            gfxResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const gfx = data.data;
+          gfxResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: bold; color: #c084fc;">Layout: ${gfx.layout} (${gfx.width}x${gfx.height}) • Theme: ${gfx.theme}</span>
+              <span class="badge" style="background: #334155; color: #a855f7;">High-Res SVG</span>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid #334155; max-width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+              ${gfx.svgMarkup}
+            </div>
+          `;
+        } catch (err) {
+          gfxResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Slide Decks
+    const genDeckBtn = document.getElementById('creative-gen-deck-btn');
+    const deckTopicInput = document.getElementById('creative-deck-topic');
+    const deckAudienceInput = document.getElementById('creative-deck-aud');
+    const deckSlidesSelect = document.getElementById('creative-deck-slides');
+    const deckResult = document.getElementById('creative-deck-result');
+
+    if (genDeckBtn && deckResult) {
+      genDeckBtn.addEventListener('click', async () => {
+        try {
+          const topic = (deckTopicInput?.value || '').trim();
+          const targetAudience = (deckAudienceInput?.value || '').trim();
+          const slideCount = parseInt(deckSlidesSelect?.value || '5', 10);
+          if (!topic) return;
+
+          deckResult.innerHTML = '<span style="color: #a855f7;">Synthesizing structured presentation deck...</span>';
+          const res = await fetch('/api/jarvis/creative/presentation/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ topic, targetAudience, slideCount }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            deckResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const deck = data.data;
+          const slidesHtml = deck.slides.map((s) => `
+            <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #1e293b; border-radius: 6px; border-left: 3px solid #a855f7;">
+              <div style="font-weight: bold; color: #f8fafc; font-size: 0.95rem;">Slide ${s.slideNumber}: ${s.title}</div>
+              <ul style="margin: 0.4rem 0 0.4rem 1.2rem; font-size: 0.85rem; color: #cbd5e1;">
+                ${s.bulletPoints.map((bp) => `<li>${bp}</li>`).join('')}
+              </ul>
+              ${s.visualCue ? `<div style="font-size: 0.8rem; color: #38bdf8;">Visual Cue: ${s.visualCue}</div>` : ''}
+              ${s.speakerNotes ? `<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic; margin-top: 0.25rem;">Notes: ${s.speakerNotes}</div>` : ''}
+            </div>
+          `).join('');
+
+          deckResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <span style="font-weight: bold; color: #c084fc; font-size: 1rem;">${deck.topic}</span>
+                <span style="color: #94a3b8; font-size: 0.8rem;"> (${deck.totalSlides} Slides • ~${deck.estimatedMinutes} mins)</span>
+              </div>
+              <button id="view-deck-html-btn" class="btn btn-outline" style="border-color: #a855f7; color: #a855f7; font-size: 0.8rem;">Preview Export HTML</button>
+            </div>
+            ${slidesHtml}
+          `;
+
+          const viewHtmlBtn = document.getElementById('view-deck-html-btn');
+          if (viewHtmlBtn) {
+            viewHtmlBtn.addEventListener('click', () => {
+              const win = window.open('', '_blank');
+              if (win) {
+                win.document.write(deck.htmlExport);
+                win.document.close();
+              }
+            });
+          }
+        } catch (err) {
+          deckResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Subtitles
+    const genSubBtn = document.getElementById('creative-gen-sub-btn');
+    const subTranscriptInput = document.getElementById('creative-sub-transcript');
+    const subFormatSelect = document.getElementById('creative-sub-format');
+    const subResult = document.getElementById('creative-sub-result');
+
+    if (genSubBtn && subResult) {
+      genSubBtn.addEventListener('click', async () => {
+        try {
+          const transcript = (subTranscriptInput?.value || '').trim();
+          const format = subFormatSelect?.value || 'srt';
+          if (!transcript) return;
+
+          subResult.innerHTML = '<span style="color: #a855f7;">Generating subtitle cue timing...</span>';
+          const res = await fetch('/api/jarvis/creative/subtitles/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ transcript, format }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            subResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const sub = data.data;
+          subResult.innerHTML = `
+            <div style="font-weight: bold; color: #c084fc; margin-bottom: 0.5rem; font-family: sans-serif;">
+              Format: ${sub.format.toUpperCase()} • Cues: ${sub.entryCount} • Duration: ${sub.durationSeconds}s
+            </div>
+            <div>${sub.content}</div>
+          `;
+        } catch (err) {
+          subResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Speech Spec
+    const genSpeechBtn = document.getElementById('creative-gen-speech-btn');
+    const speechTextInput = document.getElementById('creative-speech-text');
+    const speechGenderSelect = document.getElementById('creative-speech-gender');
+    const speechRateInput = document.getElementById('creative-speech-rate');
+    const speechResult = document.getElementById('creative-speech-result');
+
+    if (genSpeechBtn && speechResult) {
+      genSpeechBtn.addEventListener('click', async () => {
+        try {
+          const text = (speechTextInput?.value || '').trim();
+          const voiceGender = speechGenderSelect?.value || 'male';
+          const speakingRate = parseFloat(speechRateInput?.value || '1.0');
+          if (!text) return;
+
+          speechResult.innerHTML = '<span style="color: #a855f7;">Synthesizing SSML specification...</span>';
+          const res = await fetch('/api/jarvis/creative/speech/spec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ text, voiceGender, speakingRate }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            speechResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const sp = data.data;
+          speechResult.innerHTML = `
+            <div style="font-weight: bold; color: #c084fc; margin-bottom: 0.5rem; font-family: sans-serif;">
+              Voice: ${sp.voiceGender} • Rate: ${sp.speakingRate}x • Words: ${sp.wordCount} • Est. Duration: ${sp.estimatedDurationSeconds}s
+            </div>
+            <div>${escapeHtml(sp.ssml)}</div>
+          `;
+        } catch (err) {
+          speechResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Storyboard Planner
+    const genSbBtn = document.getElementById('creative-gen-sb-btn');
+    const sbTitleInput = document.getElementById('creative-sb-title');
+    const sbConceptInput = document.getElementById('creative-sb-concept');
+    const sbScenesSelect = document.getElementById('creative-sb-scenes');
+    const sbResult = document.getElementById('creative-sb-result');
+
+    if (genSbBtn && sbResult) {
+      genSbBtn.addEventListener('click', async () => {
+        try {
+          const projectTitle = (sbTitleInput?.value || '').trim();
+          const concept = (sbConceptInput?.value || '').trim();
+          const sceneCount = parseInt(sbScenesSelect?.value || '5', 10);
+          if (!projectTitle || !concept) return;
+
+          sbResult.innerHTML = '<span style="color: #a855f7;">Planning cinematic storyboard...</span>';
+          const res = await fetch('/api/jarvis/creative/storyboard/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ projectTitle, concept, sceneCount }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            sbResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const sb = data.data;
+          const scenesHtml = sb.scenes.map((s) => `
+            <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #1e293b; border-radius: 6px; border-left: 3px solid #a855f7;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <span style="font-weight: bold; color: #f8fafc; font-size: 0.95rem;">Scene ${s.sceneNumber}: ${s.title}</span>
+                <span class="badge" style="background: #334155; color: #c084fc; font-size: 0.75rem;">Shot: ${s.cameraShot.toUpperCase()} • ${s.durationSeconds}s</span>
+              </div>
+              <p style="font-size: 0.85rem; color: #cbd5e1; margin: 0 0 0.4rem 0;"><strong>Visual:</strong> ${s.visualDescription}</p>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-bottom: 0.25rem;"><strong>Dialogue:</strong> "${s.audioDialogue}"</div>
+              ${s.soundEffects ? `<div style="font-size: 0.8rem; color: #94a3b8;"><strong>SFX:</strong> ${s.soundEffects}</div>` : ''}
+            </div>
+          `).join('');
+
+          sbResult.innerHTML = `
+            <div style="margin-bottom: 0.75rem;">
+              <span style="font-weight: bold; color: #c084fc; font-size: 1rem;">${sb.projectTitle}</span>
+              <span style="color: #94a3b8; font-size: 0.8rem;"> (${sb.totalScenes} Scenes • Total Duration: ${sb.totalDurationSeconds}s)</span>
+            </div>
+            ${scenesHtml}
+          `;
+        } catch (err) {
+          sbResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

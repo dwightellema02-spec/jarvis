@@ -30,6 +30,7 @@ export enum ResourceType {
   SECURITY = 'SECURITY',
   SYSTEM = 'SYSTEM',
   TUKLAS = 'TUKLAS',
+  CREATIVE = 'CREATIVE',
 }
 
 export type PermissionAction =

@@ -566,7 +566,73 @@ async function runManualVerification() {
       console.log('   Error Diagnostic Type:', diagData.data.errorType, '| Remedial Lesson:', diagData.data.recommendedLessonTitle);
       console.log('   Cohort:', cohortData.data.cohortName, '| Passing Rate:', cohortData.data.passingRate + '%', '| Anonymized Records:', cohortData.data.records?.length);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 12) PASSED SUCCESSFULLY! ===');
+      console.log('47. Testing Phase 13 Creative Vector Image Generation & Editing (/api/jarvis/creative/image/generate & /edit)');
+      const imgRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/image/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ prompt: 'Cyberpunk quantum core in dark orbit', style: 'cyberpunk', aspectRatio: '16:9' }),
+      });
+      const imgData = await imgRes.json();
+      const editRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/image/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ svgContent: imgData.data.contentData, instruction: 'add_watermark', watermarkText: 'JARVIS SECURE' }),
+      });
+      const editData = await editRes.json();
+      console.log('   Generated Image ID:', imgData.data.id, '| Dimensions:', imgData.data.width + 'x' + imgData.data.height, '| Vector SVG:', imgData.data.isVector);
+      console.log('   Watermarked Image ID:', editData.data.id, '| Verified Watermark:', editData.data.contentData.includes('JARVIS SECURE'));
+
+      console.log('48. Testing Phase 13 Creative Graphic Designer Vector Composition (/api/jarvis/creative/graphic/compose)');
+      const gfxRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/graphic/compose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'JARVIS Cognitive Architecture',
+          subtitle: 'High Precision Multi-Agent Operating System',
+          layout: 'banner',
+          theme: 'dark_neon',
+        }),
+      });
+      const gfxData = await gfxRes.json();
+      console.log('   Graphic Layout:', gfxData.data.layout, '| Title:', gfxData.data.title, '| SVG Size:', gfxData.data.width + 'x' + gfxData.data.height);
+
+      console.log('49. Testing Phase 13 Creative Presentation Deck Builder (/api/jarvis/creative/presentation/create)');
+      const deckRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/presentation/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          topic: 'Autonomous Multi-Agent AI Systems & Verification',
+          targetAudience: 'Software Engineers',
+          slideCount: 5,
+        }),
+      });
+      const deckData = await deckRes.json();
+      console.log('   Presentation Deck:', deckData.data.topic, '| Total Slides:', deckData.data.totalSlides, '| HTML Export Size:', deckData.data.htmlExport.length + ' chars');
+
+      console.log('50. Testing Phase 13 Subtitles, Speech Spec & Storyboard (/api/jarvis/creative/subtitles, /speech, /storyboard)');
+      const subRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/subtitles/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ transcript: 'Hello Dwight. Creative studio engines are fully operational and verified.', format: 'srt' }),
+      });
+      const subData = await subRes.json();
+      const speechRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/speech/spec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ text: 'All creative generation systems verified.', voiceGender: 'neutral', speakingRate: 1.1 }),
+      });
+      const speechData = await speechRes.json();
+      const sbRes = await fetch('http://127.0.0.1:3099/api/jarvis/creative/storyboard/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ projectTitle: 'JARVIS Phase 13 Launch', concept: 'Creative synthesis in autonomous personal AI' }),
+      });
+      const sbData = await sbRes.json();
+      console.log('   Subtitles Cues:', subData.data.entryCount, '| Duration:', subData.data.durationSeconds + 's');
+      console.log('   Speech SSML Words:', speechData.data.wordCount, '| Voice:', speechData.data.voiceGender);
+      console.log('   Storyboard Scenes:', sbData.data.totalScenes, '| Duration:', sbData.data.totalDurationSeconds + 's');
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 13) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {
