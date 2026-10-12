@@ -66,6 +66,18 @@ import {
   DataVisualizeTool,
   DataPipelineTool,
 } from '../data/index.js';
+import {
+  CodingManager,
+  CodingAgent,
+  CodeInspectRepoTool,
+  CodeSearchTool,
+  CodeAnalyzeTool,
+  CodeReviewTool,
+  CodeProposePatchTool,
+  CodeApplyPatchTool,
+  CodeRollbackTool,
+  CodeDebugErrorTool,
+} from '../coding/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -84,6 +96,7 @@ export interface JarvisCoreConfig {
   mathEngine?: MathematicsEngine;
   researchManager?: ResearchManager;
   dataStatisticsManager?: DataStatisticsManager;
+  codingManager?: CodingManager;
 }
 
 export interface JarvisChatRequest {
@@ -124,6 +137,7 @@ export class JarvisCore {
   private mathEngine: MathematicsEngine;
   private researchManager: ResearchManager;
   private dataStatisticsManager: DataStatisticsManager;
+  private codingManager: CodingManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -250,7 +264,23 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new DataVisualizeTool(this.dataStatisticsManager));
     this.toolRegistry.registerImplementation(new DataPipelineTool(this.dataStatisticsManager));
 
-    logger.info('JARVIS Core initialized with Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Coding Engine, Agent, and Tools
+    this.codingManager =
+      config.codingManager ||
+      new CodingManager(this.permissionManager, this.guardian, this.auditLogger);
+    const codingAgent = new CodingAgent(this.codingManager);
+    this.agentRegistry.registerImplementation(codingAgent);
+
+    this.toolRegistry.registerImplementation(new CodeInspectRepoTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeSearchTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeAnalyzeTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeReviewTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeProposePatchTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeApplyPatchTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeRollbackTool(this.codingManager));
+    this.toolRegistry.registerImplementation(new CodeDebugErrorTool(this.codingManager));
+
+    logger.info('JARVIS Core initialized with Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -596,6 +626,10 @@ export class JarvisCore {
 
   public getDataStatisticsManager(): DataStatisticsManager {
     return this.dataStatisticsManager;
+  }
+
+  public getCodingManager(): CodingManager {
+    return this.codingManager;
   }
 
   public async orchestrate(

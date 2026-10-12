@@ -1322,6 +1322,336 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Phase 10: Coding Agent & AST Engine Modal
+  const codingToggleBtn = document.getElementById('coding-toggle-btn');
+  const codingModal = document.getElementById('coding-modal');
+  const closeCodingModalBtn = document.getElementById('close-coding-modal');
+
+  if (codingToggleBtn && codingModal && closeCodingModalBtn) {
+    codingToggleBtn.addEventListener('click', () => {
+      codingModal.classList.remove('hidden');
+    });
+    closeCodingModalBtn.addEventListener('click', () => {
+      codingModal.classList.add('hidden');
+    });
+    codingModal.addEventListener('click', (e) => {
+      if (e.target === codingModal) codingModal.classList.add('hidden');
+    });
+
+    // Subtabs switching
+    const codeTabs = codingModal.querySelectorAll('.sb-tab[data-codetab]');
+    const codePanels = {
+      inspect: document.getElementById('code-panel-inspect'),
+      search: document.getElementById('code-panel-search'),
+      analyze: document.getElementById('code-panel-analyze'),
+      review: document.getElementById('code-panel-review'),
+      patch: document.getElementById('code-panel-patch'),
+      debug: document.getElementById('code-panel-debug'),
+    };
+
+    codeTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabKey = tab.getAttribute('data-codetab');
+        codeTabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        Object.keys(codePanels).forEach((k) => {
+          if (codePanels[k]) {
+            if (k === tabKey) {
+              codePanels[k].classList.remove('hidden');
+            } else {
+              codePanels[k].classList.add('hidden');
+            }
+          }
+        });
+      });
+    });
+
+    // 1. Inspect Repo
+    const runInspectBtn = document.getElementById('code-run-inspect-btn');
+    const inspectResult = document.getElementById('code-inspect-result');
+    if (runInspectBtn && inspectResult) {
+      runInspectBtn.addEventListener('click', async () => {
+        try {
+          inspectResult.innerHTML = '<span style="color: #06b6d4;">Scanning repository tree...</span>';
+          const res = await fetch('/api/jarvis/code/inspect');
+          const data = await res.json();
+          if (!data.success) {
+            inspectResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const t = data.data;
+          const langBars = Object.entries(t.languages || {})
+            .map(([lang, info]) => `<span style="display: inline-block; margin-right: 0.75rem; font-size: 0.85rem;"><strong>${lang}:</strong> ${info.percentage}% (${info.fileCount} files)</span>`)
+            .join('');
+
+          inspectResult.innerHTML = `
+            <div style="font-weight: bold; color: #06b6d4; margin-bottom: 0.5rem;">Repository Overview (${t.totalFiles} files, ${t.totalDirectories} directories)</div>
+            <div style="margin-bottom: 0.75rem; background: #1e293b; padding: 0.5rem; border-radius: 6px;">${langBars}</div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">Entry Points: <code>${t.entryPoints.join(', ') || 'none'}</code></div>
+            <details>
+              <summary style="cursor: pointer; color: #94a3b8; font-size: 0.85rem;">View File Tree (${t.tree && t.tree.children ? t.tree.children.length : 0} top-level nodes)</summary>
+              <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; max-height: 250px;">${JSON.stringify(t.tree, null, 2)}</pre>
+            </details>
+          `;
+        } catch (err) {
+          inspectResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Search Code
+    const runSearchBtn = document.getElementById('code-run-search-btn');
+    const searchQueryInput = document.getElementById('code-search-query');
+    const searchResult = document.getElementById('code-search-result');
+    if (runSearchBtn && searchResult) {
+      runSearchBtn.addEventListener('click', async () => {
+        try {
+          const pattern = searchQueryInput.value.trim();
+          if (!pattern) return;
+          searchResult.innerHTML = '<span style="color: #06b6d4;">Searching codebase...</span>';
+          const res = await fetch('/api/jarvis/code/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: pattern }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            searchResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const matches = data.data.matches || [];
+          if (matches.length === 0) {
+            searchResult.innerHTML = `<span style="color: #94a3b8;">No matches found for "${pattern}".</span>`;
+            return;
+          }
+          const matchesHtml = matches.map((m) => `
+            <div style="margin-bottom: 0.5rem; background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+              <div style="color: #06b6d4; font-weight: bold;">${m.filePath}:${m.lineNumber}</div>
+              <pre style="margin: 0.25rem 0 0 0; color: #f8fafc; font-family: monospace;">${m.lineContent.trim()}</pre>
+            </div>
+          `).join('');
+          searchResult.innerHTML = `
+            <div style="font-weight: bold; color: #10b981; margin-bottom: 0.5rem;">Found ${data.data.matchCount} matches across ${data.data.filesSearched} files:</div>
+            ${matchesHtml}
+          `;
+        } catch (err) {
+          searchResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. AST Analyze
+    const runAnalyzeBtn = document.getElementById('code-run-analyze-btn');
+    const analyzePathInput = document.getElementById('code-analyze-path');
+    const analyzeResult = document.getElementById('code-analyze-result');
+    if (runAnalyzeBtn && analyzeResult) {
+      runAnalyzeBtn.addEventListener('click', async () => {
+        try {
+          const relativePath = analyzePathInput.value.trim();
+          analyzeResult.innerHTML = '<span style="color: #06b6d4;">Analyzing AST and metrics...</span>';
+          const res = await fetch('/api/jarvis/code/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: relativePath }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            analyzeResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const ast = data.data;
+          const symbolNames = (ast.symbols || []).map((s) => s.name);
+          analyzeResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #06b6d4;">${ast.filePath}</span>
+              <span class="badge" style="background: #0e7490; color: #fff;">Maintainability: ${ast.maintainabilityScore}/100</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+              Lines of Code: <strong>${ast.lineCount}</strong> | Cyclomatic Complexity: <strong>${ast.estimatedComplexity}</strong>
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              Symbols (${symbolNames.length}): <code>${symbolNames.slice(0, 10).join(', ')}${symbolNames.length > 10 ? '...' : ''}</code>
+            </div>
+          `;
+        } catch (err) {
+          analyzeResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Code & Security Review
+    const runReviewBtn = document.getElementById('code-run-review-btn');
+    const reviewPathInput = document.getElementById('code-review-path');
+    const reviewResult = document.getElementById('code-review-result');
+    if (runReviewBtn && reviewResult) {
+      runReviewBtn.addEventListener('click', async () => {
+        try {
+          const relativePath = reviewPathInput.value.trim();
+          reviewResult.innerHTML = '<span style="color: #06b6d4;">Auditing code & security vulnerabilities...</span>';
+          const res = await fetch('/api/jarvis/code/review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: relativePath }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            reviewResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const rev = data.data;
+          const rulesHtml = (rev.rulesEvaluated || []).map((r) => `
+            <div style="margin-bottom: 0.5rem; background: #1e293b; padding: 0.5rem; border-radius: 4px; border-left: 3px solid ${r.passed ? '#10b981' : '#ef4444'};">
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <strong>${r.title}</strong>
+                <span class="badge" style="background: ${r.passed ? '#065f46' : '#7f1d1d'}; color: #fff;">${r.passed ? 'PASSED' : r.severity.toUpperCase()}</span>
+              </div>
+              ${r.findings.length > 0 ? `<div style="font-size: 0.8rem; color: #ef4444; margin-top: 0.25rem;">${r.findings.join('; ')}</div>` : ''}
+            </div>
+          `).join('');
+
+          reviewResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #06b6d4;">Review: ${rev.filePath}</span>
+              <span class="badge" style="background: ${rev.securityChecksPassed ? '#065f46' : '#7f1d1d'}; color: #fff;">
+                Score: ${rev.overallScore}/100
+              </span>
+            </div>
+            <div style="margin-bottom: 0.5rem;">${rulesHtml}</div>
+            <div style="font-size: 0.85rem; color: #94a3b8; background: #0b1329; padding: 0.5rem; border-radius: 4px;">
+              ${rev.summary}
+            </div>
+          `;
+        } catch (err) {
+          reviewResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Propose & Apply Patch
+    const proposeBtn = document.getElementById('code-propose-btn');
+    const applyBtn = document.getElementById('code-apply-btn');
+    const patchFileInput = document.getElementById('code-patch-file');
+    const patchContentInput = document.getElementById('code-patch-content');
+    const patchResult = document.getElementById('code-patch-result');
+    let lastProposal = null;
+
+    if (proposeBtn && patchResult) {
+      proposeBtn.addEventListener('click', async () => {
+        try {
+          const relativePath = patchFileInput.value.trim();
+          const replacementContent = patchContentInput.value;
+          if (!relativePath) {
+            alert('Please specify a relative file path');
+            return;
+          }
+          patchResult.innerHTML = '<span style="color: #06b6d4;">Generating diff proposal...</span>';
+          const res = await fetch('/api/jarvis/code/propose', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filePath: relativePath,
+              targetContent: '',
+              replacementContent,
+              reason: 'UI Patch Proposal',
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            patchResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          lastProposal = data.data;
+          patchResult.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 0.5rem;">Diff Proposed: +${lastProposal.linesAdded} / -${lastProposal.linesRemoved} lines (Risk: ${lastProposal.riskLevel})</div>
+            <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc; max-height: 200px;">${lastProposal.diffPreview || 'No changes.'}</pre>
+          `;
+        } catch (err) {
+          patchResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (applyBtn && patchResult) {
+      applyBtn.addEventListener('click', async () => {
+        try {
+          if (!lastProposal) {
+            alert('Please propose a patch first.');
+            return;
+          }
+          patchResult.innerHTML = '<span style="color: #06b6d4;">Applying patch atomically with disk backup...</span>';
+          const res = await fetch('/api/jarvis/code/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ proposal: lastProposal, confirmed: true }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            patchResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const mod = data.data;
+          patchResult.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 0.5rem;">Patch Applied Successfully!</div>
+            <div style="font-size: 0.85rem; color: #cbd5e1;">
+              File: <strong>${mod.filePath}</strong><br/>
+              Backup Created: <code>${mod.backupPath || 'None'}</code><br/>
+              Verified on disk: <strong>${mod.verified ? 'YES' : 'NO'}</strong>
+            </div>
+          `;
+        } catch (err) {
+          patchResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Error Debugger
+    const runDebugBtn = document.getElementById('code-run-debug-btn');
+    const debugTraceInput = document.getElementById('code-debug-trace');
+    const debugResult = document.getElementById('code-debug-result');
+    if (runDebugBtn && debugResult) {
+      runDebugBtn.addEventListener('click', async () => {
+        try {
+          const rawTrace = debugTraceInput.value.trim();
+          if (!rawTrace) return;
+          debugResult.innerHTML = '<span style="color: #06b6d4;">Diagnosing error stack trace...</span>';
+          const res = await fetch('/api/jarvis/code/debug', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rawError: rawTrace }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            debugResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const diag = data.data;
+          debugResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #ef4444;">${diag.errorType}: ${diag.errorMessage}</span>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; color: #f8fafc; margin-bottom: 0.5rem;">
+              <strong>Root Cause:</strong> ${diag.rootCauseAnalysis}
+            </div>
+            <div style="color: #10b981; font-size: 0.85rem;">
+              <strong>Suggested Fix:</strong> ${(diag.suggestedFixes || []).join('; ')}
+            </div>
+          `;
+        } catch (err) {
+          debugResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+            <div style="color: #10b981; font-size: 0.85rem;">
+              <strong>Suggested Fix:</strong> ${diag.suggestedFix}
+            </div>
+          `;
+        } catch (err) {
+          debugResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

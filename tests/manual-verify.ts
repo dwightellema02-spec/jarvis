@@ -1,5 +1,7 @@
 import { createApp } from '../src/server/app.js';
 import { MockAIProvider } from '../src/providers/mock-provider.js';
+import * as path from 'path';
+import * as fs from 'fs';
 
 async function runManualVerification() {
   console.log('=== RUNNING JARVIS PHASE 1 MANUAL END-TO-END VERIFICATION ===');
@@ -393,7 +395,74 @@ async function runManualVerification() {
       console.log('   One-Sample t-Test:', tTestData.data.isSignificant ? 'Significant (p < 0.05)' : 'Not Significant', '| Conclusion:', tTestData.data.conclusion);
       console.log('   SVG Chart Generated (length bytes):', vizData.data.svg.length, '| ASCII Preview: First line ->', vizData.data.ascii.split('\n')[0]);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6, 7, 8 & 9) PASSED SUCCESSFULLY! ===');
+      console.log('35. Testing Phase 10 Repository Tree & Stats (GET /api/jarvis/code/inspect)');
+      const inspectRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/inspect', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const inspectData = await inspectRes.json();
+      console.log('   Scanned Files:', inspectData.data.totalFiles, '| Directories:', inspectData.data.totalDirectories, '| Languages:', Object.keys(inspectData.data.languages).join(', '));
+
+      console.log('36. Testing Phase 10 Code Search & AST Analysis (/api/jarvis/code/search & /analyze)');
+      const codeSearchRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ query: 'PermissionLevel' }),
+      });
+      const codeSearchData = await codeSearchRes.json();
+      const astRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ filePath: path.resolve(process.cwd(), 'src/core/jarvis-core.ts') }),
+      });
+      const astData = await astRes.json();
+      console.log('   Search Matches:', codeSearchData.data.matchCount, '| Scanned Files:', codeSearchData.data.filesSearched);
+      console.log('   AST Lines:', astData.data.lineCount, '| Complexity:', astData.data.estimatedComplexity, '| Maintainability:', astData.data.maintainabilityScore);
+
+      console.log('37. Testing Phase 10 Code Review & Security Audit (POST /api/jarvis/code/review)');
+      const reviewRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ filePath: path.resolve(process.cwd(), 'src/security/guardian.ts') }),
+      });
+      const reviewData = await reviewRes.json();
+      console.log('   Security Checks Passed:', reviewData.data.securityChecksPassed, '| Score:', reviewData.data.overallScore);
+
+      console.log('38. Testing Phase 10 Safe Modification Proposal & Error Debugging');
+      const sampleVerifyPath = path.resolve(process.cwd(), 'tests/fixtures/phase10_verify.txt');
+      fs.writeFileSync(sampleVerifyPath, 'initial content\n', 'utf-8');
+      const proposeRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          filePath: sampleVerifyPath,
+          targetContent: 'initial content',
+          replacementContent: 'updated verified content',
+          reason: 'Phase 10 manual verification',
+        }),
+      });
+      const proposeData = await proposeRes.json();
+      const applyRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          proposal: proposeData.data,
+          confirmed: true,
+        }),
+      });
+      const applyData = await applyRes.json();
+      const debugRes = await fetch('http://127.0.0.1:3099/api/jarvis/code/debug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          rawError: 'TypeError: Cannot read properties of undefined (reading "execute")\n    at Object.test (C:\\Users\\dwight\\.gemini\\antigravity\\scratch\\jarvis\\src\\core\\jarvis-core.ts:42:15)',
+        }),
+      });
+      const debugData = await debugRes.json();
+      console.log('   Applied Modification File:', applyData.data.filePath, '| Verified:', applyData.data.verified);
+      console.log('   Error Debugger Type:', debugData.data.errorType, '| Root Cause:', debugData.data.rootCauseAnalysis);
+      if (fs.existsSync(sampleVerifyPath)) fs.unlinkSync(sampleVerifyPath);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 10) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

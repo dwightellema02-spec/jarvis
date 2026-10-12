@@ -32,3 +32,6 @@ logs/
 *.sqlite3
 data/*.db
 scratch_plan.md
+.jarvis_backups/
+**/.*jarvis_backups*/
+tests/fixtures/

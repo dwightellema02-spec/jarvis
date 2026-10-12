@@ -191,6 +191,14 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/documents/compare` | Phase 6 Compare two documents side-by-side |
 | `POST` | `/api/jarvis/documents/:id/analyze-table` | Phase 6 Tabular analytics, statistics, filters, and insights |
 | `POST` | `/api/jarvis/documents/:id/to-knowledge` | Phase 6 Synthesize document takeaways into Second Brain graph |
+| `GET` | `/api/jarvis/code/inspect` | Phase 10 Inspect repository structure, languages, tree, and entry points |
+| `POST` | `/api/jarvis/code/search` | Phase 10 Search codebase with regex or substring and context lines |
+| `POST` | `/api/jarvis/code/analyze` | Phase 10 Analyze AST symbols, cyclomatic complexity, and maintainability |
+| `POST` | `/api/jarvis/code/review` | Phase 10 Automated code review and security vulnerability audit |
+| `POST` | `/api/jarvis/code/propose` | Phase 10 Propose safe diff modification with line counts and risk evaluation |
+| `POST` | `/api/jarvis/code/apply` | Phase 10 Atomically apply patch with verified disk check and backup |
+| `POST` | `/api/jarvis/code/rollback` | Phase 10 Roll back modified file to previous timestamped backup |
+| `POST` | `/api/jarvis/code/debug` | Phase 10 Parse error stack trace and generate root cause fix proposals |
 
 ---
 
@@ -391,9 +399,47 @@ Generates standalone SVG visualizations with terminal ASCII fallbacks:
 
 ---
 
+## 💻 Phase 10 Architecture: Coding Agent & AST Engine
+
+JARVIS features a full-featured Coding Intelligence engine operating under strict security and permission rules:
+
+### 1. Repository Inspector & Language Profiler
+* **Tree Traversal**: Safely traverses directory trees while strictly ignoring `.git`, `node_modules`, `dist`, `.env`, and build artifacts.
+* **Language Breakdown**: Measures file counts and byte sizes by file extension to compute accurate language percentages (TypeScript, JavaScript, JSON, Markdown, HTML, CSS, etc.).
+* **Entry Point Detection**: Automatically identifies application entry points (`index.ts`, `app.ts`, `server.ts`, `main.py`, `index.js`).
+
+### 2. Code Search (Grep Engine)
+* Fast regex or literal substring search across codebase files.
+* Extracts match line numbers, line contents, and surrounding context lines (default 2 before and 2 after).
+
+### 3. AST & Structural Code Analysis
+* **Symbol Extraction**: Detects classes, interfaces, functions, methods, imports, and exports with line numbers and signatures.
+* **Cyclomatic Complexity Estimation**: Measures branch decision points (`if`, `for`, `while`, `case`, `catch`, `&&`, `||`, ternary `?`).
+* **Maintainability Index**: Combines cyclomatic complexity, lines of code, and symbol density to compute a maintainability score ($0-100$).
+* **Code Smells**: Flags overly complex functions, dead imports, and large files exceeding maintainability thresholds.
+
+### 4. Automated Code & Security Review
+* **Security Audit**: Scans for dangerous `eval()`, hardcoded credentials/tokens (`API_KEY`, `secret`, `password`), path traversal, prototype pollution (`__proto__`), and unhandled promises.
+* **Best Practices**: Evaluates error handling, input validation, and typing consistency.
+* Returns an overall review score ($0-100$), detailed pass/fail rule evaluation, and actionable recommendations.
+
+### 5. Safe Atomic Modification & Rollback Engine
+* **Path Boundary Protection**: Enforces workspace boundary containment, categorically rejecting path traversal attacks (`..`, `/`, `\`).
+* **Diff Proposals**: Generates unified diff previews, lines added/removed, and dynamic risk level (`LOW`, `MEDIUM`, `HIGH`).
+* **Automated Disk Backups**: Prior to modifying any file, generates a timestamped `.bak` backup in `.jarvis_backups/`.
+* **Atomic Writes**: Writes modifications and verifies file integrity directly on disk with SHA256 checksums.
+* **Instant Rollback**: Restores original file content from the latest backup upon user command.
+
+### 6. Error Stack Trace Debugger
+* **V8 Stack Trace Parser**: Parses Node.js and TypeScript runtime stack traces into structured frames (`file`, `line`, `column`, `functionName`, `isProjectCode`).
+* **Error Classification**: Identifies error families (`TypeError`, `ReferenceError`, `SyntaxError`, `RangeError`, `AssertionError`).
+* **Root Cause Diagnostics**: Analyzes project line context to formulate an evidence-based root cause hypothesis and step-by-step fix recommendations.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (228 automated tests across 33 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, and Visualizations):
+Run the full Vitest suite (242 automated tests across 36 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, and Stack Trace Debugging):
 ```bash
 # Run all tests
 npm test
