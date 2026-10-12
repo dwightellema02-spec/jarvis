@@ -172,6 +172,15 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/memory/correct` | Phase 4 Correct past memories with audit trail |
 | `GET` | `/api/jarvis/memory/corrections` | Phase 4 Query history of memory corrections |
 | `DELETE` | `/api/jarvis/memory/:id` | Phase 4 Delete memory record with permission checks |
+| `GET` | `/api/jarvis/second-brain/tree` | Phase 5 Query full Second Brain hierarchical tree structure |
+| `GET` | `/api/jarvis/second-brain/nodes` | Phase 5 List knowledge nodes with category & tag filters |
+| `GET` | `/api/jarvis/second-brain/nodes/:id` | Phase 5 Get specific knowledge node by ID |
+| `POST` | `/api/jarvis/second-brain/nodes` | Phase 5 Create knowledge node (gated by WRITE DATABASES) |
+| `PUT` | `/api/jarvis/second-brain/nodes/:id` | Phase 5 Update knowledge node |
+| `DELETE` | `/api/jarvis/second-brain/nodes/:id` | Phase 5 Delete knowledge node with relationship cascades |
+| `POST` | `/api/jarvis/second-brain/nodes/:id/relate` | Phase 5 Create knowledge graph edge between nodes |
+| `GET` | `/api/jarvis/second-brain/search` | Phase 5 Hybrid semantic & keyword knowledge search |
+| `GET` | `/api/jarvis/second-brain/context` | Phase 5 Context distillation for prompt injection |
 
 ---
 
@@ -200,9 +209,24 @@ JARVIS provides persistent conversational memory with strict anti-hallucination 
 
 ---
 
+## 🌐 Phase 5 Architecture: Second Brain & Knowledge Graph
+
+JARVIS organizes persistent knowledge into a structured Second Brain knowledge graph:
+* **Root Hierarchy**: Centered on `YOU`, branching into five core pillars:
+  * `Study & Learning`: Curriculum tracks (Calculus, Linear Algebra, ODEs, LET Licensure Review).
+  * `Projects`: Workspaces and architectures (JARVIS, Tuklas EdTech Platform).
+  * `Goals`: Milestones, target dates, and priority classifications.
+  * `Schedule & Commitments`: Review blocks, deadlines, and milestone schedules.
+  * `Knowledge & Notes`: Pedagogical concepts, research notes, and architectural security standards.
+* **Graph Engine**: Semantic similarity scoring, token overlap, bidirectional relationship edges, and hierarchical tree visualization.
+* **Context Distillation**: Semantic search injects top-ranking knowledge nodes directly into the core AI chat prompt, grounding responses in verified facts.
+* **Permission Control**: Knowledge modification requires authorized `WRITE` permissions on `ResourceType.DATABASES`.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (99 automated tests across 16 test files covering unit, integration, security, orchestration, profile, and memory specifications):
+Run the full Vitest suite (112 automated tests across 18 test files covering unit, integration, security, orchestration, profile, memory, and Second Brain specifications):
 ```bash
 # Run all tests
 npm test

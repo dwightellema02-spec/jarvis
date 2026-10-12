@@ -25,6 +25,7 @@ import { createSecurityRouter } from './routes/security.js';
 import { createAuditRouter } from './routes/audit.js';
 import { createProfileRouter } from './routes/profile.js';
 import { createMemoryRouter } from './routes/memory.js';
+import { createSecondBrainRouter } from './routes/second-brain.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -127,11 +128,12 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.4.0-phase4';
+  const version = '0.5.0-phase5';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
   app.use('/api/jarvis/memory', createMemoryRouter(core));
+  app.use('/api/jarvis/second-brain', createSecondBrainRouter(core));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

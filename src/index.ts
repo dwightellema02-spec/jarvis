@@ -27,12 +27,15 @@ export * from './providers/provider-factory.js';
 export * from './session/types.js';
 export * from './session/session-manager.js';
 
-// Memory, Storage & Knowledge (Phase 4 Conversation Memory)
+// Memory, Storage & Knowledge (Phase 4 & 5: Second Brain & Knowledge)
 export * from './memory/memory.interface.js';
 export * from './memory/knowledge.interface.js';
 export * from './memory/types.js';
 export * from './memory/relevance-engine.js';
 export * from './memory/conversation-memory-manager.js';
+export * from './memory/knowledge-graph-engine.js';
+export * from './memory/second-brain-seeds.js';
+export * from './memory/second-brain-manager.js';
 export * from './projects/project.interface.js';
 export * from './storage/database.interface.js';
 export * from './storage/memory-db.js';

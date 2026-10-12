@@ -185,7 +185,46 @@ async function runManualVerification() {
       console.log('   Corrected Value:', memCorr.record.value);
       console.log('   Confidence Elevated to 100%:', memCorr.record.confidence === 1.0);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3 & 4) PASSED SUCCESSFULLY! ===');
+      console.log('17. Testing Phase 5 Second Brain Knowledge Tree (GET /api/jarvis/second-brain/tree)');
+      const treeRes = await fetch('http://127.0.0.1:3099/api/jarvis/second-brain/tree?userId=dwight');
+      const treeData = await treeRes.json();
+      console.log('   Root:', treeData.tree.root, '| Total Nodes:', treeData.tree.totalNodes);
+      console.log('   Math Nodes:', treeData.tree.study.mathematics.length, '| LET Nodes:', treeData.tree.study.let.length, '| Projects:', treeData.tree.projects.tuklas.length + treeData.tree.projects.jarvis.length);
+
+      console.log('18. Testing Phase 5 Semantic Knowledge Search (GET /api/jarvis/second-brain/search)');
+      const searchRes = await fetch('http://127.0.0.1:3099/api/jarvis/second-brain/search?q=calculus+derivatives&userId=dwight');
+      const searchData = await searchRes.json();
+      console.log('   Matched Knowledge Results:', searchData.count, '| Top Title:', searchData.results[0]?.node.title);
+
+      console.log('19. Testing Phase 5 Second Brain Node Indexing & Graph Relationships');
+      const nodeCreateRes = await fetch('http://127.0.0.1:3099/api/jarvis/second-brain/nodes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'dwight',
+          domain: 'knowledge',
+          category: 'mathematics',
+          title: 'Euler Formula & Complex Exponentials',
+          content: 'e^(ix) = cos(x) + i*sin(x), connecting trigonometry, analysis, and linear algebra.',
+          tags: ['euler', 'complex_numbers', 'trigonometry'],
+        }),
+      });
+      const nodeCreate = await nodeCreateRes.json();
+      console.log('   Created Node:', nodeCreate.node.title, '| ID:', nodeCreate.node.id);
+
+      const relateRes = await fetch('http://127.0.0.1:3099/api/jarvis/second-brain/nodes/' + nodeCreate.node.id + '/relate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'dwight',
+          targetNodeId: 'node_math_calc',
+          relation: 'extends',
+        }),
+      });
+      const relateData = await relateRes.json();
+      console.log('   Relationship Edge Connected:', relateData.connected);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4 & 5) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

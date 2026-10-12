@@ -72,6 +72,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Phase 5 Second Brain Elements
+  const secondBrainToggleBtn = document.getElementById('second-brain-toggle-btn');
+  const secondBrainModal = document.getElementById('second-brain-modal');
+  const closeSecondBrainModalBtn = document.getElementById('close-second-brain-modal');
+  const sbMathList = document.getElementById('sb-math-list');
+  const sbLetList = document.getElementById('sb-let-list');
+  const sbProjectsList = document.getElementById('sb-projects-list');
+  const sbKnowledgeList = document.getElementById('sb-knowledge-list');
+
+  async function loadSecondBrainTree() {
+    try {
+      const res = await fetch('/api/jarvis/second-brain/tree?userId=default_user');
+      const data = await res.json();
+      if (data && data.tree) {
+        const t = data.tree;
+        if (sbMathList) {
+          sbMathList.innerHTML = t.study.mathematics.map((n) => `<li><strong>${n.title}</strong> (${n.relationshipCount} links)</li>`).join('') || '<li>None</li>';
+        }
+        if (sbLetList) {
+          const letItems = [...t.study.let, ...t.study.thesis];
+          sbLetList.innerHTML = letItems.map((n) => `<li><strong>${n.title}</strong> [${n.category}]</li>`).join('') || '<li>None</li>';
+        }
+        if (sbProjectsList) {
+          const projItems = [...t.projects.tuklas, ...t.projects.jarvis];
+          sbProjectsList.innerHTML = projItems.map((n) => `<li><strong>${n.title}</strong> [${n.category}]</li>`).join('') || '<li>None</li>';
+        }
+        if (sbKnowledgeList) {
+          sbKnowledgeList.innerHTML = t.knowledge.map((n) => `<li><strong>${n.title}</strong>: ${n.tags.join(', ')}</li>`).join('') || '<li>None</li>';
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load second brain tree:', err);
+    }
+  }
+
+  if (secondBrainToggleBtn && secondBrainModal) {
+    secondBrainToggleBtn.addEventListener('click', async () => {
+      secondBrainModal.classList.remove('hidden');
+      await loadSecondBrainTree();
+    });
+  }
+  if (closeSecondBrainModalBtn && secondBrainModal) {
+    closeSecondBrainModalBtn.addEventListener('click', () => {
+      secondBrainModal.classList.add('hidden');
+    });
+  }
+  if (secondBrainModal) {
+    secondBrainModal.addEventListener('click', (e) => {
+      if (e.target === secondBrainModal) secondBrainModal.classList.add('hidden');
+    });
+  }
+
   // Initialize or restore session
   async function initSession() {
     await loadUserProfile();

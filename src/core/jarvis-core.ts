@@ -25,6 +25,7 @@ import { Orchestrator } from '../orchestrator/orchestrator.js';
 import { OrchestrationResult, TaskStep } from '../orchestrator/types.js';
 import { UserProfileManager } from '../profile/profile-manager.js';
 import { ConversationMemoryManager } from '../memory/conversation-memory-manager.js';
+import { SecondBrainManager } from '../memory/second-brain-manager.js';
 import { MemoryType } from '../memory/memory.interface.js';
 import { logger } from '../utils/logger.js';
 
@@ -39,6 +40,7 @@ export interface JarvisCoreConfig {
   orchestrator?: Orchestrator;
   userProfileManager?: UserProfileManager;
   memoryManager?: ConversationMemoryManager;
+  secondBrain?: SecondBrainManager;
 }
 
 export interface JarvisChatRequest {
@@ -74,6 +76,7 @@ export class JarvisCore {
   private orchestrator: Orchestrator;
   private userProfileManager: UserProfileManager;
   private memoryManager: ConversationMemoryManager;
+  private secondBrain: SecondBrainManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -127,8 +130,14 @@ export class JarvisCore {
           },
         ],
       });
+    this.secondBrain =
+      config.secondBrain ||
+      new SecondBrainManager({
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+      });
 
-    logger.info('JARVIS Core initialized with Memory Manager, User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
+    logger.info('JARVIS Core initialized with Second Brain, Memory Manager, User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
   }
 
   /**
@@ -224,7 +233,8 @@ export class JarvisCore {
 
     let providerResponse;
     const memoryPromptContext = await this.memoryManager.getPromptMemoryContext(request.message, userId);
-    const systemInstruction = `${JARVIS_SYSTEM_INSTRUCTION}\n\n${profilePromptContext}\n\n${memoryPromptContext}`;
+    const knowledgePromptContext = await this.secondBrain.getPromptKnowledgeContext(request.message, 3, userId);
+    const systemInstruction = `${JARVIS_SYSTEM_INSTRUCTION}\n\n${profilePromptContext}\n\n${memoryPromptContext}\n\n${knowledgePromptContext}`;
 
     try {
       providerResponse = await this.aiProvider.generate({
@@ -453,6 +463,10 @@ export class JarvisCore {
 
   public getMemoryManager(): ConversationMemoryManager {
     return this.memoryManager;
+  }
+
+  public getSecondBrain(): SecondBrainManager {
+    return this.secondBrain;
   }
 
   public async orchestrate(
