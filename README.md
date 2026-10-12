@@ -349,9 +349,51 @@ Generates authentic citations without hallucinatory formatting across 5 academic
 
 ---
 
+## 📊 Phase 9 Architecture: Data & Statistics Engine
+
+JARVIS features a full tabular data analytics and statistical modeling suite:
+
+### 1. Data Cleaning & Integrity Engine
+* **Format Support**: CSV (RFC 4180 quotes/commas/nulls) and raw JSON record arrays.
+* **Type Profiling**: Automatic inference for numeric, categorical, boolean, and datetime columns.
+* **Missing Value Handling**: Configurable strategies: `drop` incomplete rows, `impute-mean`, `impute-median`, `impute-mode`, or `constant`.
+* **Deduplication**: Deep value-hash identification and removal of redundant records.
+* **Outlier Detection**: Interquartile range ($1.5 \times \text{IQR}$) or Z-Score ($|Z| > 3.0$) trimming.
+
+### 2. Descriptive Statistics Engine
+Evaluates numerical vectors across:
+* **Central Tendency**: Arithmetic Mean ($\bar{x}$), Median (interpolated $P_{50}$), and unimodal/multimodal Modes.
+* **Dispersion**: Min, Max, Range, Sum, Sample Variance ($s^2$), Population Variance ($\sigma^2$), Sample Standard Deviation ($s$), Population Standard Deviation ($\sigma$).
+* **Quartiles**: First Quartile ($Q_1$), Median ($Q_2$), Third Quartile ($Q_3$), Interquartile Range ($\text{IQR} = Q_3 - Q_1$).
+* **Shape & Distribution**: Fisher-Pearson Skewness ($g_1$) and Sample Excess Kurtosis ($g_2$).
+
+### 3. Relational & Predictive Modeling
+* **Pearson Correlation**: Product-moment coefficient ($r$), coefficient of determination ($R^2$), direction, and qualitative strength classification (`very_weak` to `very_strong`).
+* **Spearman Rank Correlation**: Monotonic correlation ($\rho$) evaluated via ranked transformations.
+* **Linear Regression**: Ordinary least squares line of best fit ($y = mx + b$), $R^2$, standard error of estimate, and per-observation residual analysis.
+
+### 4. Inferential Hypothesis Testing
+* **One-Sample Student's $t$-Test**: Tests sample mean against theoretical or benchmark values ($\mu_0$, e.g. official 75.0% passing mark) with $df = n - 1$ and estimated two-tailed $p$-value.
+* **Two-Sample Independent $t$-Test**: Welch-Satterthwaite $t$-test accommodating unequal group variances.
+
+### 5. Multi-Format Visualization Engine
+Generates standalone SVG visualizations with terminal ASCII fallbacks:
+* `Bar Chart`: Vertical bars with value and category labels.
+* `Line Graph`: Connected SVG path with data points and gridlines.
+* `Histogram`: Automated frequency bins with counts and ranges.
+* `Scatter Plot`: Point coordinates with optional regression trendline.
+* `Pie Chart`: Trigonometric arc slices with percent labels and legend.
+* `Box Plot`: Five-number summary ($Min, Q_1, \text{Med}, Q_3, Max$) with whiskers.
+
+### 6. Pipeline Workflow & Second Brain Synthesis
+* Complete automated pipeline: $\text{DATA} \to \text{CLEAN} \to \text{ANALYZE} \to \text{STATISTICS} \to \text{VISUALIZE} \to \text{EXPLAIN}$.
+* Ingests statistical findings into Second Brain knowledge nodes (`domain: 'study'`, `category: 'STATISTICS'`) gated by `ResourceType.DATABASES`.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (208 automated tests across 30 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, and Research Intelligence):
+Run the full Vitest suite (228 automated tests across 33 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, and Visualizations):
 ```bash
 # Run all tests
 npm test

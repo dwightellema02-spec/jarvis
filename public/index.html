@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 8: Research Engine Active</span>
+        <span class="badge phase-badge">Phase 9: Data & Statistics Engine Active</span>
       </div>
       <div class="header-meta">
+        <button id="data-toggle-btn" class="btn btn-outline" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8;" title="Data Analytics & Statistics Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Data & Stats</span>
+        </button>
         <button id="research-toggle-btn" class="btn btn-outline" style="border-color: rgba(168, 85, 247, 0.4); color: #a855f7;" title="Scientific Research & Epistemic Engine">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>Research</span>
@@ -338,6 +342,104 @@
           </div>
           <div id="res-compare-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
             <p style="color: #94a3b8; margin: 0;">Click above to perform multi-source synthesis, detect consensus, agreements, and contradictions.</p>
+          </div>
+        </div>
+      </div>
+  <!-- Data & Statistics Modal Overlay -->
+  <div id="data-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="data-title">
+    <div class="profile-card-modal" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(99, 102, 241, 0.3);">
+        <h2 id="data-title" style="color: #818cf8;">📊 Data Analytics & Statistics Engine (Phase 9)</h2>
+        <button id="close-data-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 1rem; background: #1e293b; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #334155;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label style="font-weight: bold; color: #f8fafc; font-size: 0.9rem;">Dataset (CSV Input):</label>
+            <button id="data-load-sample-btn" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.25rem 0.6rem; border-color: #818cf8; color: #818cf8;">Load Sample LET Scores</button>
+          </div>
+          <textarea id="data-csv-input" style="width: 100%; height: 90px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; font-family: monospace; font-size: 0.85rem; padding: 0.5rem;" placeholder="study_hours,practice_exams,let_score&#10;10,2,82&#10;15,3,86&#10;20,5,91&#10;25,6,95&#10;30,8,98"></textarea>
+        </div>
+
+        <!-- Sub Tabs -->
+        <div class="second-brain-tabs" style="margin-bottom: 1rem;">
+          <button class="sb-tab active" data-datatab="clean">1. Clean & Profile</button>
+          <button class="sb-tab" data-datatab="stats">2. Descriptive</button>
+          <button class="sb-tab" data-datatab="relation">3. Correlation & Regression</button>
+          <button class="sb-tab" data-datatab="ttest">4. Hypothesis (t-Test)</button>
+          <button class="sb-tab" data-datatab="chart">5. Chart Visualizer</button>
+          <button class="sb-tab" data-datatab="pipeline">6. Pipeline & Second Brain</button>
+        </div>
+
+        <!-- Tab 1: Clean & Profile -->
+        <div id="data-panel-clean">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="data-run-clean-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Run Data Cleaning & Profiling</button>
+          </div>
+          <div id="data-clean-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Click above to clean dataset, impute missing values, and profile data types.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Descriptive Stats -->
+        <div id="data-panel-stats" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <label style="color: #cbd5e1; font-size: 0.9rem;">Column Name:</label>
+            <input type="text" id="data-stats-col" value="let_score" style="padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="data-run-stats-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Calculate Statistics</button>
+          </div>
+          <div id="data-stats-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 3: Correlation & Regression -->
+        <div id="data-panel-relation" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <label style="color: #cbd5e1; font-size: 0.9rem;">X Column:</label>
+            <input type="text" id="data-x-col" value="study_hours" style="width: 120px; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <label style="color: #cbd5e1; font-size: 0.9rem;">Y Column:</label>
+            <input type="text" id="data-y-col" value="let_score" style="width: 120px; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="data-run-relation-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Run Analysis</button>
+          </div>
+          <div id="data-relation-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 4: Hypothesis Testing -->
+        <div id="data-panel-ttest" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <label style="color: #cbd5e1; font-size: 0.9rem;">Column:</label>
+            <input type="text" id="data-ttest-col" value="let_score" style="width: 120px; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <label style="color: #cbd5e1; font-size: 0.9rem;">Test Mean (&mu;₀):</label>
+            <input type="number" id="data-ttest-mean" value="75.0" style="width: 80px; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="data-run-ttest-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Run One-Sample t-Test</button>
+          </div>
+          <div id="data-ttest-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 5: Chart Visualizer -->
+        <div id="data-panel-chart" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <label style="color: #cbd5e1; font-size: 0.9rem;">Chart Type:</label>
+            <select id="data-chart-type" style="padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="bar">Bar Chart</option>
+              <option value="line">Line Chart</option>
+              <option value="histogram">Histogram</option>
+              <option value="scatter">Scatter Plot</option>
+              <option value="pie">Pie Chart</option>
+              <option value="boxplot">Box Plot</option>
+            </select>
+            <button id="data-run-chart-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Generate Chart</button>
+          </div>
+          <div id="data-chart-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; text-align: center;"></div>
+        </div>
+
+        <!-- Tab 6: Pipeline & Second Brain -->
+        <div id="data-panel-pipeline" class="hidden">
+          <div style="margin-bottom: 0.75rem;">
+            <button id="data-run-pipeline-btn" class="btn btn-primary" style="background: #6366f1; border-color: #6366f1; color: #fff;">Run End-to-End Pipeline & Synthesize Report</button>
+            <button id="data-ingest-brain-btn" class="btn btn-outline" style="margin-left: 0.5rem; border-color: #10b981; color: #10b981;">Ingest to Second Brain</button>
+          </div>
+          <div id="data-pipeline-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Click above to run the complete data workflow.</p>
           </div>
         </div>
       </div>

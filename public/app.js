@@ -985,6 +985,343 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- Phase 9: Data & Statistics UI Handlers ---
+  const dataToggleBtn = document.getElementById('data-toggle-btn');
+  const dataModal = document.getElementById('data-modal');
+  const closeDataModal = document.getElementById('close-data-modal');
+
+  if (dataToggleBtn && dataModal) {
+    dataToggleBtn.addEventListener('click', () => {
+      dataModal.classList.remove('hidden');
+    });
+
+    if (closeDataModal) {
+      closeDataModal.addEventListener('click', () => {
+        dataModal.classList.add('hidden');
+      });
+    }
+
+    dataModal.addEventListener('click', (e) => {
+      if (e.target === dataModal) {
+        dataModal.classList.add('hidden');
+      }
+    });
+
+    // Sample data loader
+    const dataCsvInput = document.getElementById('data-csv-input');
+    const loadSampleBtn = document.getElementById('data-load-sample-btn');
+    if (loadSampleBtn && dataCsvInput) {
+      loadSampleBtn.addEventListener('click', () => {
+        dataCsvInput.value = `study_hours,practice_exams,let_score\n10,2,82\n15,3,86\n20,5,91\n25,6,95\n30,8,98`;
+      });
+    }
+
+    // Tab Switching
+    const dataTabs = dataModal.querySelectorAll('.sb-tab[data-datatab]');
+    const dataPanels = {
+      clean: document.getElementById('data-panel-clean'),
+      stats: document.getElementById('data-panel-stats'),
+      relation: document.getElementById('data-panel-relation'),
+      ttest: document.getElementById('data-panel-ttest'),
+      chart: document.getElementById('data-panel-chart'),
+      pipeline: document.getElementById('data-panel-pipeline'),
+    };
+
+    dataTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        dataTabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.datatab;
+        Object.keys(dataPanels).forEach((key) => {
+          if (dataPanels[key]) {
+            if (key === target) dataPanels[key].classList.remove('hidden');
+            else dataPanels[key].classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    const getCsv = () => {
+      return (dataCsvInput && dataCsvInput.value.trim()) || `study_hours,practice_exams,let_score\n10,2,82\n15,3,86\n20,5,91\n25,6,95\n30,8,98`;
+    };
+
+    // 1. Run Clean
+    const runCleanBtn = document.getElementById('data-run-clean-btn');
+    const cleanResult = document.getElementById('data-clean-result');
+    if (runCleanBtn && cleanResult) {
+      runCleanBtn.addEventListener('click', async () => {
+        try {
+          cleanResult.innerHTML = '<span style="color: #94a3b8;">Cleaning and profiling data...</span>';
+          const res = await fetch('/api/jarvis/data/clean', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csvContent: getCsv(), cleaningOptions: { deduplicate: true } }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            cleanResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const d = data.data;
+          const profRows = Object.values(d.columnProfiles)
+            .map(
+              (p) => `
+            <tr>
+              <td style="padding: 0.4rem; font-weight: bold; color: #818cf8;">${p.name}</td>
+              <td style="padding: 0.4rem; color: #cbd5e1;">${p.type}</td>
+              <td style="padding: 0.4rem; color: #cbd5e1;">${p.totalCount}</td>
+              <td style="padding: 0.4rem; color: #cbd5e1;">${p.nullCount}</td>
+              <td style="padding: 0.4rem; color: #cbd5e1;">${p.uniqueCount}</td>
+            </tr>
+          `
+            )
+            .join('');
+
+          cleanResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; color: #10b981; font-weight: bold;">Cleaning Complete: ${d.cleanedRowCount} records retained (Original: ${d.originalRowCount}, Dropped: ${d.droppedRows})</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+                  <th>Column</th><th>Type</th><th>Total</th><th>Nulls</th><th>Unique</th>
+                </tr>
+              </thead>
+              <tbody>${profRows}</tbody>
+            </table>
+          `;
+        } catch (err) {
+          cleanResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Run Descriptive Stats
+    const runStatsBtn = document.getElementById('data-run-stats-btn');
+    const statsCol = document.getElementById('data-stats-col');
+    const statsResult = document.getElementById('data-stats-result');
+    if (runStatsBtn && statsResult) {
+      runStatsBtn.addEventListener('click', async () => {
+        try {
+          statsResult.innerHTML = '<span style="color: #94a3b8;">Computing descriptive statistics...</span>';
+          const col = (statsCol && statsCol.value.trim()) || 'let_score';
+          const res = await fetch('/api/jarvis/data/descriptive', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csvContent: getCsv(), column: col }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            statsResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const s = data.data;
+          statsResult.innerHTML = `
+            <div style="font-weight: bold; color: #818cf8; margin-bottom: 0.5rem;">Descriptive Statistics: ${s.column} (N = ${s.count})</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; font-size: 0.85rem;">
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Mean: <strong>${s.mean}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Median: <strong>${s.median}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Modes: <strong>${s.modes.join(', ') || 'None'}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Sample StdDev: <strong>${s.stdDevSample}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Range: <strong>[${s.min}, ${s.max}] (${s.range})</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">IQR: <strong>${s.iqr}</strong> (Q1: ${s.q1}, Q3: ${s.q3})</div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Skewness: <strong>${s.skewness}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Kurtosis: <strong>${s.kurtosis}</strong></div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 6px;">Sum: <strong>${s.sum}</strong></div>
+            </div>
+          `;
+        } catch (err) {
+          statsResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Correlation & Regression
+    const runRelationBtn = document.getElementById('data-run-relation-btn');
+    const xColInput = document.getElementById('data-x-col');
+    const yColInput = document.getElementById('data-y-col');
+    const relationResult = document.getElementById('data-relation-result');
+    if (runRelationBtn && relationResult) {
+      runRelationBtn.addEventListener('click', async () => {
+        try {
+          relationResult.innerHTML = '<span style="color: #94a3b8;">Computing relational models...</span>';
+          const xCol = (xColInput && xColInput.value.trim()) || 'study_hours';
+          const yCol = (yColInput && yColInput.value.trim()) || 'let_score';
+          const [cRes, rRes] = await Promise.all([
+            fetch('/api/jarvis/data/correlation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ csvContent: getCsv(), xColumn: xCol, yColumn: yCol }),
+            }),
+            fetch('/api/jarvis/data/regression', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ csvContent: getCsv(), xColumn: xCol, yColumn: yCol }),
+            }),
+          ]);
+          const cData = await cRes.json();
+          const rData = await rRes.json();
+          if (!cData.success || !rData.success) {
+            relationResult.innerHTML = `<span style="color: #ef4444;">Error: ${cData.error || rData.error}</span>`;
+            return;
+          }
+          const c = cData.data;
+          const r = rData.data;
+          relationResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #818cf8;">Correlation:</span>
+              <span>Pearson r = <strong>${c.pearsonR}</strong> (R² = ${c.pearsonR2}, Spearman ρ = ${c.spearmanRho})</span>
+              <div style="font-size: 0.85rem; color: #10b981; margin-top: 0.25rem;">${c.interpretation}</div>
+            </div>
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #334155;">
+              <span style="font-weight: bold; color: #818cf8;">Fitted Linear Regression:</span>
+              <code style="display: block; margin: 0.25rem 0; background: #1e293b; padding: 0.4rem; border-radius: 4px; color: #38bdf8;">${r.equation}</code>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">R² = <strong>${r.r2}</strong> | Std Error = <strong>${r.standardError}</strong></div>
+            </div>
+          `;
+        } catch (err) {
+          relationResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Hypothesis Testing
+    const runTtestBtn = document.getElementById('data-run-ttest-btn');
+    const ttestCol = document.getElementById('data-ttest-col');
+    const ttestMean = document.getElementById('data-ttest-mean');
+    const ttestResult = document.getElementById('data-ttest-result');
+    if (runTtestBtn && ttestResult) {
+      runTtestBtn.addEventListener('click', async () => {
+        try {
+          ttestResult.innerHTML = '<span style="color: #94a3b8;">Evaluating hypothesis test...</span>';
+          const col = (ttestCol && ttestCol.value.trim()) || 'let_score';
+          const mu0 = parseFloat((ttestMean && ttestMean.value) || '75.0');
+          const res = await fetch('/api/jarvis/data/t-test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csvContent: getCsv(), type: 'one_sample', column1: col, hypothesizedMean: mu0 }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            ttestResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const t = data.data;
+          ttestResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #818cf8;">One-Sample Student's t-Test (vs &mu;₀ = ${mu0})</span>
+              <span class="badge" style="background: ${t.isSignificant ? '#065f46' : '#7f1d1d'}; color: #fff;">
+                ${t.isSignificant ? 'Statistically Significant (p < 0.05)' : 'Not Significant'}
+              </span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+              t-Statistic: <strong>${t.testStatistic}</strong> | df: <strong>${t.degreesOfFreedom}</strong> | Estimated p-Value: <strong>${t.pValueEstimated}</strong>
+            </div>
+            <div style="font-size: 0.85rem; color: #f8fafc; background: #1e293b; padding: 0.5rem; border-radius: 6px;">
+              ${t.conclusion}
+            </div>
+          `;
+        } catch (err) {
+          ttestResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Chart Visualizer
+    const runChartBtn = document.getElementById('data-run-chart-btn');
+    const chartTypeSelect = document.getElementById('data-chart-type');
+    const chartResult = document.getElementById('data-chart-result');
+    if (runChartBtn && chartResult) {
+      runChartBtn.addEventListener('click', async () => {
+        try {
+          chartResult.innerHTML = '<span style="color: #94a3b8;">Generating visual chart...</span>';
+          const type = (chartTypeSelect && chartTypeSelect.value) || 'bar';
+          const res = await fetch('/api/jarvis/data/visualize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              csvContent: getCsv(),
+              chartConfig: { type, title: `LET Performance (${type.toUpperCase()})` },
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            chartResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          chartResult.innerHTML = `
+            <div style="overflow-x: auto; margin-bottom: 0.75rem;">${data.data.svg}</div>
+            <details style="text-align: left; font-size: 0.8rem; color: #94a3b8;">
+              <summary style="cursor: pointer;">View Terminal ASCII Fallback</summary>
+              <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${data.data.ascii}</pre>
+            </details>
+          `;
+        } catch (err) {
+          chartResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Pipeline & Ingest
+    const runPipelineBtn = document.getElementById('data-run-pipeline-btn');
+    const ingestBrainBtn = document.getElementById('data-ingest-brain-btn');
+    const pipelineResult = document.getElementById('data-pipeline-result');
+    let lastPipelineData = null;
+
+    if (runPipelineBtn && pipelineResult) {
+      runPipelineBtn.addEventListener('click', async () => {
+        try {
+          pipelineResult.innerHTML = '<span style="color: #94a3b8;">Running complete data pipeline...</span>';
+          const res = await fetch('/api/jarvis/data/pipeline', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              csvContent: getCsv(),
+              cleaningOptions: { deduplicate: true },
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            pipelineResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          lastPipelineData = data.data;
+          pipelineResult.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 0.5rem;">Pipeline Executed Successfully!</div>
+            <pre style="background: #1e293b; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; color: #f8fafc; white-space: pre-wrap;">${data.data.narrativeReport}</pre>
+          `;
+        } catch (err) {
+          pipelineResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (ingestBrainBtn && pipelineResult) {
+      ingestBrainBtn.addEventListener('click', async () => {
+        try {
+          if (!lastPipelineData) {
+            alert('Please run the pipeline first before ingesting to Second Brain.');
+            return;
+          }
+          const res = await fetch('/api/jarvis/data/to-knowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              title: 'Empirical Study Analytics Note',
+              pipelineResult: lastPipelineData,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert(`Ingested to Second Brain! Node ID: ${data.data.nodeId}`);
+          } else {
+            alert(`Failed to ingest: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

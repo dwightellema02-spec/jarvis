@@ -339,7 +339,61 @@ async function runManualVerification() {
       const toBrainData = await toBrainRes.json();
       console.log('   Ingested to Second Brain Nodes:', toBrainData.data.createdNodeIds.length);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6, 7 & 8) PASSED SUCCESSFULLY! ===');
+      console.log('31. Testing Phase 9 Data Cleaning & Profiling (POST /api/jarvis/data/clean)');
+      const csvPayload = 'hours,score\n10,82\n15,86\n20,91\n25,95\n30,98';
+      const cleanRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/clean', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ csvContent: csvPayload, cleaningOptions: { deduplicate: true } }),
+      });
+      const cleanData = await cleanRes.json();
+      console.log('   Cleaned Rows:', cleanData.data.cleanedRowCount, '| Headers:', cleanData.data.headers.join(', '));
+
+      console.log('32. Testing Phase 9 Descriptive Statistics (POST /api/jarvis/data/descriptive)');
+      const descRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/descriptive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ csvContent: csvPayload, column: 'score' }),
+      });
+      const descData = await descRes.json();
+      console.log('   Mean Score:', descData.data.mean, '| Median:', descData.data.median, '| StdDev:', descData.data.stdDevSample);
+
+      console.log('33. Testing Phase 9 Correlation & Regression (POST /api/jarvis/data/correlation & /regression)');
+      const corrRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/correlation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ csvContent: csvPayload, xColumn: 'hours', yColumn: 'score' }),
+      });
+      const corrData = await corrRes.json();
+      const regRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/regression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ csvContent: csvPayload, xColumn: 'hours', yColumn: 'score' }),
+      });
+      const regData = await regRes.json();
+      console.log('   Pearson r:', corrData.data.pearsonR, '| Strength:', corrData.data.strength);
+      console.log('   Regression Equation:', regData.data.equation, '| R²:', regData.data.r2);
+
+      console.log('34. Testing Phase 9 Hypothesis Testing & Visualization (/api/jarvis/data/t-test & /visualize)');
+      const tTestRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/t-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ csvContent: csvPayload, type: 'one_sample', column1: 'score', hypothesizedMean: 75.0 }),
+      });
+      const tTestData = await tTestRes.json();
+      const vizRes = await fetch('http://127.0.0.1:3099/api/jarvis/data/visualize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          csvContent: csvPayload,
+          chartConfig: { type: 'bar', title: 'Study Hours vs LET Score', xColumn: 'hours', yColumn: 'score' },
+        }),
+      });
+      const vizData = await vizRes.json();
+      console.log('   One-Sample t-Test:', tTestData.data.isSignificant ? 'Significant (p < 0.05)' : 'Not Significant', '| Conclusion:', tTestData.data.conclusion);
+      console.log('   SVG Chart Generated (length bytes):', vizData.data.svg.length, '| ASCII Preview: First line ->', vizData.data.ascii.split('\n')[0]);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6, 7, 8 & 9) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

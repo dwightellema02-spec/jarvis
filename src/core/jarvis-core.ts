@@ -56,6 +56,16 @@ import {
   ResearchCreateNoteTool,
   ResearchToKnowledgeTool,
 } from '../research/index.js';
+import {
+  DataStatisticsManager,
+  DataStatisticsAgent,
+  DataCleanTool,
+  DataDescriptiveStatsTool,
+  DataCorrelationRegressionTool,
+  DataHypothesisTestTool,
+  DataVisualizeTool,
+  DataPipelineTool,
+} from '../data/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -73,6 +83,7 @@ export interface JarvisCoreConfig {
   documentIntelligence?: DocumentIntelligenceManager;
   mathEngine?: MathematicsEngine;
   researchManager?: ResearchManager;
+  dataStatisticsManager?: DataStatisticsManager;
 }
 
 export interface JarvisChatRequest {
@@ -112,6 +123,7 @@ export class JarvisCore {
   private documentIntelligence: DocumentIntelligenceManager;
   private mathEngine: MathematicsEngine;
   private researchManager: ResearchManager;
+  private dataStatisticsManager: DataStatisticsManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -219,7 +231,26 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new ResearchCreateNoteTool(this.researchManager));
     this.toolRegistry.registerImplementation(new ResearchToKnowledgeTool(this.researchManager));
 
-    logger.info('JARVIS Core initialized with Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Data & Statistics Engine, Agent, and Tools
+    this.dataStatisticsManager =
+      config.dataStatisticsManager ||
+      new DataStatisticsManager(
+        this.permissionManager,
+        this.guardian,
+        this.auditLogger,
+        this.secondBrain
+      );
+    const dataAgent = new DataStatisticsAgent(this.dataStatisticsManager);
+    this.agentRegistry.registerImplementation(dataAgent);
+
+    this.toolRegistry.registerImplementation(new DataCleanTool(this.dataStatisticsManager));
+    this.toolRegistry.registerImplementation(new DataDescriptiveStatsTool(this.dataStatisticsManager));
+    this.toolRegistry.registerImplementation(new DataCorrelationRegressionTool(this.dataStatisticsManager));
+    this.toolRegistry.registerImplementation(new DataHypothesisTestTool(this.dataStatisticsManager));
+    this.toolRegistry.registerImplementation(new DataVisualizeTool(this.dataStatisticsManager));
+    this.toolRegistry.registerImplementation(new DataPipelineTool(this.dataStatisticsManager));
+
+    logger.info('JARVIS Core initialized with Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -561,6 +592,10 @@ export class JarvisCore {
 
   public getResearchManager(): ResearchManager {
     return this.researchManager;
+  }
+
+  public getDataStatisticsManager(): DataStatisticsManager {
+    return this.dataStatisticsManager;
   }
 
   public async orchestrate(
