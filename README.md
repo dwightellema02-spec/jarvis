@@ -199,6 +199,18 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/code/apply` | Phase 10 Atomically apply patch with verified disk check and backup |
 | `POST` | `/api/jarvis/code/rollback` | Phase 10 Roll back modified file to previous timestamped backup |
 | `POST` | `/api/jarvis/code/debug` | Phase 10 Parse error stack trace and generate root cause fix proposals |
+| `POST` | `/api/jarvis/devenv/terminal/analyze` | Phase 11 Safety risk classification of shell commands (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) |
+| `POST` | `/api/jarvis/devenv/terminal/execute` | Phase 11 Execute sandboxed shell command with confirmation gating and buffer protection |
+| `GET` | `/api/jarvis/devenv/git/status` | Phase 11 Real porcelain git status parsing, branch tracking, and clean state |
+| `GET` | `/api/jarvis/devenv/git/diff` | Phase 11 Working tree and staged git diff generator |
+| `GET` | `/api/jarvis/devenv/git/log` | Phase 11 Structured commit history with hashes, author, timestamp, and message |
+| `GET` | `/api/jarvis/devenv/git/branches` | Phase 11 Git branch enumeration with tracking and commit tips |
+| `POST` | `/api/jarvis/devenv/git/commit` | Phase 11 High-risk git commit creation with explicit confirmation requirement |
+| `GET` | `/api/jarvis/devenv/dependencies` | Phase 11 Package.json script overview and dependency manifest |
+| `GET` | `/api/jarvis/devenv/dependencies/audit` | Phase 11 Real `npm audit --json` security vulnerability scanner and breakdown |
+| `POST` | `/api/jarvis/devenv/build` | Phase 11 Real project build executor (`npm run build`) with duration profiling |
+| `POST` | `/api/jarvis/devenv/typecheck` | Phase 11 Real TypeScript compilation checker (`npm run typecheck`) |
+| `POST` | `/api/jarvis/devenv/test` | Phase 11 Real test runner execution (`npm test`) with filter support |
 
 ---
 
@@ -437,9 +449,44 @@ JARVIS features a full-featured Coding Intelligence engine operating under stric
 
 ---
 
+## 🛠️ Phase 11 Architecture: Development Environment Integration
+
+JARVIS features a secure, real development environment interface operating under strict risk gating and default-deny permission controls:
+
+### 1. Terminal Execution & Safety Risk Classification
+* **Multi-Tier Risk Analyzer**: Evaluates every shell command across four safety tiers:
+  * `CRITICAL`: Prohibits destructive operations (`rm -rf /`, `format`, `dd`, fork bombs, curl-pipe-to-shell, raw credential exfiltration). Categorically blocked by `SecurityGuardian`.
+  * `HIGH`: Operations that modify system dependencies, publish code, or perform irreversible branch resets (`npm install`, `npm publish`, `git push`, `git reset --hard`, `git checkout -f`). Requires explicit user confirmation.
+  * `MEDIUM`: Development build, test, and typecheck commands (`npm run build`, `npm test`, `npm run typecheck`).
+  * `LOW`: Read-only queries, status inspections, and version checks (`node -v`, `git status`, `git log`, `npm -v`, `dir`).
+* **Buffer & Timeout Safety**: Limits stdout/stderr buffers to 10MB to prevent memory exhaustion and terminates hung processes after a configurable timeout (default 30s).
+* **Workspace Traversal Containment**: Rejects attempts to execute commands outside authorized directory boundaries.
+
+### 2. Real Git Porcelain Integration
+* **Porcelain Status Parser**: Parses `git status --porcelain -b` with zero guesswork, reporting branch name, upstream tracking branch, ahead/behind commit counts, clean working tree state, and per-file staged/unstaged/untracked statuses.
+* **Diff Generator**: Generates clean working tree diffs or staged diffs (`git diff` / `git diff --staged`).
+* **Structured Commit History**: Parses `git log` into structured commit records with full hash, abbreviated hash, author name, ISO timestamp, and subject message.
+* **Branch Management**: Lists local and remote tracking branches with commit tips and active checkout markers.
+* **Safe Commit Engine**: Creates git commits with commit message validation, gated by `HIGH` risk and explicit user confirmation.
+
+### 3. Dependency Management & NPM Security Auditing
+* **Manifest Inspector**: Parses `package.json` dependencies, devDependencies, and npm run scripts with version ranges.
+* **Vulnerability Auditor**: Executes real `npm audit --json` and breaks down vulnerabilities by severity (`critical`, `high`, `moderate`, `low`, `info`) with advisory summaries and affected packages.
+
+### 4. Build, Typecheck & Test Runners
+* **TypeScript Compilation**: Executes `npm run typecheck` (`tsc --noEmit`), parses error count and diagnostic lines, and profiles duration.
+* **Build Runner**: Executes `npm run build` (`tsc`), capturing compiler output and artifact generation status.
+* **Test Runner**: Executes `npm test` (`vitest run`), supports targeted test filtering, and measures pass/fail outcomes.
+
+### 5. Gating & Permission Architecture
+* Gated by `ResourceType.SYSTEM` with `PermissionLevel.EXECUTE`.
+* Integrated with `DevEnvAgent` (`id: 'devenv-agent'`) and 8 registered tools: `devenv.run_command`, `devenv.git_status`, `devenv.git_diff`, `devenv.git_log`, `devenv.git_commit`, `devenv.audit_dependencies`, `devenv.run_build`, `devenv.run_tests`.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (242 automated tests across 36 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, and Stack Trace Debugging):
+Run the full Vitest suite (266 automated tests across 39 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Status/Diff/Log, Dependency Auditing, and Build/Typecheck Runners):
 ```bash
 # Run all tests
 npm test

@@ -78,6 +78,18 @@ import {
   CodeRollbackTool,
   CodeDebugErrorTool,
 } from '../coding/index.js';
+import {
+  DevEnvManager,
+  DevEnvAgent,
+  DevEnvRunCommandTool,
+  DevEnvGitStatusTool,
+  DevEnvGitDiffTool,
+  DevEnvGitLogTool,
+  DevEnvGitCommitTool,
+  DevEnvAuditDependenciesTool,
+  DevEnvRunBuildTool,
+  DevEnvRunTestsTool,
+} from '../devenv/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -97,6 +109,7 @@ export interface JarvisCoreConfig {
   researchManager?: ResearchManager;
   dataStatisticsManager?: DataStatisticsManager;
   codingManager?: CodingManager;
+  devEnvManager?: DevEnvManager;
 }
 
 export interface JarvisChatRequest {
@@ -138,6 +151,7 @@ export class JarvisCore {
   private researchManager: ResearchManager;
   private dataStatisticsManager: DataStatisticsManager;
   private codingManager: CodingManager;
+  private devEnvManager: DevEnvManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -280,7 +294,23 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new CodeRollbackTool(this.codingManager));
     this.toolRegistry.registerImplementation(new CodeDebugErrorTool(this.codingManager));
 
-    logger.info('JARVIS Core initialized with Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Development Environment Engine, Agent, and Tools
+    this.devEnvManager =
+      config.devEnvManager ||
+      new DevEnvManager(this.permissionManager, this.guardian);
+    const devEnvAgent = new DevEnvAgent(this.devEnvManager);
+    this.agentRegistry.registerImplementation(devEnvAgent);
+
+    this.toolRegistry.registerImplementation(new DevEnvRunCommandTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvGitStatusTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvGitDiffTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvGitLogTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvGitCommitTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvAuditDependenciesTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvRunBuildTool(this.devEnvManager));
+    this.toolRegistry.registerImplementation(new DevEnvRunTestsTool(this.devEnvManager));
+
+    logger.info('JARVIS Core initialized with DevEnv Engine, Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -630,6 +660,10 @@ export class JarvisCore {
 
   public getCodingManager(): CodingManager {
     return this.codingManager;
+  }
+
+  public getDevEnvManager(): DevEnvManager {
+    return this.devEnvManager;
   }
 
   public async orchestrate(

@@ -31,6 +31,7 @@ import { createMathRouter } from './routes/math.js';
 import { createResearchRouter } from './routes/research.js';
 import { createDataRoutes } from './routes/data.js';
 import { createCodingRoutes } from './routes/coding.js';
+import { createDevEnvRoutes } from './routes/devenv.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -81,6 +82,20 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     resource: ResourceType.FILES,
     level: PermissionLevel.WRITE,
     allowedActions: ['read', 'write'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.SYSTEM,
+    level: PermissionLevel.EXECUTE,
+    allowedActions: ['read', 'execute', 'write'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.SYSTEM,
+    level: PermissionLevel.EXECUTE,
+    allowedActions: ['read', 'execute', 'write'],
     grantedBy: 'system',
   });
 
@@ -147,7 +162,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.10.0-phase10';
+  const version = '0.11.0-phase11';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -158,6 +173,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis', createResearchRouter(core));
   app.use('/api/jarvis', createDataRoutes(core.getDataStatisticsManager()));
   app.use('/api/jarvis', createCodingRoutes(core.getCodingManager()));
+  app.use('/api/jarvis', createDevEnvRoutes(core.getDevEnvManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

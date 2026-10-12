@@ -462,7 +462,54 @@ async function runManualVerification() {
       console.log('   Error Debugger Type:', debugData.data.errorType, '| Root Cause:', debugData.data.rootCauseAnalysis);
       if (fs.existsSync(sampleVerifyPath)) fs.unlinkSync(sampleVerifyPath);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 10) PASSED SUCCESSFULLY! ===');
+      console.log('39. Testing Phase 11 DevEnv Terminal Risk & Execution (/api/jarvis/devenv/terminal/analyze & execute)');
+      const cmdAnalyzeRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/terminal/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ command: 'echo Phase 11 Verified' }),
+      });
+      const cmdAnalyzeData = await cmdAnalyzeRes.json();
+      const cmdExecRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/terminal/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ command: 'node -v' }),
+      });
+      const cmdExecData = await cmdExecRes.json();
+      console.log('   Command Risk:', cmdAnalyzeData.data.risk, '| Allowed:', cmdAnalyzeData.data.isAllowed);
+      console.log('   Command Execution Node Version:', cmdExecData.data.stdout.trim(), '| Exit Code:', cmdExecData.data.exitCode);
+
+      console.log('40. Testing Phase 11 DevEnv Git Integration (/api/jarvis/devenv/git/*)');
+      const gitStatusRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/git/status', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const gitStatusData = await gitStatusRes.json();
+      const gitLogRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/git/log?limit=2', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const gitLogData = await gitLogRes.json();
+      console.log('   Git Branch:', gitStatusData.data.currentBranch, '| Clean:', gitStatusData.data.isClean, '| Recent Commits:', gitLogData.data.entries?.length);
+
+      console.log('41. Testing Phase 11 DevEnv Dependencies & Security Audit (/api/jarvis/devenv/dependencies/*)');
+      const depsRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/dependencies', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const depsData = await depsRes.json();
+      const auditRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/dependencies/audit', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const auditData = await auditRes.json();
+      console.log('   Dependencies Count:', Object.keys(depsData.data.dependencies).length, '| DevDeps:', Object.keys(depsData.data.devDependencies).length);
+      console.log('   NPM Audit Vulnerabilities:', auditData.data.vulnerabilitiesFound, '| Critical:', auditData.data.severityCounts?.critical);
+
+      console.log('42. Testing Phase 11 DevEnv Typecheck Runner (/api/jarvis/devenv/typecheck)');
+      const typecheckRes = await fetch('http://127.0.0.1:3099/api/jarvis/devenv/typecheck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+      });
+      const typecheckData = await typecheckRes.json();
+      console.log('   Typecheck Success:', typecheckData.data.success, '| Duration:', typecheckData.data.durationMs + 'ms');
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 11) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

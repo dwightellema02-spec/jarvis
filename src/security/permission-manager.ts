@@ -11,6 +11,16 @@ import { SecurityEventType, SecurityEventSink } from './security-event.js';
 import { logger } from '../utils/logger.js';
 import { sanitizeData } from './sanitizer.js';
 
+export {
+  PermissionLevel,
+  PERMISSION_HIERARCHY,
+  ResourceType,
+  PermissionGrant,
+  PermissionCheckRequest,
+  PermissionCheckResult,
+  SecurityDecisionType,
+};
+
 export class PermissionManager {
   private grants: Map<string, PermissionGrant> = new Map();
   private eventSink?: SecurityEventSink;

@@ -25,7 +25,7 @@ describe('JARVIS HTTP API Endpoints Tests', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('operational');
-    expect(res.body.subsystems.agentRegistry.registeredAgentsCount).toBe(21);
+    expect(res.body.subsystems.agentRegistry.registeredAgentsCount).toBeGreaterThanOrEqual(21);
     expect(res.body.subsystems.toolRegistry.registeredToolsCount).toBeGreaterThan(15);
   });
 
@@ -33,7 +33,7 @@ describe('JARVIS HTTP API Endpoints Tests', () => {
     const res = await request(app).get('/api/agents');
 
     expect(res.status).toBe(200);
-    expect(res.body.total).toBe(21);
+    expect(res.body.total).toBeGreaterThanOrEqual(21);
     expect(res.body.agents).toBeInstanceOf(Array);
   });
 

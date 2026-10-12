@@ -1641,14 +1641,423 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
-            <div style="color: #10b981; font-size: 0.85rem;">
-              <strong>Suggested Fix:</strong> ${diag.suggestedFix}
+  }
+
+  // Phase 11: Development Environment Modal
+  const devToggleBtn = document.getElementById('devenv-toggle-btn');
+  const devModal = document.getElementById('devenv-modal');
+  const closeDevModalBtn = document.getElementById('close-devenv-modal');
+
+  if (devToggleBtn && devModal && closeDevModalBtn) {
+    devToggleBtn.addEventListener('click', () => {
+      devModal.classList.remove('hidden');
+    });
+    closeDevModalBtn.addEventListener('click', () => {
+      devModal.classList.add('hidden');
+    });
+    devModal.addEventListener('click', (e) => {
+      if (e.target === devModal) devModal.classList.add('hidden');
+    });
+
+    // Subtab switching
+    const devTabs = devModal.querySelectorAll('.sb-tab[data-devtab]');
+    const devPanels = {
+      terminal: document.getElementById('dev-panel-terminal'),
+      gitstatus: document.getElementById('dev-panel-gitstatus'),
+      gitdiff: document.getElementById('dev-panel-gitdiff'),
+      deps: document.getElementById('dev-panel-deps'),
+      audit: document.getElementById('dev-panel-audit'),
+      build: document.getElementById('dev-panel-build'),
+    };
+
+    devTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabKey = tab.getAttribute('data-devtab');
+        devTabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        Object.keys(devPanels).forEach((k) => {
+          if (devPanels[k]) {
+            if (k === tabKey) {
+              devPanels[k].classList.remove('hidden');
+            } else {
+              devPanels[k].classList.add('hidden');
+            }
+          }
+        });
+      });
+    });
+
+    // 1. Terminal & Risk
+    const devCmdInput = document.getElementById('dev-cmd-input');
+    const devCmdAnalyzeBtn = document.getElementById('dev-cmd-analyze-btn');
+    const devCmdExecBtn = document.getElementById('dev-cmd-exec-btn');
+    const devCmdConfirmCheck = document.getElementById('dev-cmd-confirm-check');
+    const devTerminalResult = document.getElementById('dev-terminal-result');
+
+    if (devCmdAnalyzeBtn && devTerminalResult) {
+      devCmdAnalyzeBtn.addEventListener('click', async () => {
+        try {
+          const command = (devCmdInput && devCmdInput.value.trim()) || '';
+          if (!command) return;
+          devTerminalResult.innerHTML = '<span style="color: #ea580c;">Analyzing command safety...</span>';
+          const res = await fetch('/api/jarvis/devenv/terminal/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devTerminalResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const an = data.data;
+          devTerminalResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #ea580c;">Command: <code>${an.command}</code></span>
+              <span class="badge" style="background: ${an.risk === 'CRITICAL' ? '#7f1d1d' : an.risk === 'HIGH' ? '#f59e0b' : '#065f46'}; color: #fff;">
+                Risk: ${an.risk}
+              </span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1;">
+              Allowed by Guardian: <strong>${an.isAllowed ? 'YES' : 'NO'}</strong> | Requires Confirmation: <strong>${an.requiresConfirmation ? 'YES' : 'NO'}</strong>
+              ${an.blockedReason ? `<div style="color: #ef4444; margin-top: 0.25rem;">Blocked Reason: ${an.blockedReason}</div>` : ''}
             </div>
           `;
         } catch (err) {
-          debugResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+          devTerminalResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
         }
       });
+    }
+
+    if (devCmdExecBtn && devTerminalResult) {
+      devCmdExecBtn.addEventListener('click', async () => {
+        try {
+          const command = (devCmdInput && devCmdInput.value.trim()) || '';
+          if (!command) return;
+          const confirmed = devCmdConfirmCheck && devCmdConfirmCheck.checked;
+          devTerminalResult.innerHTML = '<span style="color: #ea580c;">Executing command...</span>';
+          const res = await fetch('/api/jarvis/devenv/terminal/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ command, confirmed }),
+          });
+          const data = await res.json();
+          const r = data.data || {};
+          devTerminalResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: ${r.exitCode === 0 && !r.blocked ? '#10b981' : '#ef4444'};">
+                ${r.blocked ? 'BLOCKED' : r.exitCode === 0 ? 'SUCCESS (Exit Code 0)' : `FAILED (Exit Code ${r.exitCode})`}
+              </span>
+              <span style="font-size: 0.8rem; color: #94a3b8;">${r.durationMs || 0}ms</span>
+            </div>
+            ${r.blockedReason ? `<div style="color: #ef4444; font-size: 0.85rem; margin-bottom: 0.5rem;">${r.blockedReason}</div>` : ''}
+            <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc; max-height: 250px;">${(r.stdout || '') + (r.stderr || '') || 'No output.'}</pre>
+          `;
+        } catch (err) {
+          devTerminalResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Git Status & Log
+    const devGitStatusBtn = document.getElementById('dev-git-status-btn');
+    const devGitLogBtn = document.getElementById('dev-git-log-btn');
+    const devGitBranchesBtn = document.getElementById('dev-git-branches-btn');
+    const devGitStatusResult = document.getElementById('dev-gitstatus-result');
+
+    if (devGitStatusBtn && devGitStatusResult) {
+      devGitStatusBtn.addEventListener('click', async () => {
+        try {
+          devGitStatusResult.innerHTML = '<span style="color: #ea580c;">Querying git status...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/status', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const s = data.data;
+          const filesHtml = (s.files || []).map((f) => `
+            <div style="font-size: 0.85rem; padding: 0.25rem 0; border-bottom: 1px solid #1e293b;">
+              <span class="badge" style="background: ${f.staged ? '#065f46' : '#334155'}; font-size: 0.75rem;">${f.staged ? 'STAGED' : 'UNSTAGED'}</span>
+              <span style="color: #f8fafc; font-family: monospace; margin-left: 0.5rem;">${f.path}</span>
+              <span style="color: #94a3b8; font-size: 0.8rem;">(${f.status})</span>
+            </div>
+          `).join('') || '<div style="color: #10b981;">Working tree clean, no modified files.</div>';
+
+          devGitStatusResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">Branch: <code>${s.currentBranch}</code> ${s.isClean ? '(Clean)' : '(Modified)'}</div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+              Staged: <strong>${s.summary.stagedCount}</strong> | Unstaged: <strong>${s.summary.unstagedCount}</strong> | Untracked: <strong>${s.summary.untrackedCount}</strong>
+            </div>
+            <div>${filesHtml}</div>
+          `;
+        } catch (err) {
+          devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (devGitLogBtn && devGitStatusResult) {
+      devGitLogBtn.addEventListener('click', async () => {
+        try {
+          devGitStatusResult.innerHTML = '<span style="color: #ea580c;">Fetching commit log...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/log?limit=8', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const entries = data.data.entries || [];
+          const logHtml = entries.map((e) => `
+            <div style="margin-bottom: 0.5rem; background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <code style="color: #ea580c;">${e.shortHash}</code>
+                <span style="color: #94a3b8; font-size: 0.8rem;">${e.date}</span>
+              </div>
+              <div style="font-weight: bold; color: #f8fafc; margin: 0.25rem 0;">${e.message}</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">Author: ${e.author}</div>
+            </div>
+          `).join('') || '<div>No commit log available.</div>';
+
+          devGitStatusResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">Recent Git Commits (${entries.length})</div>
+            ${logHtml}
+          `;
+        } catch (err) {
+          devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (devGitBranchesBtn && devGitStatusResult) {
+      devGitBranchesBtn.addEventListener('click', async () => {
+        try {
+          devGitStatusResult.innerHTML = '<span style="color: #ea580c;">Listing branches...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/branches', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const branches = data.data.branches || [];
+          const branchHtml = branches.map((b) => `
+            <div style="padding: 0.4rem; background: #1e293b; margin-bottom: 0.4rem; border-radius: 4px; font-size: 0.85rem; display: flex; justify-content: space-between;">
+              <span>${b.isCurrent ? '<strong style="color: #10b981;">* ' : ''}${b.name}${b.isCurrent ? '</strong>' : ''}</span>
+              <code style="color: #94a3b8;">${b.commitHash}</code>
+            </div>
+          `).join('');
+          devGitStatusResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">Git Branches (${branches.length})</div>
+            ${branchHtml}
+          `;
+        } catch (err) {
+          devGitStatusResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Git Diff & Commit
+    const devGitDiffBtn = document.getElementById('dev-git-diff-btn');
+    const devGitStagedDiffBtn = document.getElementById('dev-git-stageddiff-btn');
+    const devGitCommitBtn = document.getElementById('dev-git-commit-btn');
+    const devCommitMsg = document.getElementById('dev-commit-msg');
+    const devGitDiffResult = document.getElementById('dev-gitdiff-result');
+
+    if (devGitDiffBtn && devGitDiffResult) {
+      devGitDiffBtn.addEventListener('click', async () => {
+        try {
+          devGitDiffResult.innerHTML = '<span style="color: #ea580c;">Fetching diff...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/diff', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          const diff = (data.data && data.data.diff) || 'No differences.';
+          devGitDiffResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">Working Tree Diff</div>
+            <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc; max-height: 300px;">${diff}</pre>
+          `;
+        } catch (err) {
+          devGitDiffResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (devGitStagedDiffBtn && devGitDiffResult) {
+      devGitStagedDiffBtn.addEventListener('click', async () => {
+        try {
+          devGitDiffResult.innerHTML = '<span style="color: #ea580c;">Fetching staged diff...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/diff?staged=true', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          const diff = (data.data && data.data.diff) || 'No staged differences.';
+          devGitDiffResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">Staged Diff</div>
+            <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc; max-height: 300px;">${diff}</pre>
+          `;
+        } catch (err) {
+          devGitDiffResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (devGitCommitBtn && devGitDiffResult) {
+      devGitCommitBtn.addEventListener('click', async () => {
+        try {
+          const message = (devCommitMsg && devCommitMsg.value.trim()) || '';
+          if (!message) {
+            alert('Please specify a commit message.');
+            return;
+          }
+          devGitDiffResult.innerHTML = '<span style="color: #ea580c;">Creating commit...</span>';
+          const res = await fetch('/api/jarvis/devenv/git/commit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ message, confirmed: true }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devGitDiffResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error || (data.data && data.data.output)}</span>`;
+            return;
+          }
+          devGitDiffResult.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 0.5rem;">Committed successfully!</div>
+            <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc;">${data.data.output}</pre>
+          `;
+        } catch (err) {
+          devGitDiffResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Dependencies & Scripts
+    const devLoadDepsBtn = document.getElementById('dev-load-deps-btn');
+    const devDepsResult = document.getElementById('dev-deps-result');
+
+    if (devLoadDepsBtn && devDepsResult) {
+      devLoadDepsBtn.addEventListener('click', async () => {
+        try {
+          devDepsResult.innerHTML = '<span style="color: #ea580c;">Reading package.json...</span>';
+          const res = await fetch('/api/jarvis/devenv/dependencies', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devDepsResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const p = data.data;
+          const scriptsHtml = Object.entries(p.scripts || {}).map(([k, v]) => `
+            <div style="font-size: 0.8rem; margin-bottom: 0.25rem;">
+              <code style="color: #ea580c;">${k}</code>: <span style="color: #cbd5e1;">${v}</span>
+            </div>
+          `).join('');
+
+          const depsHtml = Object.entries(p.dependencies || {}).map(([k, v]) => `
+            <span style="display: inline-block; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin: 2px; font-size: 0.8rem;">
+              <code>${k}</code>@${v}
+            </span>
+          `).join('') || '<span style="color: #94a3b8;">None</span>';
+
+          devDepsResult.innerHTML = `
+            <div style="font-weight: bold; color: #ea580c; margin-bottom: 0.5rem;">${p.name} v${p.version}</div>
+            <div style="margin-bottom: 0.75rem;">
+              <h5 style="color: #f8fafc; margin: 0 0 0.5rem 0;">Scripts (${Object.keys(p.scripts || {}).length})</h5>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px;">${scriptsHtml}</div>
+            </div>
+            <div>
+              <h5 style="color: #f8fafc; margin: 0 0 0.5rem 0;">Dependencies (${p.totalDependencies})</h5>
+              <div>${depsHtml}</div>
+            </div>
+          `;
+        } catch (err) {
+          devDepsResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Security Audit
+    const devRunAuditBtn = document.getElementById('dev-run-audit-btn');
+    const devAuditResult = document.getElementById('dev-audit-result');
+
+    if (devRunAuditBtn && devAuditResult) {
+      devRunAuditBtn.addEventListener('click', async () => {
+        try {
+          devAuditResult.innerHTML = '<span style="color: #ea580c;">Running npm audit (this may take a few seconds)...</span>';
+          const res = await fetch('/api/jarvis/devenv/dependencies/audit', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            devAuditResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const a = data.data;
+          const sev = a.severityCounts || {};
+          devAuditResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #ea580c;">Audit Result</span>
+              <span class="badge" style="background: ${a.vulnerabilitiesFound > 0 ? '#f59e0b' : '#065f46'}; color: #fff;">
+                ${a.vulnerabilitiesFound} Vulnerabilities
+              </span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+              Critical: <strong>${sev.critical || 0}</strong> | High: <strong>${sev.high || 0}</strong> | Moderate: <strong>${sev.moderate || 0}</strong> | Low: <strong>${sev.low || 0}</strong>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem; color: #f8fafc;">
+              ${a.advisorySummary}
+            </div>
+          `;
+        } catch (err) {
+          devAuditResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Build & Test Runner
+    const devRunBuildBtn = document.getElementById('dev-run-build-btn');
+    const devRunTcBtn = document.getElementById('dev-run-tc-btn');
+    const devRunTestsBtn = document.getElementById('dev-run-tests-btn');
+    const devBuildResult = document.getElementById('dev-build-result');
+
+    const triggerRunner = async (endpoint, name) => {
+      try {
+        devBuildResult.innerHTML = `<span style="color: #ea580c;">Running ${name}...</span>`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        const r = data.data || {};
+        devBuildResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-weight: bold; color: ${data.success ? '#10b981' : '#ef4444'};">
+              ${data.success ? `${name.toUpperCase()} PASSED` : `${name.toUpperCase()} FAILED`}
+            </span>
+            <span style="font-size: 0.8rem; color: #94a3b8;">${((r.durationMs || 0) / 1000).toFixed(2)}s</span>
+          </div>
+          <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">${r.summary}</div>
+          <pre style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; overflow-x: auto; color: #f8fafc; max-height: 250px;">${r.outputPreview || 'No output.'}</pre>
+        `;
+      } catch (err) {
+        devBuildResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    };
+
+    if (devRunBuildBtn && devBuildResult) {
+      devRunBuildBtn.addEventListener('click', () => triggerRunner('/api/jarvis/devenv/build', 'npm run build'));
+    }
+    if (devRunTcBtn && devBuildResult) {
+      devRunTcBtn.addEventListener('click', () => triggerRunner('/api/jarvis/devenv/typecheck', 'npm run typecheck'));
+    }
+    if (devRunTestsBtn && devBuildResult) {
+      devRunTestsBtn.addEventListener('click', () => triggerRunner('/api/jarvis/devenv/test', 'npm test'));
     }
   }
 

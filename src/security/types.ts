@@ -28,6 +28,7 @@ export enum ResourceType {
   FINANCIAL_SERVICES = 'FINANCIAL_SERVICES',
   EXTERNAL_ACCOUNTS = 'EXTERNAL_ACCOUNTS',
   SECURITY = 'SECURITY',
+  SYSTEM = 'SYSTEM',
 }
 
 export type PermissionAction =

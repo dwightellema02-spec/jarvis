@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 10: Coding Agent & AST Engine Active</span>
+        <span class="badge phase-badge">Phase 11: DevEnv Integration Active</span>
       </div>
       <div class="header-meta">
+        <button id="devenv-toggle-btn" class="btn btn-outline" style="border-color: rgba(234, 88, 12, 0.4); color: #ea580c;" title="Development Environment Integration">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span>DevEnv</span>
+        </button>
         <button id="coding-toggle-btn" class="btn btn-outline" style="border-color: rgba(6, 182, 212, 0.4); color: #06b6d4;" title="Coding Agent & AST Patch Engine">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           <span>Coding</span>
@@ -536,6 +540,104 @@
             <button id="code-run-debug-btn" class="btn btn-primary" style="background: #06b6d4; border-color: #06b6d4; color: #000; font-weight: bold;">Diagnose Error & Propose Fix</button>
           </div>
           <div id="code-debug-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+      </div>
+    </div>
+  <!-- Phase 11 DevEnv Modal Overlay -->
+  <div id="devenv-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="devenv-title">
+    <div class="profile-card-modal" style="max-width: 950px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(234, 88, 12, 0.3);">
+        <h2 id="devenv-title" style="color: #ea580c;">⚡ Development Environment (Phase 11)</h2>
+        <button id="close-devenv-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="border-color: rgba(234, 88, 12, 0.3); background: rgba(234, 88, 12, 0.05);">
+          <h4 style="color: #ea580c;">Terminal Command Execution, Git Operations, Package Audits & Build Runners</h4>
+          <p>Execute safe shell commands with risk gating (LOW/MEDIUM/HIGH/CRITICAL), inspect real git status, diffs, branches, and commit histories, inspect npm package dependencies and security advisories, and run build and test suites.</p>
+        </div>
+
+        <!-- Sub Tabs -->
+        <div class="second-brain-tabs" style="margin-bottom: 1rem;">
+          <button class="sb-tab active" data-devtab="terminal">1. Terminal & Risk</button>
+          <button class="sb-tab" data-devtab="gitstatus">2. Git Status & Log</button>
+          <button class="sb-tab" data-devtab="gitdiff">3. Git Diff & Commit</button>
+          <button class="sb-tab" data-devtab="deps">4. Dependencies & Scripts</button>
+          <button class="sb-tab" data-devtab="audit">5. Security Audit</button>
+          <button class="sb-tab" data-devtab="build">6. Build & Test Runner</button>
+        </div>
+
+        <!-- Tab 1: Terminal & Risk -->
+        <div id="dev-panel-terminal">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <input type="text" id="dev-cmd-input" value="node -v" style="flex: 1; padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="dev-cmd-analyze-btn" class="btn btn-outline" style="border-color: #ea580c; color: #ea580c;">Analyze Risk</button>
+            <button id="dev-cmd-exec-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">Execute</button>
+          </div>
+          <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #94a3b8;">
+            <label><input type="checkbox" id="dev-cmd-confirm-check" /> Confirm execution if categorized as HIGH risk</label>
+          </div>
+          <div id="dev-terminal-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Analyze command safety or execute shell commands safely within project root.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Git Status & Log -->
+        <div id="dev-panel-gitstatus" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="dev-git-status-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">Refresh Git Status</button>
+            <button id="dev-git-log-btn" class="btn btn-outline">View Recent Commits</button>
+            <button id="dev-git-branches-btn" class="btn btn-outline">List Branches</button>
+          </div>
+          <div id="dev-gitstatus-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Inspect current branch, staged/unstaged changes, and commit history.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: Git Diff & Commit -->
+        <div id="dev-panel-gitdiff" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="dev-git-diff-btn" class="btn btn-outline" style="border-color: #ea580c; color: #ea580c;">Inspect Working Tree Diff</button>
+            <button id="dev-git-stageddiff-btn" class="btn btn-outline">Inspect Staged Diff</button>
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <input type="text" id="dev-commit-msg" placeholder="Commit message (e.g. feat: new functionality)" style="flex: 1; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="dev-git-commit-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">Commit Changes</button>
+          </div>
+          <div id="dev-gitdiff-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 350px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">View file diffs or propose safe commits with audit logs.</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Dependencies & Scripts -->
+        <div id="dev-panel-deps" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="dev-load-deps-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">Inspect package.json</button>
+          </div>
+          <div id="dev-deps-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Inspect registered dependencies, devDependencies, and npm scripts.</p>
+          </div>
+        </div>
+
+        <!-- Tab 5: Security Audit -->
+        <div id="dev-panel-audit" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="dev-run-audit-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">Run npm audit</button>
+          </div>
+          <div id="dev-audit-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Execute npm audit and parse vulnerabilities by severity level.</p>
+          </div>
+        </div>
+
+        <!-- Tab 6: Build & Test Runner -->
+        <div id="dev-panel-build" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="dev-run-build-btn" class="btn btn-outline" style="border-color: #ea580c; color: #ea580c;">npm run build</button>
+            <button id="dev-run-tc-btn" class="btn btn-outline">npm run typecheck</button>
+            <button id="dev-run-tests-btn" class="btn btn-primary" style="background: #ea580c; border-color: #ea580c; color: #fff; font-weight: bold;">npm test</button>
+          </div>
+          <div id="dev-build-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Trigger build, typecheck, or test runners directly.</p>
+          </div>
         </div>
       </div>
     </div>
