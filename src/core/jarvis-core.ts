@@ -101,6 +101,11 @@ import {
   CreativeAgent,
   createCreativeTools,
 } from '../creative/index.js';
+import {
+  AnimationManager,
+  AnimationAgent,
+  createAnimationTools,
+} from '../animation/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -123,6 +128,7 @@ export interface JarvisCoreConfig {
   devEnvManager?: DevEnvManager;
   tuklasManager?: TuklasManager;
   creativeManager?: CreativeManager;
+  animationManager?: AnimationManager;
 }
 
 export interface JarvisChatRequest {
@@ -167,6 +173,7 @@ export class JarvisCore {
   private devEnvManager: DevEnvManager;
   private tuklasManager: TuklasManager;
   private creativeManager: CreativeManager;
+  private animationManager: AnimationManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -352,7 +359,18 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Animation & Bring-It-Alive Engine, Agent, and Tools
+    this.animationManager =
+      config.animationManager ||
+      new AnimationManager(this.permissionManager, this.guardian, this.auditLogger);
+    const animationAgent = new AnimationAgent(this.animationManager);
+    this.agentRegistry.registerImplementation(animationAgent);
+
+    for (const tool of createAnimationTools(this.animationManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -714,6 +732,10 @@ export class JarvisCore {
 
   public getCreativeManager(): CreativeManager {
     return this.creativeManager;
+  }
+
+  public getAnimationManager(): AnimationManager {
+    return this.animationManager;
   }
 
   public async orchestrate(

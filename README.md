@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 13 — Creative Studio & Autonomous Content Generation Active**
+> **Current Status**: **Phase 14 — Animation Pipeline & "Bring It Alive" Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -564,9 +564,51 @@ JARVIS features an integrated Creative Studio for scale-independent vector artwo
 
 ---
 
+## 🎬 Phase 14 — Animation Pipeline & "Bring It Alive" Engine
+
+JARVIS coordinates creative tools to bring static concepts, drawings, and characters to life through a verified 7-stage animation pipeline:
+
+```text
+IDEA ➔ DRAWING ➔ ASSETS ➔ LAYERS ➔ ANIMATION ➔ VOICE ➔ SOUND ➔ VIDEO
+```
+
+### 1. Hierarchical Asset & Layer Decomposition
+* **Multi-Plane Scene Slicing**: Decomposes drawings and visual concepts into 7 distinct z-index planes (`layer_bg`, `layer_mid`, `layer_char_body`, `layer_char_head`, `layer_char_mouth`, `layer_char_arms`, `layer_fg`).
+* **Anchor & Pivot Definitions**: Establishes transform-origin centers for all animatable groups, allowing rotation, translation, and scale without distortion.
+
+### 2. 2D Skeletal Character Rigging
+* **Joint Tree Hierarchy**: Defines bone structures and parental relationships: root hip anchor (`root_hip`), spine, chest, neck, head, shoulder joints, gesturing limbs, and leg stabilizers.
+* **Pose Library**: Configures standard character key poses: `idle` (natural balance), `talk` (attentive gesture), `walk` (alternating leg swing), and `alert` (raised focal attention).
+* **Viseme Phoneme Mouth Shapes**: Generates vector curves for standard mouth positions: neutral rest line (`rest`), open vowels (`A`, `E`, `O`), labial closures (`BMP`, `FV`), lingual stops (`L`), and expressive smiles (`wide_smile`).
+
+### 3. Keyframe Motion Graphs & Easing Curves
+* **Multi-Property Motion Tracks**: Computes timed property keyframes for translation, rotation, scale, and opacity.
+* **Mathematical Easing Curves**: Supports `linear`, `ease_in`, `ease_out`, `ease_in_out`, `bounce`, and `elastic` interpolation.
+* **Dual Rendering Outputs**:
+  * Pure CSS `@keyframes` rules for high-performance browser rendering.
+  * Native SVG SMIL tags (`<animateTransform>` and `<animate>`) for standalone vector files that play autonomously without external scripts.
+
+### 4. Lip Sync & Phoneme-to-Viseme Alignment
+* **Transcript Parsing**: Decomposes spoken dialogue into phonetic units, syllables, and pauses.
+* **Millisecond-Accurate Viseme Timeline**: Maps audio transcript timings to mouth shape transitions, synchronizing facial expressions with voiceover tracks.
+
+### 5. Multi-Track Foley & Audio Mixing
+* **Composite Audio Tracks**: Organizes voiceover dialogue, atmospheric background scores, and discrete foley sound effects with start offsets, durations, and volume gains ($0.0-1.0$).
+
+### 6. Interactive HTML5 Player & Render Manifest
+* **Interactive HTML5 Player**: Generates self-contained player HTML with timeline scrubber input, play/pause toggles, elapsed time counters, and embedded SVG viewport.
+* **Standardized Render Manifest**: Exports JSON manifests containing resolution, target FPS, layer z-orders, audio mixes, and executable FFmpeg CLI compilation commands (`ffmpeg -framerate 30 -i frame_%04d.png ...`).
+* **Honest Tool Auditing**: Audits host system PATH for external rendering tools (`ffmpeg`, `blender`, `remotion`) without faking uninstalled packages.
+
+### 7. Agent & Security Gating
+* Gated by `ResourceType.ANIMATION` with default-deny permissions (`WRITE` required for scene composition and keyframing).
+* Integrated with `AnimationAgent` (`id: 'animation-agent'`) and 8 registered tools: `animation.decompose_layers`, `animation.rig_character`, `animation.generate_keyframes`, `animation.sync_lips`, `animation.compose_scene`, `animation.export_player`, `animation.generate_render_manifest`, `animation.check_rendering_tools`.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (320 automated tests across 45 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, and Video Storyboards):
+Run the full Vitest suite (338 automated tests across 47 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, and Interactive Animation Players):
 ```bash
 # Run all tests
 npm test

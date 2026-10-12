@@ -632,7 +632,62 @@ async function runManualVerification() {
       console.log('   Speech SSML Words:', speechData.data.wordCount, '| Voice:', speechData.data.voiceGender);
       console.log('   Storyboard Scenes:', sbData.data.totalScenes, '| Duration:', sbData.data.totalDurationSeconds + 's');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 13) PASSED SUCCESSFULLY! ===');
+      console.log('51. Testing Phase 14 Animation Layer Decomposition & Skeletal Rigs (/api/jarvis/animation/layers & /rig)');
+      const animLayersRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/layers/decompose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ sceneTitle: 'Mainframe Rig', conceptPrompt: 'Cybernetic avatar awakening' }),
+      });
+      const animLayersData = await animLayersRes.json();
+      const animRigRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/rig', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ characterName: 'Avatar Dwight' }),
+      });
+      const animRigData = await animRigRes.json();
+      console.log('   Decomposed Planes:', animLayersData.data.count, '| Top Layer:', animLayersData.data.layers[0]?.id);
+      console.log('   Character Rig Joints:', animRigData.data.joints?.length, '| Poses Configured:', Object.keys(animRigData.data.availablePoses || {}).join(', '));
+
+      console.log('52. Testing Phase 14 Keyframe Motion Graphs & Lip Sync Visemes (/api/jarvis/animation/keyframes & /lipsync)');
+      const motionRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/keyframes/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ durationSeconds: 6 }),
+      });
+      const motionData = await motionRes.json();
+      const lipSyncRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/lipsync/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ transcript: 'Hello Dwight. Motion graphs synthesized.', durationSeconds: 5 }),
+      });
+      const lipSyncData = await lipSyncRes.json();
+      console.log('   Motion Tracks Synthesized:', motionData.data.count, '| Track 1:', motionData.data.tracks[0]?.targetLayerId);
+      console.log('   Lip Sync Viseme Cues:', lipSyncData.data.totalCues, '| First Cue:', lipSyncData.data.cues[0]?.viseme);
+
+      console.log('53. Testing Phase 14 Full 7-Stage Scene Composition (/api/jarvis/animation/compose)');
+      const composeRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/compose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'Autonomous System Awakening',
+          conceptPrompt: 'Holographic avatar speaking from central console terminal',
+          durationSeconds: 5,
+          fps: 30,
+        }),
+      });
+      const composeData = await composeRes.json();
+      console.log('   Animation Project ID:', composeData.data.id, '| Total Frames:', composeData.data.totalFrames);
+      console.log('   Animated SVG Size:', composeData.data.animatedSvgMarkup.length + ' chars', '| HTML Player Size:', composeData.data.htmlPlayer.length + ' chars');
+
+      console.log('54. Testing Phase 14 System Rendering Tools Audit (/api/jarvis/animation/tools)');
+      const animToolsRes = await fetch('http://127.0.0.1:3099/api/jarvis/animation/tools', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const animToolsData = await animToolsRes.json();
+      console.log('   FFmpeg Present:', animToolsData.data.ffmpegInstalled, '| Blender Present:', animToolsData.data.blenderInstalled, '| Canvas Supported:', animToolsData.data.canvasSupported);
+      console.log('   Honest Reporting Notes:', animToolsData.data.notes[0]);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 14) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

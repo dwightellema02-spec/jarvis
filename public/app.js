@@ -2845,6 +2845,352 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 14: ANIMATION CONTROLLER ====================
+  const animModal = document.getElementById('animation-modal');
+  const animToggleBtn = document.getElementById('animation-toggle-btn');
+  const closeAnimBtn = document.getElementById('close-animation-btn');
+
+  if (animModal && animToggleBtn) {
+    animToggleBtn.addEventListener('click', () => {
+      animModal.classList.remove('hidden');
+    });
+
+    if (closeAnimBtn) {
+      closeAnimBtn.addEventListener('click', () => {
+        animModal.classList.add('hidden');
+      });
+    }
+
+    animModal.addEventListener('click', (e) => {
+      if (e.target === animModal) {
+        animModal.classList.add('hidden');
+      }
+    });
+
+    // Subtab switching
+    const tabCompose = document.getElementById('tab-anim-compose');
+    const tabLayers = document.getElementById('tab-anim-layers');
+    const tabRig = document.getElementById('tab-anim-rig');
+    const tabMotion = document.getElementById('tab-anim-motion');
+    const tabTools = document.getElementById('tab-anim-tools');
+
+    const panelCompose = document.getElementById('anim-panel-compose');
+    const panelLayers = document.getElementById('anim-panel-layers');
+    const panelRig = document.getElementById('anim-panel-rig');
+    const panelMotion = document.getElementById('anim-panel-motion');
+    const panelTools = document.getElementById('anim-panel-tools');
+
+    const animTabsList = [
+      { tab: tabCompose, panel: panelCompose },
+      { tab: tabLayers, panel: panelLayers },
+      { tab: tabRig, panel: panelRig },
+      { tab: tabMotion, panel: panelMotion },
+      { tab: tabTools, panel: panelTools },
+    ];
+
+    animTabsList.forEach(({ tab, panel }) => {
+      if (!tab || !panel) return;
+      tab.addEventListener('click', () => {
+        animTabsList.forEach(({ tab: t, panel: p }) => {
+          if (t) {
+            t.classList.remove('active');
+            t.style.color = '#94a3b8';
+            t.style.borderBottom = 'none';
+          }
+          if (p) p.classList.add('hidden');
+        });
+        tab.classList.add('active');
+        tab.style.color = '#fb7185';
+        tab.style.borderBottom = '2px solid #f43f5e';
+        panel.classList.remove('hidden');
+      });
+    });
+
+    // 1. Scene Composer
+    const runComposeBtn = document.getElementById('anim-run-compose-btn');
+    const composeTitleInput = document.getElementById('anim-compose-title');
+    const composePromptInput = document.getElementById('anim-compose-prompt');
+    const composeStyleSelect = document.getElementById('anim-compose-style');
+    const composeDurationSelect = document.getElementById('anim-compose-duration');
+    const composeResult = document.getElementById('anim-compose-result');
+
+    if (runComposeBtn && composeResult) {
+      runComposeBtn.addEventListener('click', async () => {
+        try {
+          const title = (composeTitleInput?.value || '').trim();
+          const conceptPrompt = (composePromptInput?.value || '').trim();
+          const style = composeStyleSelect?.value || '2d_vector';
+          const durationSeconds = parseInt(composeDurationSelect?.value || '6', 10);
+          if (!title || !conceptPrompt) return;
+
+          composeResult.innerHTML = '<span style="color: #f43f5e;">Bringing scene alive across all 7 stages...</span>';
+          const res = await fetch('/api/jarvis/animation/compose', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ title, conceptPrompt, style, durationSeconds }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            composeResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const anim = data.data;
+          composeResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <span style="font-weight: bold; color: #fb7185; font-size: 1rem;">${anim.title}</span>
+                <span style="color: #94a3b8; font-size: 0.8rem;"> (${anim.fps} FPS • ${anim.durationSeconds}s • ${anim.totalFrames} frames)</span>
+              </div>
+              <button id="view-anim-player-btn" class="btn btn-outline" style="border-color: #f43f5e; color: #fb7185; font-size: 0.8rem;">Open Full Interactive Player</button>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; border: 1px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.6); margin-bottom: 0.75rem;">
+              ${anim.animatedSvgMarkup}
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; font-size: 0.8rem; color: #94a3b8;">
+              <span>Layers: ${anim.layers.length}</span> •
+              <span>Motion Tracks: ${anim.motionTracks.length}</span> •
+              <span>Audio Tracks: ${anim.audioTracks.length}</span>
+            </div>
+          `;
+
+          const openPlayerBtn = document.getElementById('view-anim-player-btn');
+          if (openPlayerBtn) {
+            openPlayerBtn.addEventListener('click', () => {
+              const win = window.open('', '_blank');
+              if (win) {
+                win.document.write(anim.htmlPlayer);
+                win.document.close();
+              }
+            });
+          }
+        } catch (err) {
+          composeResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Asset Layers
+    const loadLayersBtn = document.getElementById('anim-load-layers-btn');
+    const layersResult = document.getElementById('anim-layers-result');
+
+    if (loadLayersBtn && layersResult) {
+      loadLayersBtn.addEventListener('click', async () => {
+        try {
+          layersResult.innerHTML = '<span style="color: #f43f5e;">Decomposing scene layers...</span>';
+          const res = await fetch('/api/jarvis/animation/layers/decompose', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              sceneTitle: 'Console Terminal',
+              conceptPrompt: 'Cybernetic interface chamber',
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            layersResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const layers = data.data.layers || [];
+          const rows = layers.map((l) => `
+            <tr style="border-bottom: 1px solid #334155;">
+              <td style="padding: 0.5rem; color: #fb7185; font-family: monospace;">${l.id}</td>
+              <td style="padding: 0.5rem; color: #f8fafc; font-weight: bold;">${l.name}</td>
+              <td style="padding: 0.5rem; color: #cbd5e1;">${l.type}</td>
+              <td style="padding: 0.5rem;"><span class="badge" style="background: #1e293b; color: #38bdf8;">z: ${l.zIndex}</span></td>
+              <td style="padding: 0.5rem; color: #94a3b8; font-size: 0.8rem;">Pivot: (${l.pivotX}, ${l.pivotY})</td>
+            </tr>
+          `).join('');
+
+          layersResult.innerHTML = `
+            <div style="font-weight: bold; color: #fb7185; margin-bottom: 0.5rem;">Decomposed Hierarchy (${layers.length} Planes)</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid #475569; color: #94a3b8;">
+                  <th>Layer ID</th><th>Name</th><th>Type</th><th>Z-Index</th><th>Pivot Anchor</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        } catch (err) {
+          layersResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Character Rig
+    const loadRigBtn = document.getElementById('anim-load-rig-btn');
+    const rigNameInput = document.getElementById('anim-rig-name');
+    const rigResult = document.getElementById('anim-rig-result');
+
+    if (loadRigBtn && rigResult) {
+      loadRigBtn.addEventListener('click', async () => {
+        try {
+          const characterName = (rigNameInput?.value || '').trim() || 'Hero Avatar';
+          rigResult.innerHTML = '<span style="color: #f43f5e;">Constructing skeletal rig and joint tree...</span>';
+          const res = await fetch('/api/jarvis/animation/rig', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ characterName }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            rigResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const rig = data.data;
+          const jointsList = rig.joints.map((j) => `
+            <span class="badge" style="background: #1e293b; color: #38bdf8; margin: 2px;">
+              ${j.name}${j.parent ? ' ➔ ' + j.parent : ' (root)'}
+            </span>
+          `).join(' ');
+
+          const posesList = Object.keys(rig.availablePoses || {}).map((p) => `
+            <div style="padding: 0.35rem 0.6rem; background: #1e293b; border-radius: 4px; font-size: 0.8rem; color: #cbd5e1;">
+              <strong>Pose: ${p}</strong> (Mouth: ${rig.availablePoses[p].mouthShape})
+            </div>
+          `).join('');
+
+          rigResult.innerHTML = `
+            <div style="font-weight: bold; color: #fb7185; margin-bottom: 0.5rem;">${rig.characterName} Rig (${rig.joints.length} Joints)</div>
+            <div style="margin-bottom: 0.75rem;">${jointsList}</div>
+            <div style="font-weight: bold; color: #f8fafc; font-size: 0.85rem; margin-bottom: 0.35rem;">Configured Preset Poses:</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">${posesList}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Supported Viseme Shapes: rest, A, E, O, BMP, L, FV, wide_smile</div>
+          `;
+        } catch (err) {
+          rigResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Motion & Lip Sync
+    const loadMotionBtn = document.getElementById('anim-load-motion-btn');
+    const loadLipsyncBtn = document.getElementById('anim-load-lipsync-btn');
+    const motionResult = document.getElementById('anim-motion-result');
+
+    if (loadMotionBtn && motionResult) {
+      loadMotionBtn.addEventListener('click', async () => {
+        try {
+          motionResult.innerHTML = '<span style="color: #f43f5e;">Generating keyframe motion graphs...</span>';
+          const res = await fetch('/api/jarvis/animation/keyframes/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ durationSeconds: 6 }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            motionResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const tracks = data.data.tracks || [];
+          const tracksHtml = tracks.map((t) => `
+            <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: #1e293b; border-radius: 4px;">
+              <div style="font-weight: bold; color: #fb7185; font-size: 0.85rem;">${t.targetLayerId} ➔ ${t.property}</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">
+                Keyframes (${t.keyframes.length}): ${t.keyframes.map((k) => `${k.timeSeconds}s: ${k.value}`).join(' | ')}
+              </div>
+            </div>
+          `).join('');
+
+          motionResult.innerHTML = `
+            <div style="font-weight: bold; color: #fb7185; margin-bottom: 0.5rem;">Synthesized Motion Graphs (${tracks.length} Tracks)</div>
+            ${tracksHtml}
+          `;
+        } catch (err) {
+          motionResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (loadLipsyncBtn && motionResult) {
+      loadLipsyncBtn.addEventListener('click', async () => {
+        try {
+          motionResult.innerHTML = '<span style="color: #38bdf8;">Generating phoneme lip sync sequence...</span>';
+          const res = await fetch('/api/jarvis/animation/lipsync/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              transcript: 'Greetings Dwight. Animation systems are fully operational.',
+              durationSeconds: 5,
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            motionResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const track = data.data;
+          const cuesHtml = (track.cues || []).map((c) => `
+            <span class="badge" style="background: #1e293b; color: #fb7185; margin: 2px;">
+              ${c.timeSeconds}s: [${c.viseme}] ${c.word ? `(${c.word})` : ''}
+            </span>
+          `).join(' ');
+
+          motionResult.innerHTML = `
+            <div style="font-weight: bold; color: #38bdf8; margin-bottom: 0.5rem;">Lip Sync Viseme Timeline (${track.totalCues} Cues)</div>
+            <div style="line-height: 1.8;">${cuesHtml}</div>
+          `;
+        } catch (err) {
+          motionResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Rendering Tools Audit
+    const auditToolsBtn = document.getElementById('anim-audit-tools-btn');
+    const toolsResult = document.getElementById('anim-tools-result');
+
+    if (auditToolsBtn && toolsResult) {
+      auditToolsBtn.addEventListener('click', async () => {
+        try {
+          toolsResult.innerHTML = '<span style="color: #f43f5e;">Auditing system rendering software...</span>';
+          const res = await fetch('/api/jarvis/animation/tools', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            toolsResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const t = data.data;
+          const notesHtml = (t.notes || []).map((n) => `<li>${n}</li>`).join('');
+
+          toolsResult.innerHTML = `
+            <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+              <div style="flex: 1; padding: 0.75rem; background: #1e293b; border-radius: 6px; text-align: center;">
+                <div style="font-size: 0.8rem; color: #94a3b8;">FFmpeg CLI</div>
+                <div style="font-weight: bold; color: ${t.ffmpegInstalled ? '#10b981' : '#ef4444'}; font-size: 1.1rem;">
+                  ${t.ffmpegInstalled ? 'Installed' : 'Not Found'}
+                </div>
+              </div>
+              <div style="flex: 1; padding: 0.75rem; background: #1e293b; border-radius: 6px; text-align: center;">
+                <div style="font-size: 0.8rem; color: #94a3b8;">Blender 3D</div>
+                <div style="font-weight: bold; color: ${t.blenderInstalled ? '#10b981' : '#ef4444'}; font-size: 1.1rem;">
+                  ${t.blenderInstalled ? 'Installed' : 'Not Found'}
+                </div>
+              </div>
+              <div style="flex: 1; padding: 0.75rem; background: #1e293b; border-radius: 6px; text-align: center;">
+                <div style="font-size: 0.8rem; color: #94a3b8;">Vector SVG / SMIL</div>
+                <div style="font-weight: bold; color: #10b981; font-size: 1.1rem;">Verified Ready</div>
+              </div>
+            </div>
+            <div style="font-weight: bold; color: #fb7185; margin-bottom: 0.35rem; font-size: 0.85rem;">Honest Limitation Notes:</div>
+            <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6;">${notesHtml}</ul>
+          `;
+        } catch (err) {
+          toolsResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

@@ -34,6 +34,7 @@ import { createCodingRoutes } from './routes/coding.js';
 import { createDevEnvRoutes } from './routes/devenv.js';
 import { createTuklasRouter } from './routes/tuklas.js';
 import { createCreativeRouter } from './routes/creative.js';
+import { createAnimationRouter } from './routes/animation.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -128,6 +129,20 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     allowedActions: ['read', 'write', 'execute'],
     grantedBy: 'system',
   });
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.ANIMATION,
+    level: PermissionLevel.WRITE,
+    allowedActions: ['read', 'write', 'execute'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.ANIMATION,
+    level: PermissionLevel.WRITE,
+    allowedActions: ['read', 'write', 'execute'],
+    grantedBy: 'system',
+  });
 
   const core =
     deps.jarvisCore ||
@@ -192,7 +207,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.13.0-phase13';
+  const version = '0.14.0-phase14';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -206,6 +221,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis', createDevEnvRoutes(core.getDevEnvManager()));
   app.use('/api/jarvis', createTuklasRouter(core.getTuklasManager()));
   app.use('/api/jarvis', createCreativeRouter(core.getCreativeManager()));
+  app.use('/api/jarvis', createAnimationRouter(core.getAnimationManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));
