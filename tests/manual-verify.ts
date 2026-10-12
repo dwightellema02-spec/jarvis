@@ -224,7 +224,44 @@ async function runManualVerification() {
       const relateData = await relateRes.json();
       console.log('   Relationship Edge Connected:', relateData.connected);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4 & 5) PASSED SUCCESSFULLY! ===');
+      console.log('20. Testing Phase 6 Document Ingest (POST /api/jarvis/documents/ingest)');
+      const docIngestRes = await fetch('http://127.0.0.1:3099/api/jarvis/documents/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          filename: 'let_math_scores.csv',
+          content: 'subject,examinees,average_score\nGeneral Ed,1200,84.5\nProf Ed,1200,88.2\nMajorship Math,450,91.4',
+        }),
+      });
+      const docIngest = await docIngestRes.json();
+      console.log('   Ingested Document:', docIngest.document.metadata.filename, '| ID:', docIngest.document.metadata.id);
+
+      console.log('21. Testing Phase 6 Tabular Analysis (POST /api/jarvis/documents/:id/analyze-table)');
+      const tableAnalysisRes = await fetch(`http://127.0.0.1:3099/api/jarvis/documents/${docIngest.document.metadata.id}/analyze-table`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableIndex: 0 }),
+      });
+      const tableAnalysis = await tableAnalysisRes.json();
+      console.log('   Table Rows:', tableAnalysis.analysis.rowCount, '| Columns:', tableAnalysis.analysis.columnCount, '| Score Mean:', tableAnalysis.analysis.numericSummary.average_score.mean);
+
+      console.log('22. Testing Phase 6 Document Executive Summary (POST /api/jarvis/documents/:id/summarize)');
+      const docSummaryRes = await fetch(`http://127.0.0.1:3099/api/jarvis/documents/${docIngest.document.metadata.id}/summarize`, {
+        method: 'POST',
+      });
+      const docSummary = await docSummaryRes.json();
+      console.log('   Document Title:', docSummary.summary.title, '| Read Minutes:', docSummary.summary.estimatedReadMinutes);
+
+      console.log('23. Testing Phase 6 Ingestion into Second Brain (POST /api/jarvis/documents/:id/to-knowledge)');
+      const toKnowledgeRes = await fetch(`http://127.0.0.1:3099/api/jarvis/documents/${docIngest.document.metadata.id}/to-knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ category: 'STUDY' }),
+      });
+      const toKnowledge = await toKnowledgeRes.json();
+      console.log('   Second Brain Knowledge Nodes Created:', toKnowledge.result.createdNodes.length);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5 & 6) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {
@@ -234,3 +271,4 @@ async function runManualVerification() {
 }
 
 runManualVerification();
+

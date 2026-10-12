@@ -31,3 +31,4 @@ logs/
 *.sqlite
 *.sqlite3
 data/*.db
+scratch_plan.md

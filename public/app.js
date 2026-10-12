@@ -124,6 +124,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Phase 6 Document Intelligence Elements
+  const documentsToggleBtn = document.getElementById('documents-toggle-btn');
+  const documentsModal = document.getElementById('documents-modal');
+  const closeDocumentsModalBtn = document.getElementById('close-documents-modal');
+  const documentsList = document.getElementById('documents-list');
+  const docQuickName = document.getElementById('doc-quick-name');
+  const docQuickContent = document.getElementById('doc-quick-content');
+  const docQuickIngestBtn = document.getElementById('doc-quick-ingest-btn');
+  const documentDetailPanel = document.getElementById('document-detail-panel');
+  const docDetailTitle = document.getElementById('doc-detail-title');
+  const docDetailContent = document.getElementById('doc-detail-content');
+
+  async function loadDocumentsList() {
+    if (!documentsList) return;
+    try {
+      const res = await fetch('/api/jarvis/documents');
+      const data = await res.json();
+      if (data && data.documents && data.documents.length > 0) {
+        documentsList.innerHTML = data.documents.map((d) => `
+          <li style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div><strong>${d.filename}</strong> <span class="tag" style="background: rgba(59,130,246,0.2); color: #60a5fa;">${d.fileType.toUpperCase()}</span> (${d.sizeBytes} B)</div>
+            <div style="margin-top: 0.25rem; display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline" style="font-size: 0.75rem; padding: 2px 8px;" onclick="window.jarvisSummarizeDoc('${d.id}')">Summarize</button>
+              <button class="btn btn-outline" style="font-size: 0.75rem; padding: 2px 8px; border-color: rgba(16,185,129,0.3); color: #10b981;" onclick="window.jarvisToSecondBrain('${d.id}')">To 2nd Brain</button>
+            </div>
+          </li>
+        `).join('');
+      } else {
+        documentsList.innerHTML = '<li>No documents ingested yet. Paste notes or CSV above to begin.</li>';
+      }
+    } catch (err) {
+      console.warn('Could not load documents list:', err);
+    }
+  }
+
+  window.jarvisSummarizeDoc = async (id) => {
+    try {
+      const res = await fetch(`/api/jarvis/documents/${id}/summarize`, { method: 'POST' });
+      const data = await res.json();
+      if (data && data.summary && documentDetailPanel && docDetailTitle && docDetailContent) {
+        docDetailTitle.textContent = `Summary: ${data.summary.title}`;
+        docDetailContent.innerHTML = `
+          <p><strong>Overview:</strong> ${data.summary.overview}</p>
+          <p><strong>Key Points:</strong></p>
+          <ul>${data.summary.keyPoints.map((k) => `<li>${k}</li>`).join('')}</ul>
+          <p style="font-size: 0.8rem; color: #94a3b8;">Words: ${data.summary.wordCount} | Read Time: ${data.summary.estimatedReadMinutes} min</p>
+        `;
+        documentDetailPanel.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.error('Failed to summarize document:', err);
+    }
+  };
+
+  window.jarvisToSecondBrain = async (id) => {
+    try {
+      const res = await fetch(`/api/jarvis/documents/${id}/to-knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'dwight' }),
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        alert(data.result.summary);
+      }
+    } catch (err) {
+      console.error('Failed to export document to second brain:', err);
+    }
+  };
+
+  if (docQuickIngestBtn && docQuickName && docQuickContent) {
+    docQuickIngestBtn.addEventListener('click', async () => {
+      const filename = docQuickName.value.trim();
+      const content = docQuickContent.value.trim();
+      if (!filename || !content) {
+        alert('Please provide both filename and content.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/jarvis/documents/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename, content, userId: 'dwight' }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          docQuickName.value = '';
+          docQuickContent.value = '';
+          await loadDocumentsList();
+        } else {
+          alert(`Error: ${data.error || 'Ingest failed'}`);
+        }
+      } catch (err) {
+        alert(`Failed to ingest document: ${err}`);
+      }
+    });
+  }
+
+  if (documentsToggleBtn && documentsModal) {
+    documentsToggleBtn.addEventListener('click', async () => {
+      documentsModal.classList.remove('hidden');
+      await loadDocumentsList();
+    });
+  }
+  if (closeDocumentsModalBtn && documentsModal) {
+    closeDocumentsModalBtn.addEventListener('click', () => {
+      documentsModal.classList.add('hidden');
+    });
+  }
+  if (documentsModal) {
+    documentsModal.addEventListener('click', (e) => {
+      if (e.target === documentsModal) documentsModal.classList.add('hidden');
+    });
+  }
+
   // Initialize or restore session
   async function initSession() {
     await loadUserProfile();

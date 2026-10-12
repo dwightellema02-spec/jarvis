@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 5: Second Brain & Knowledge Active</span>
+        <span class="badge phase-badge">Phase 6: Document Intelligence Active</span>
       </div>
       <div class="header-meta">
+        <button id="documents-toggle-btn" class="btn btn-outline" style="border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;" title="Document Intelligence & Analysis">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Documents</span>
+        </button>
         <button id="second-brain-toggle-btn" class="btn btn-outline" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Explore Second Brain Knowledge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span>Second Brain</span>
@@ -168,6 +172,35 @@
             <h3 style="color: #10b981;">💡 Core Knowledge & Principles</h3>
             <ul id="sb-knowledge-list" class="profile-item-list"><li>Loading...</li></ul>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 6 Document Intelligence Modal Overlay -->
+  <div id="documents-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="doc-title">
+    <div class="profile-card-modal" style="max-width: 860px;">
+      <div class="modal-header">
+        <h2 id="doc-title">📄 Document Intelligence (PDF, DOCX, XLSX, CSV, Notes)</h2>
+        <button id="close-documents-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.05);">
+          <h4 style="color: #3b82f6;">Supported Formats & Verified Capabilities</h4>
+          <p>Read, search, summarize, compare documents, answer questions, analyze tables, and synthesize insights directly into the Second Brain.</p>
+        </div>
+        <div style="margin-bottom: 1.25rem; display: flex; gap: 0.5rem;">
+          <input type="text" id="doc-quick-name" placeholder="Filename (e.g. math_notes.txt, grades.csv)" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+          <button id="doc-quick-ingest-btn" class="btn btn-primary" style="background: #3b82f6; border-color: #3b82f6;">Ingest Document</button>
+        </div>
+        <textarea id="doc-quick-content" rows="4" placeholder="Paste document text, markdown notes, CSV table, or research paper draft..." style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem;"></textarea>
+        <div class="profile-box">
+          <h3 style="color: #3b82f6;">📂 Ingested Documents Catalog</h3>
+          <ul id="documents-list" class="profile-item-list"><li>No documents ingested yet.</li></ul>
+        </div>
+        <div id="document-detail-panel" class="hidden" style="margin-top: 1rem; padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+          <h3 id="doc-detail-title" style="color: #3b82f6; margin-top: 0;">Document Details</h3>
+          <div id="doc-detail-content" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;"></div>
         </div>
       </div>
     </div>

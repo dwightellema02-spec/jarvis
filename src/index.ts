@@ -36,6 +36,7 @@ export * from './memory/conversation-memory-manager.js';
 export * from './memory/knowledge-graph-engine.js';
 export * from './memory/second-brain-seeds.js';
 export * from './memory/second-brain-manager.js';
+export * from './documents/index.js';
 export * from './projects/project.interface.js';
 export * from './storage/database.interface.js';
 export * from './storage/memory-db.js';

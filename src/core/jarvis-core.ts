@@ -27,6 +27,16 @@ import { UserProfileManager } from '../profile/profile-manager.js';
 import { ConversationMemoryManager } from '../memory/conversation-memory-manager.js';
 import { SecondBrainManager } from '../memory/second-brain-manager.js';
 import { MemoryType } from '../memory/memory.interface.js';
+import {
+  DocumentIntelligenceManager,
+  DocumentAgent,
+  DocumentReadTool,
+  DocumentSearchTool,
+  DocumentSummarizeTool,
+  DocumentCompareTool,
+  DocumentAnalyzeTableTool,
+  DocumentExtractKnowledgeTool,
+} from '../documents/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -41,6 +51,7 @@ export interface JarvisCoreConfig {
   userProfileManager?: UserProfileManager;
   memoryManager?: ConversationMemoryManager;
   secondBrain?: SecondBrainManager;
+  documentIntelligence?: DocumentIntelligenceManager;
 }
 
 export interface JarvisChatRequest {
@@ -77,6 +88,7 @@ export class JarvisCore {
   private userProfileManager: UserProfileManager;
   private memoryManager: ConversationMemoryManager;
   private secondBrain: SecondBrainManager;
+  private documentIntelligence: DocumentIntelligenceManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -136,8 +148,25 @@ export class JarvisCore {
         permissionManager: this.permissionManager,
         auditLogger: this.auditLogger,
       });
+    this.documentIntelligence =
+      config.documentIntelligence ||
+      new DocumentIntelligenceManager(this.permissionManager, this.guardian, this.auditLogger);
 
-    logger.info('JARVIS Core initialized with Second Brain, Memory Manager, User Profile Manager, Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
+    // Register implemented Document Agent
+    const documentAgent = new DocumentAgent(this.documentIntelligence, this.secondBrain);
+    this.agentRegistry.registerImplementation(documentAgent);
+
+    // Register implemented Document Tools
+    this.toolRegistry.registerImplementation(new DocumentReadTool(this.documentIntelligence));
+    this.toolRegistry.registerImplementation(new DocumentSearchTool(this.documentIntelligence));
+    this.toolRegistry.registerImplementation(new DocumentSummarizeTool(this.documentIntelligence));
+    this.toolRegistry.registerImplementation(new DocumentCompareTool(this.documentIntelligence));
+    this.toolRegistry.registerImplementation(new DocumentAnalyzeTableTool(this.documentIntelligence));
+    this.toolRegistry.registerImplementation(
+      new DocumentExtractKnowledgeTool(this.documentIntelligence, this.secondBrain)
+    );
+
+    logger.info('JARVIS Core initialized with Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -467,6 +496,10 @@ export class JarvisCore {
 
   public getSecondBrain(): SecondBrainManager {
     return this.secondBrain;
+  }
+
+  public getDocumentIntelligence(): DocumentIntelligenceManager {
+    return this.documentIntelligence;
   }
 
   public async orchestrate(

@@ -181,6 +181,16 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/second-brain/nodes/:id/relate` | Phase 5 Create knowledge graph edge between nodes |
 | `GET` | `/api/jarvis/second-brain/search` | Phase 5 Hybrid semantic & keyword knowledge search |
 | `GET` | `/api/jarvis/second-brain/context` | Phase 5 Context distillation for prompt injection |
+| `GET` | `/api/jarvis/documents` | Phase 6 List ingested documents in catalog |
+| `POST` | `/api/jarvis/documents/ingest` | Phase 6 Ingest and parse PDF, DOCX, XLSX, CSV, notes, or paper |
+| `GET` | `/api/jarvis/documents/:id` | Phase 6 Retrieve document sections, tables, and entities |
+| `DELETE` | `/api/jarvis/documents/:id` | Phase 6 Delete document record (gated by ADMIN on FILES) |
+| `GET` | `/api/jarvis/documents/:id/search` | Phase 6 Search in-document passages with relevance scoring |
+| `POST` | `/api/jarvis/documents/:id/summarize` | Phase 6 Generate structured executive summary & metrics |
+| `POST` | `/api/jarvis/documents/:id/qa` | Phase 6 Answer questions grounded in document text with citations |
+| `POST` | `/api/jarvis/documents/compare` | Phase 6 Compare two documents side-by-side |
+| `POST` | `/api/jarvis/documents/:id/analyze-table` | Phase 6 Tabular analytics, statistics, filters, and insights |
+| `POST` | `/api/jarvis/documents/:id/to-knowledge` | Phase 6 Synthesize document takeaways into Second Brain graph |
 
 ---
 
@@ -224,9 +234,33 @@ JARVIS organizes persistent knowledge into a structured Second Brain knowledge g
 
 ---
 
+## 📄 Phase 6 Architecture: Document Intelligence
+
+JARVIS provides real multi-format document processing, extraction, synthesis, and tabular analytics:
+* **Supported Formats**:
+  * `PDF`: Pure Node.js text stream extractor with `/FlateDecode` zlib decompression, font decoding, and page segmenting. Honestly identifies scanned raster image PDFs without digital text streams.
+  * `DOCX`: OpenXML PKZIP extractor reading `word/document.xml`, paragraphs, headings, and embedded tables.
+  * `XLSX & CSV`: RFC 4180 CSV parser and OpenXML spreadsheet reader supporting custom delimiters, quotes, multiline values, and numeric/date type inference.
+  * `TXT, Notes & Markdown`: Structured section segmenter, heading detector, embedded markdown pipe-table parser, and entity extractor (dates, numbers, emails, URLs, key terms).
+  * `Research Papers`: Academic IMRaD segmenter (Abstract, Introduction, Related Work, Methodology, Results, Discussion, Conclusion, References) and citation extractor (`[1]`, `[2, 3]`, `(Author, Year)`).
+  * `Images`: Binary header format and dimension extractor (PNG IHDR, JPEG SOF0, GIF, WebP).
+* **Core Capabilities**:
+  * `Search`: Passage-level search with token stemming, matched term tracking, and relevance scoring.
+  * `Summarize`: Executive overview, extracted key bullet points, reading time estimation, and main topic tags.
+  * `Grounded Q&A`: Answers questions referencing specific document sections and source snippets.
+  * `Comparison Engine`: Side-by-side comparison of two documents reporting similarity score (0.0 to 1.0), shared themes, exclusive points, and contradictions.
+  * `Table Analyzer`: Numeric column statistics (mean, median, sum, min, max, stdDev), categorical distributions, row filtering (`eq`, `gt`, `gte`, `lt`, `lte`, `contains`), and automated data insights.
+  * `Second Brain Ingestion`: Directly synthesizes document findings into persistent knowledge nodes (`domain: 'study'` or `'knowledge'`), linking back to projects (e.g. `JARVIS`, `Tuklas`) via graph edges.
+* **Security & Permission Control**:
+  * Gated by `ResourceType.FILES` (`READ` for parsing/querying, `ADMIN` for deletion).
+  * Ingestion into Second Brain requires authorized `WRITE` on `ResourceType.DATABASES`.
+  * `DocumentSanitizer` enforces size limits (50 MB) and strictly prevents path traversal attacks (`../`, system directories, `.env`, credentials).
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (112 automated tests across 18 test files covering unit, integration, security, orchestration, profile, memory, and Second Brain specifications):
+Run the full Vitest suite (141 automated tests across 23 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, and Document Intelligence specifications):
 ```bash
 # Run all tests
 npm test
