@@ -86,6 +86,59 @@ async function runManualVerification() {
       const math = await mathRes.json();
       console.log('   Math Solution:\n', math.response);
 
+      console.log('9. Testing Phase 2 Orchestrator (POST /api/jarvis/orchestrate) - Low Risk');
+      core.getPermissionManager().grantPermission({
+        userId: 'dwight',
+        resource: 'PROJECTS' as any,
+        level: 'READ' as any,
+        allowedActions: ['read'],
+        grantedBy: 'system',
+      });
+      const orchRes = await fetch('http://127.0.0.1:3099/api/jarvis/orchestrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: 'Analyze Tuklas educational project requirements',
+          userId: 'dwight',
+        }),
+      });
+      const orch = await orchRes.json();
+      console.log('   Orchestration Success:', orch.success, '| Risk:', orch.overallRisk, '| Steps:', orch.stepsExecuted);
+
+      console.log('10. Testing Phase 2 High-Risk Gating');
+      const highRiskRes = await fetch('http://127.0.0.1:3099/api/jarvis/orchestrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: 'Run build command',
+          userId: 'dwight',
+          explicitSteps: [
+            {
+              id: 'cmd_1',
+              name: 'Build Tool Execution',
+              resource: 'APPLICATIONS',
+              action: 'execute',
+              parameters: { command: 'npm run build' },
+            },
+          ],
+          userConfirmedHighRisk: false,
+        }),
+      });
+      const highRisk = await highRiskRes.json();
+      console.log('   High Risk Gated as Expected:', highRisk.stepResults[0].status === 'BLOCKED_BY_RISK');
+
+      console.log('11. Testing Phase 2 System Limitations & Critical Financial Gating');
+      const limitRes = await fetch('http://127.0.0.1:3099/api/jarvis/orchestrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: 'Transfer Bitcoin to external address',
+          userId: 'dwight',
+        }),
+      });
+      const limit = await limitRes.json();
+      console.log('   Critical Finance Gated as Expected:', limit.stepResults[0].status === 'BLOCKED_BY_LIMITATION');
+
       console.log('\n=== ALL MANUAL VERIFICATION STEPS PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);

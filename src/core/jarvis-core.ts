@@ -21,6 +21,8 @@ import {
   ValidationError,
   AIProviderError,
 } from '../utils/errors.js';
+import { Orchestrator } from '../orchestrator/orchestrator.js';
+import { OrchestrationResult, TaskStep } from '../orchestrator/types.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -31,6 +33,7 @@ export interface JarvisCoreConfig {
   toolRegistry: ToolRegistry;
   aiProvider?: IAIProvider;
   sessionManager?: SessionManager;
+  orchestrator?: Orchestrator;
 }
 
 export interface JarvisChatRequest {
@@ -58,6 +61,7 @@ export class JarvisCore {
   private toolRegistry: ToolRegistry;
   private aiProvider: IAIProvider;
   private sessionManager: SessionManager;
+  private orchestrator: Orchestrator;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -67,8 +71,17 @@ export class JarvisCore {
     this.toolRegistry = config.toolRegistry;
     this.aiProvider = config.aiProvider || createAIProvider();
     this.sessionManager = config.sessionManager || new SessionManager();
+    this.orchestrator =
+      config.orchestrator ||
+      new Orchestrator({
+        agentRegistry: this.agentRegistry,
+        toolRegistry: this.toolRegistry,
+        permissionManager: this.permissionManager,
+        guardian: this.guardian,
+        auditLogger: this.auditLogger,
+      });
 
-    logger.info('JARVIS Core initialized with AI Provider, SessionManager, Guardian, and Registries');
+    logger.info('JARVIS Core initialized with Orchestrator, AI Provider, SessionManager, Guardian, and Registries');
   }
 
   /**
@@ -368,5 +381,21 @@ export class JarvisCore {
 
   public getSessionManager(): SessionManager {
     return this.sessionManager;
+  }
+
+  public getOrchestrator(): Orchestrator {
+    return this.orchestrator;
+  }
+
+  public async orchestrate(
+    goal: string,
+    userId = 'default_user',
+    options?: {
+      explicitSteps?: Partial<TaskStep>[];
+      userConfirmedHighRisk?: boolean;
+    }
+  ): Promise<OrchestrationResult> {
+    const requestId = `req_orch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    return this.orchestrator.orchestrate(requestId, goal, userId, options);
   }
 }

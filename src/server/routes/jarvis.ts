@@ -15,8 +15,13 @@ export function createJarvisRouter(jarvisCore: JarvisCore): Router {
 
     res.status(200).json({
       status: 'operational',
-      architecture: 'JARVIS Master Architecture (Phase 1 — Core Intelligence)',
+      architecture: 'JARVIS Master Architecture (Phase 2 — The Orchestrator)',
       subsystems: {
+        orchestrator: {
+          active: true,
+          riskModel: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+          verificationEngineActive: true,
+        },
         guardian: {
           active: true,
           policy: policy.name,
@@ -124,6 +129,26 @@ export function createJarvisRouter(jarvisCore: JarvisCore): Router {
       });
 
       const result = await jarvisCore.processRequest(context, intendedAction);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Phase 2: Orchestration endpoint
+  router.post('/orchestrate', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { goal, userId, explicitSteps, userConfirmedHighRisk } = req.body;
+
+      if (!goal || typeof goal !== 'string' || goal.trim().length === 0) {
+        throw new ValidationError('Goal must be a non-empty string');
+      }
+
+      const result = await jarvisCore.orchestrate(goal, userId ? String(userId) : 'default_user', {
+        explicitSteps,
+        userConfirmedHighRisk: Boolean(userConfirmedHighRisk),
+      });
+
       res.status(200).json(result);
     } catch (err) {
       next(err);

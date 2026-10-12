@@ -48,5 +48,16 @@ export * from './integrations/innovation.interface.js';
 export * from './utils/errors.js';
 export * from './utils/logger.js';
 
+// Phase 2: Orchestrator
+export * from './orchestrator/types.js';
+export * from './orchestrator/risk-evaluator.js';
+export * from './orchestrator/task-planner.js';
+export * from './orchestrator/agent-router.js';
+export * from './orchestrator/tool-router.js';
+export * from './orchestrator/verification-engine.js';
+export * from './orchestrator/failure-recovery.js';
+export * from './orchestrator/execution-manager.js';
+export * from './orchestrator/orchestrator.js';
+
 // Server
 export * from './server/app.js';

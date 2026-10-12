@@ -1,9 +1,11 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 1 — Core Intelligence & Conversational System**
+> **Current Status**: **Phase 2 — The Orchestrator (Intent → Plan → Risk Gating → Permission Check → Execute → Verify)**
 
-JARVIS is a real, modular personal AI system engineered around the core security principle:
-**CAPABILITY DOES NOT EQUAL PERMISSION.**
+JARVIS is a real, modular personal AI system engineered around the core security principles:
+1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
+2. **VERIFY BEFORE DECLARING DONE (NO FAKE COMPLETIONS).**
+3. **RISK-AWARE GATING (LOW → MEDIUM → HIGH → CRITICAL).**
 
 The web interface is only one possible interface to the underlying JARVIS Core engine.
 
@@ -21,22 +23,26 @@ The web interface is only one possible interface to the underlying JARVIS Core e
                          ↓
                     JARVIS CORE
                          ↓
+                   ORCHESTRATOR
+         ┌───────────────┼───────────────┐
+         ↓               ↓               ↓
+   TASK PLANNER    AGENT ROUTER     TOOL ROUTER
+         │               │               │
+         └───────────────┼───────────────┘
+                         ↓
+               RISK EVALUATION ENGINE
+         (LOW → MEDIUM → HIGH → CRITICAL)
+                         ↓
            ┌─────────────┴─────────────┐
            ↓                           ↓
    SECURITY GUARDIAN           PERMISSION MANAGER
    (Threat Analysis &          (Default Deny,
     Unauthorized Blocking)      Permission Hierarchy)
-           │                           │
-           └─────────────┬─────────────┘
                          ↓
-                 SESSION CONTEXT
+                 EXECUTION MANAGER
                          ↓
-                 JARVIS PERSONALITY
-                         ↓
-                AI PROVIDER ADAPTER
-           (Google Gemini / OpenAI / Mock)
-                         ↓
-                    REAL AI MODEL
+                VERIFICATION ENGINE
+         (Filesystem, Exit Codes, Schema, Math)
                          ↓
                  OBSERVABILITY & AUDIT
                          ↓
@@ -45,17 +51,28 @@ The web interface is only one possible interface to the underlying JARVIS Core e
 
 ---
 
-## 🌟 Capabilities in Phase 1
+## 🛡️ Risk Hierarchy & Gating (Phase 2)
+
+| Risk Level | Characteristics & Scope | Authorization & Gating Requirements |
+|---|---|---|
+| **`LOW`** | Read-only informational queries, math problem solving, study planning, conversational advice. | Allowed if user has valid authenticated session. |
+| **`MEDIUM`** | Reversible workspace writes, draft generation, local cache updates. | Requires explicit `WRITE` permission grant. |
+| **`HIGH`** | Terminal shell execution, build/test commands, file deletions, audiovisual hardware streams. | Requires explicit `EXECUTE`/`ADMIN` permission grant **AND** explicit human confirmation. |
+| **`CRITICAL`** | Financial asset transfers, credential access, OS-level modifications, auth bypasses. | **Prohibited by default**. Blocked from automated execution without human administrative elevation. |
+
+---
+
+## 🌟 Capabilities in Phase 2
 
 ### Genuinely Implemented & Working:
+- **The Orchestrator**: Coordinates user goals through structured pipelines (`Understand → Plan → Select Agent/Tool → Risk Evaluation → Permission Check → Execute → Verify → Respond`).
+- **Dynamic Risk Evaluation**: Automated risk classification on every step from `LOW` to `CRITICAL`.
+- **Dedicated Verification Engine**: Verifies actual filesystem changes, command exit codes, schema compliance, and numerical calculations before declaring success. No step is marked complete without evidence.
+- **Honest System Limitations**: Directly flags un-implemented capabilities (Camera, Laptop Control, Financial Trading) with exact target phase and alternative workarounds.
 - **Real AI Conversation Engine**: Connects to actual generative AI models (Google Gemini API, OpenAI-compatible APIs) via the `AIProvider` abstraction.
-- **Session-Based Conversation Memory**: Multi-turn context preservation within isolated sessions (`sessionId`).
-- **Original JARVIS Personality**: Calm, articulate, practical, respectful, confident without pretending, and honest about system boundaries.
-- **Step-by-Step Mathematics**: Answers and breaks down algebra, calculus, arithmetic, and problem solving.
-- **Software & Conceptual Coding Support**: Explains code, reviews algorithms, and discusses architectures without falsely claiming repository file modifications.
-- **Security Guardian & Default-Deny**: Evaluates inputs for unauthorized actions (credential dumping, authentication bypasses, privilege escalation, unverified downloads).
+- **Session-Based Conversation Memory**: Multi-turn context preservation within isolated sessions.
+- **Security Guardian & Default-Deny**: Blocks malicious injections, phishing links, and unauthorized privilege escalations.
 - **Audit Trail & Secret Redaction**: All request events, decisions, and system logs redact API keys and passwords.
-- **Web Interface**: Clean, accessible, responsive dark UI served at `http://127.0.0.1:3000` with session tracking and prompt chips.
 
 ### 🚫 Strictly Not Implemented Yet (Honest System Boundaries):
 - Permanent Second Brain knowledge graph across sessions (Phase 4/5/27)
