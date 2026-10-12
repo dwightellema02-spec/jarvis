@@ -429,6 +429,302 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Phase 7: Mathematics & LET Review UI Handlers ---
+  const mathToggleBtn = document.getElementById('math-toggle-btn');
+  const mathModal = document.getElementById('math-modal');
+  const closeMathModal = document.getElementById('close-math-modal');
+  const mathTabSolver = document.getElementById('math-tab-solver');
+  const mathTabLearning = document.getElementById('math-tab-learning');
+  const mathTabLet = document.getElementById('math-tab-let');
+  const mathPanelSolver = document.getElementById('math-panel-solver');
+  const mathPanelLearning = document.getElementById('math-panel-learning');
+  const mathPanelLet = document.getElementById('math-panel-let');
+
+  if (mathToggleBtn && mathModal && closeMathModal) {
+    mathToggleBtn.addEventListener('click', () => {
+      mathModal.classList.remove('hidden');
+    });
+
+    closeMathModal.addEventListener('click', () => {
+      mathModal.classList.add('hidden');
+    });
+
+    mathModal.addEventListener('click', (e) => {
+      if (e.target === mathModal) mathModal.classList.add('hidden');
+    });
+
+    // Tab Switching
+    function setMathTab(active) {
+      [mathTabSolver, mathTabLearning, mathTabLet].forEach((btn) => {
+        btn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        btn.style.color = '#cbd5e1';
+      });
+      [mathPanelSolver, mathPanelLearning, mathPanelLet].forEach((p) => p.classList.add('hidden'));
+
+      if (active === 'solver') {
+        mathTabSolver.style.borderColor = '#f59e0b';
+        mathTabSolver.style.color = '#f59e0b';
+        mathPanelSolver.classList.remove('hidden');
+      } else if (active === 'learning') {
+        mathTabLearning.style.borderColor = '#f59e0b';
+        mathTabLearning.style.color = '#f59e0b';
+        mathPanelLearning.classList.remove('hidden');
+      } else if (active === 'let') {
+        mathTabLet.style.borderColor = '#f59e0b';
+        mathTabLet.style.color = '#f59e0b';
+        mathPanelLet.classList.remove('hidden');
+      }
+    }
+
+    mathTabSolver.addEventListener('click', () => setMathTab('solver'));
+    mathTabLearning.addEventListener('click', () => setMathTab('learning'));
+    mathTabLet.addEventListener('click', () => setMathTab('let'));
+
+    // Solver logic
+    const mathSolveBtn = document.getElementById('math-solve-btn');
+    const mathSolverInput = document.getElementById('math-solver-input');
+    const mathSolverDomain = document.getElementById('math-solver-domain');
+    const mathSolverResult = document.getElementById('math-solver-result');
+
+    if (mathSolveBtn) {
+      mathSolveBtn.addEventListener('click', async () => {
+        const expression = mathSolverInput.value.trim();
+        const domain = mathSolverDomain.value;
+        if (!expression) return;
+
+        try {
+          mathSolverResult.classList.remove('hidden');
+          mathSolverResult.innerHTML = '<span style="color: #94a3b8;">Computing verified solution...</span>';
+          const res = await fetch('/api/jarvis/math/solve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain, expression }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            mathSolverResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          } else {
+            const stepsHtml = (data.data.steps || [])
+              .map(
+                (s) =>
+                  `<li style="margin-bottom: 0.5rem;"><strong>Step ${s.stepNumber} - ${s.title}:</strong> <code style="background: #1e293b; padding: 2px 4px; border-radius: 4px;">${s.expression}</code><div style="font-size: 0.85rem; color: #94a3b8;">${s.explanation}</div></li>`
+              )
+              .join('');
+
+            mathSolverResult.innerHTML = `
+              <div style="font-size: 1.1rem; color: #f59e0b; font-weight: bold; margin-bottom: 0.5rem;">Result: ${data.data.formattedAnswer}</div>
+              <ol style="margin: 0; padding-left: 1.25rem; font-size: 0.9rem; color: #f8fafc;">${stepsHtml}</ol>
+            `;
+          }
+        } catch (err) {
+          mathSolverResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // Socratic Learning Logic
+    const mathStartDiagnosticBtn = document.getElementById('math-start-diagnostic-btn');
+    const mathLoadWorkedExampleBtn = document.getElementById('math-load-worked-example-btn');
+    const mathLearnDomain = document.getElementById('math-learn-domain');
+    const mathLearningWorkspace = document.getElementById('math-learning-workspace');
+
+    if (mathStartDiagnosticBtn) {
+      mathStartDiagnosticBtn.addEventListener('click', async () => {
+        const domain = mathLearnDomain.value;
+        try {
+          mathLearningWorkspace.innerHTML = '<span style="color: #94a3b8;">Generating diagnostic assessment...</span>';
+          const res = await fetch('/api/jarvis/math/assess', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain }),
+          });
+          const data = await res.json();
+          if (!data.success || !data.data.problems?.length) {
+            mathLearningWorkspace.innerHTML = `<span style="color: #ef4444;">No diagnostic items available for ${domain}.</span>`;
+            return;
+          }
+
+          const problemsHtml = data.data.problems
+            .map(
+              (p, idx) => `
+              <div style="margin-bottom: 1rem; padding: 0.75rem; background: #1e293b; border-radius: 6px;">
+                <div style="font-weight: bold; color: #f8fafc;">#${idx + 1} (${p.topic}): ${p.question}</div>
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem;">Prerequisites: ${p.prerequisites.join(', ')}</div>
+              </div>
+            `
+            )
+            .join('');
+
+          mathLearningWorkspace.innerHTML = `
+            <h4 style="color: #f59e0b; margin-top: 0;">Diagnostic Assessment: ${domain.toUpperCase()}</h4>
+            ${problemsHtml}
+          `;
+        } catch (err) {
+          mathLearningWorkspace.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (mathLoadWorkedExampleBtn) {
+      mathLoadWorkedExampleBtn.addEventListener('click', async () => {
+        const domain = mathLearnDomain.value;
+        try {
+          mathLearningWorkspace.innerHTML = '<span style="color: #94a3b8;">Loading worked example...</span>';
+          const res = await fetch(`/api/jarvis/math/worked-example?domain=${domain}`);
+          const data = await res.json();
+          if (!data.success) {
+            mathLearningWorkspace.innerHTML = `<span style="color: #ef4444;">Error loading worked example.</span>`;
+            return;
+          }
+          const we = data.data;
+          const stepsHtml = (we.steps || [])
+            .map(
+              (s) =>
+                `<li style="margin-bottom: 0.4rem;"><strong>${s.title}:</strong> <code>${s.expression}</code> - <span style="color: #94a3b8;">${s.explanation}</span></li>`
+            )
+            .join('');
+
+          mathLearningWorkspace.innerHTML = `
+            <h4 style="color: #f59e0b; margin-top: 0;">Worked Example: ${we.topic}</h4>
+            <div style="margin-bottom: 0.5rem; color: #e2e8f0;"><strong>Problem:</strong> ${we.problem}</div>
+            <div style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #94a3b8;"><em>Concept:</em> ${we.conceptSummary}</div>
+            <ol style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem;">${stepsHtml}</ol>
+            <div style="margin-top: 0.5rem; color: #10b981; font-weight: bold;">Final Answer: ${we.finalAnswer}</div>
+          `;
+        } catch (err) {
+          mathLearningWorkspace.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // LET Board Exam Logic
+    const letStartMockBtn = document.getElementById('let-start-mock-btn');
+    const letViewCompetenciesBtn = document.getElementById('let-view-competencies-btn');
+    const letWorkspace = document.getElementById('let-workspace');
+
+    if (letStartMockBtn) {
+      letStartMockBtn.addEventListener('click', async () => {
+        try {
+          letWorkspace.innerHTML = '<span style="color: #94a3b8;">Generating 20-item LET Mock Examination...</span>';
+          const res = await fetch('/api/jarvis/math/let/mock-exam');
+          const data = await res.json();
+          if (!data.success) {
+            letWorkspace.innerHTML = `<span style="color: #ef4444;">Error generating mock exam.</span>`;
+            return;
+          }
+
+          const questions = data.data.questions;
+          let currentAnswers = {};
+
+          const qHtml = questions
+            .map(
+              (q, idx) => `
+              <div style="margin-bottom: 1.25rem; padding: 0.75rem; background: #1e293b; border-radius: 6px;">
+                <div style="font-weight: bold; color: #f8fafc; margin-bottom: 0.5rem;">${idx + 1}. ${q.question}</div>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                  ${(q.options || [])
+                    .map(
+                      (opt) => `
+                    <label style="font-size: 0.85rem; color: #cbd5e1; cursor: pointer;">
+                      <input type="radio" name="let-q-${q.id}" value="${opt.key}" data-qid="${q.id}" class="let-option-radio" />
+                      <strong>(${opt.key})</strong> ${opt.text}
+                    </label>
+                  `
+                    )
+                    .join('')}
+                </div>
+              </div>
+            `
+            )
+            .join('');
+
+          letWorkspace.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h4 style="color: #f59e0b; margin: 0;">Philippine BLEPT Mathematics Majorship Mock Exam (Passing: 75%)</h4>
+              <button id="let-submit-exam-btn" class="btn btn-primary" style="background: #10b981; border-color: #10b981; color: #000; font-weight: bold;">Submit & Evaluate</button>
+            </div>
+            <form id="let-exam-form">${qHtml}</form>
+          `;
+
+          const radios = letWorkspace.querySelectorAll('.let-option-radio');
+          radios.forEach((r) => {
+            r.addEventListener('change', (e) => {
+              currentAnswers[e.target.dataset.qid] = e.target.value;
+            });
+          });
+
+          const submitBtn = document.getElementById('let-submit-exam-btn');
+          if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+              const evalRes = await fetch('/api/jarvis/math/let/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers: currentAnswers }),
+              });
+              const evalData = await evalRes.json();
+              if (evalData.success) {
+                const res = evalData.data;
+                letWorkspace.innerHTML = `
+                  <div style="padding: 1rem; background: ${res.passed ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border: 1px solid ${res.passed ? '#10b981' : '#ef4444'}; border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 style="color: ${res.passed ? '#10b981' : '#ef4444'}; margin-top: 0;">Exam Result: ${res.passed ? 'PASSED (LPT)' : 'DID NOT PASS (Review Needed)'}</h3>
+                    <div style="font-size: 1.1rem; color: #f8fafc;">Score: <strong>${res.score} / ${res.total}</strong> (${res.percentage}%)</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem;">Standard Philippine PRC Passing Threshold: 75.0%</div>
+                  </div>
+                  <h4 style="color: #f59e0b;">Question Explanations & Distractor Rationales:</h4>
+                  ${res.questionEvaluations
+                    .map(
+                      (qe, idx) => `
+                    <div style="margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #1e293b; border-left: 3px solid ${qe.isCorrect ? '#10b981' : '#ef4444'}; border-radius: 4px;">
+                      <div><strong>#${idx + 1}:</strong> ${qe.question}</div>
+                      <div style="font-size: 0.85rem; color: ${qe.isCorrect ? '#10b981' : '#ef4444'}; margin-top: 0.25rem;">
+                        Your Answer: <strong>${qe.selectedKey || 'Unanswered'}</strong> | Correct: <strong>${qe.correctKey}</strong>
+                      </div>
+                      <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 0.25rem;">${qe.explanation}</div>
+                      ${qe.selectedDistractorRationale ? `<div style="font-size: 0.8rem; color: #fbbf24; margin-top: 0.25rem;"><em>Why selected:</em> ${qe.selectedDistractorRationale}</div>` : ''}
+                    </div>
+                  `
+                    )
+                    .join('')}
+                `;
+              }
+            });
+          }
+        } catch (err) {
+          letWorkspace.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (letViewCompetenciesBtn) {
+      letViewCompetenciesBtn.addEventListener('click', async () => {
+        try {
+          letWorkspace.innerHTML = '<span style="color: #94a3b8;">Loading Table of Specifications...</span>';
+          const res = await fetch('/api/jarvis/math/let/competencies');
+          const data = await res.json();
+          if (data.success) {
+            const comps = data.data
+              .map(
+                (c) => `
+              <li style="margin-bottom: 0.75rem; background: #1e293b; padding: 0.5rem 0.75rem; border-radius: 6px;">
+                <div style="color: #f59e0b; font-weight: bold;">${c.code}: ${c.title} (${c.weightPercent}%)</div>
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem;">${c.description}</div>
+              </li>
+            `
+              )
+              .join('');
+            letWorkspace.innerHTML = `
+              <h4 style="color: #f59e0b; margin-top: 0;">Philippine BLEPT Mathematics Majorship Table of Specifications</h4>
+              <ul style="list-style: none; padding: 0; margin: 0;">${comps}</ul>
+            `;
+          }
+        } catch (err) {
+          letWorkspace.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });
+

@@ -37,6 +37,15 @@ import {
   DocumentAnalyzeTableTool,
   DocumentExtractKnowledgeTool,
 } from '../documents/index.js';
+import {
+  MathematicsEngine,
+  MathematicsAgent,
+  MathSolveTool,
+  MathWorkedExampleTool,
+  MathAssessTool,
+  MathCheckAnswerTool,
+  MathLetReviewTool,
+} from '../math/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -52,6 +61,7 @@ export interface JarvisCoreConfig {
   memoryManager?: ConversationMemoryManager;
   secondBrain?: SecondBrainManager;
   documentIntelligence?: DocumentIntelligenceManager;
+  mathEngine?: MathematicsEngine;
 }
 
 export interface JarvisChatRequest {
@@ -89,6 +99,7 @@ export class JarvisCore {
   private memoryManager: ConversationMemoryManager;
   private secondBrain: SecondBrainManager;
   private documentIntelligence: DocumentIntelligenceManager;
+  private mathEngine: MathematicsEngine;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -166,7 +177,18 @@ export class JarvisCore {
       new DocumentExtractKnowledgeTool(this.documentIntelligence, this.secondBrain)
     );
 
-    logger.info('JARVIS Core initialized with Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Mathematics Engine, Agent, and Tools
+    this.mathEngine = config.mathEngine || new MathematicsEngine();
+    const mathAgent = new MathematicsAgent(this.mathEngine);
+    this.agentRegistry.registerImplementation(mathAgent);
+
+    this.toolRegistry.registerImplementation(new MathSolveTool(this.mathEngine));
+    this.toolRegistry.registerImplementation(new MathWorkedExampleTool(this.mathEngine));
+    this.toolRegistry.registerImplementation(new MathAssessTool(this.mathEngine));
+    this.toolRegistry.registerImplementation(new MathCheckAnswerTool(this.mathEngine));
+    this.toolRegistry.registerImplementation(new MathLetReviewTool(this.mathEngine));
+
+    logger.info('JARVIS Core initialized with Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -500,6 +522,10 @@ export class JarvisCore {
 
   public getDocumentIntelligence(): DocumentIntelligenceManager {
     return this.documentIntelligence;
+  }
+
+  public getMathematicsEngine(): MathematicsEngine {
+    return this.mathEngine;
   }
 
   public async orchestrate(

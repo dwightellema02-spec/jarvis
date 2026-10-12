@@ -27,6 +27,7 @@ import { createProfileRouter } from './routes/profile.js';
 import { createMemoryRouter } from './routes/memory.js';
 import { createSecondBrainRouter } from './routes/second-brain.js';
 import { createDocumentRouter } from './routes/documents.js';
+import { createMathRouter } from './routes/math.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -143,13 +144,14 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.6.0-phase6';
+  const version = '0.7.0-phase7';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
   app.use('/api/jarvis/memory', createMemoryRouter(core));
   app.use('/api/jarvis/second-brain', createSecondBrainRouter(core));
   app.use('/api/jarvis', createDocumentRouter(core));
+  app.use('/api/jarvis', createMathRouter(core));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

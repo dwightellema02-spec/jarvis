@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 6: Document Intelligence Active</span>
+        <span class="badge phase-badge">Phase 7: Mathematics & Learning Engine Active</span>
       </div>
       <div class="header-meta">
+        <button id="math-toggle-btn" class="btn btn-outline" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;" title="Mathematics & LET Review Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          <span>Math & LET</span>
+        </button>
         <button id="documents-toggle-btn" class="btn btn-outline" style="border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;" title="Document Intelligence & Analysis">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           <span>Documents</span>
@@ -201,6 +205,72 @@
         <div id="document-detail-panel" class="hidden" style="margin-top: 1rem; padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
           <h3 id="doc-detail-title" style="color: #3b82f6; margin-top: 0;">Document Details</h3>
           <div id="doc-detail-content" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1;"></div>
+        </div>
+      </div>
+    </div>
+  <!-- Phase 7 Mathematics & LET Review Modal Overlay -->
+  <div id="math-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="math-title">
+    <div class="profile-card-modal" style="max-width: 900px;">
+      <div class="modal-header">
+        <h2 id="math-title" style="color: #f59e0b;">🧮 Mathematics & LET Review Engine</h2>
+        <button id="close-math-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05);">
+          <h4 style="color: #f59e0b;">Verified Socratic Pedagogy & BLEPT Board Review</h4>
+          <p>Algebra, Calculus, Geometry, Statistics, Logic, Socratic remediation, and authentic Philippine LET Licensure Examination Table of Specifications with distractor analysis.</p>
+        </div>
+
+        <!-- Mode Selectors -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem;">
+          <button id="math-tab-solver" class="btn btn-outline" style="border-color: #f59e0b; color: #f59e0b; font-weight: bold;">Problem Solver</button>
+          <button id="math-tab-learning" class="btn btn-outline">Socratic Learning</button>
+          <button id="math-tab-let" class="btn btn-outline">LET Board Exam</button>
+        </div>
+
+        <!-- Tab 1: Solver -->
+        <div id="math-panel-solver">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <select id="math-solver-domain" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="arithmetic">Arithmetic (PEMDAS, Bases, GCD/LCM)</option>
+              <option value="algebra">Algebra (Linear, Quadratic, Systems)</option>
+              <option value="differential_calculus">Differential Calculus</option>
+              <option value="geometry">Geometry & Trigonometry</option>
+              <option value="statistics">Statistics & Probability</option>
+            </select>
+            <input type="text" id="math-solver-input" placeholder="e.g. 15 * 4 - (8 + 2)^2 / 5" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <button id="math-solve-btn" class="btn btn-primary" style="background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: bold;">Solve</button>
+          </div>
+          <div id="math-solver-result" class="hidden" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 2: Socratic Learning -->
+        <div id="math-panel-learning" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center;">
+            <span style="color: #94a3b8; font-size: 0.9rem;">Domain:</span>
+            <select id="math-learn-domain" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="algebra">Algebra</option>
+              <option value="differential_calculus">Differential Calculus</option>
+              <option value="statistics">Statistics</option>
+              <option value="arithmetic">Arithmetic</option>
+            </select>
+            <button id="math-start-diagnostic-btn" class="btn btn-primary" style="background: #f59e0b; border-color: #f59e0b; color: #000;">Assess Knowledge</button>
+            <button id="math-load-worked-example-btn" class="btn btn-outline">Worked Example</button>
+          </div>
+          <div id="math-learning-workspace" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Click "Assess Knowledge" to diagnose your strengths or "Worked Example" for step-by-step guidance.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: LET Review -->
+        <div id="math-panel-let" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button id="let-start-mock-btn" class="btn btn-primary" style="background: #f59e0b; border-color: #f59e0b; color: #000; font-weight: bold;">Start LET Mock Exam (20 Items)</button>
+            <button id="let-view-competencies-btn" class="btn btn-outline">Table of Specifications (TOS)</button>
+          </div>
+          <div id="let-workspace" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Prepare for the Philippine BLEPT Majorship in Mathematics. Click "Start LET Mock Exam" to begin.</p>
+          </div>
         </div>
       </div>
     </div>

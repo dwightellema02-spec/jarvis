@@ -261,7 +261,39 @@ async function runManualVerification() {
       const toKnowledge = await toKnowledgeRes.json();
       console.log('   Second Brain Knowledge Nodes Created:', toKnowledge.result.createdNodes.length);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5 & 6) PASSED SUCCESSFULLY! ===');
+      console.log('24. Testing Phase 7 Mathematical Solving (POST /api/jarvis/math/solve)');
+      const mathSolveRes = await fetch('http://127.0.0.1:3099/api/jarvis/math/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: 'algebra',
+          quadratic: { a: 1, b: -8, c: 15 },
+        }),
+      });
+      const mathSolve = await mathSolveRes.json();
+      console.log('   Quadratic Solved:', mathSolve.data.formattedAnswer, '| Root Type:', mathSolve.data.result.rootType);
+
+      console.log('25. Testing Phase 7 Socratic Diagnostic & Worked Example (/api/jarvis/math/worked-example)');
+      const weRes = await fetch('http://127.0.0.1:3099/api/jarvis/math/worked-example?domain=algebra');
+      const weData = await weRes.json();
+      console.log('   Worked Example Topic:', weData.data.topic, '| Steps Count:', weData.data.steps.length);
+
+      console.log('26. Testing Phase 7 Philippine BLEPT LET Mock Exam (GET /api/jarvis/math/let/mock-exam & POST evaluate)');
+      const letExamRes = await fetch('http://127.0.0.1:3099/api/jarvis/math/let/mock-exam');
+      const letExam = await letExamRes.json();
+      console.log('   LET Mock Exam Generated:', letExam.data.totalQuestions, 'items | Competencies:', letExam.data.competenciesCovered.length);
+
+      const letEvalRes = await fetch('http://127.0.0.1:3099/api/jarvis/math/let/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: { 'LET-Q01': 'C', 'LET-Q02': 'A', 'LET-Q03': 'A' },
+        }),
+      });
+      const letEval = await letEvalRes.json();
+      console.log('   LET Eval Score:', letEval.data.score, '/', letEval.data.total, '| Passed (>=75%):', letEval.data.passed);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6 & 7) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {
@@ -271,4 +303,5 @@ async function runManualVerification() {
 }
 
 runManualVerification();
+
 

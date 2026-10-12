@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 2 — The Orchestrator (Intent → Plan → Risk Gating → Permission Check → Execute → Verify)**
+> **Current Status**: **Phase 7 — Mathematics & Learning Engine (Real Solvers, Socratic Learning Cycle, BLEPT LET Review)**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -258,9 +258,63 @@ JARVIS provides real multi-format document processing, extraction, synthesis, an
 
 ---
 
+## 🧮 Phase 7 Architecture: Mathematics & Learning Engine
+
+JARVIS features a full mathematical intelligence stack combining real symbolic/numerical solvers, an 8-stage Socratic learning cycle, and an authentic Philippine BLEPT Board Licensure Examination for Teachers (LET) review engine:
+
+### 1. Mathematical Solvers & Domains
+* **Arithmetic & Number Systems**:
+  * PEMDAS/BODMAS order of operations with step-by-step operand extraction.
+  * Prime factorization and Fundamental Theorem of Arithmetic ($2^2 \cdot 3 \cdot 5$).
+  * Greatest Common Divisor (GCD) using the Euclidean algorithm and Least Common Multiple (LCM).
+  * Positional number base conversions across Binary (base 2), Octal (base 8), Decimal (base 10), and Hexadecimal (base 16).
+* **Algebra & Systems**:
+  * Linear equations ($ax + b = c$) with isolate-variable steps.
+  * Quadratic equations ($ax^2 + bx + c = 0$) with discriminant ($\Delta = b^2 - 4ac$) evaluation, nature of roots (two distinct real, one repeated, or complex conjugate pair $a \pm bi$), and parabola vertex coordinates.
+  * $2 \times 2$ systems of linear equations using Cramer's Rule ($D, D_x, D_y$).
+* **Differential & Integral Calculus**:
+  * Polynomial differentiation using the sum and power rules ($\frac{d}{dx}[x^n] = n x^{n-1}$) with tangent line slope evaluation at $x_0$.
+  * Indefinite integration with reverse power rule and integration constant ($+ C$).
+  * Definite integrals evaluated via the Fundamental Theorem of Calculus (FTC): $\int_a^b f(x) dx = F(b) - F(a)$.
+  * First-order separable ordinary differential equations ($\frac{dy}{dt} = ky$) with Initial Value Problem (IVP) resolution.
+* **Geometry & Trigonometry**:
+  * 2D Right triangles (Pythagorean theorem solving for any unknown side), general triangles using Heron's formula, circles and circular sectors.
+  * Law of Cosines for SAS oblique triangles ($c^2 = a^2 + b^2 - 2ab\cos C$).
+  * 3D Solid geometry: Sphere surface area and volume, Cylinder surface area and volume, Cone slant height and volume.
+* **Statistics & Combinatorics**:
+  * Descriptive statistics: mean, median, modes, range, sample/population variance and standard deviation with Bessel's correction, quartiles, and IQR.
+  * Combinatorics: factorials ($n!$), permutations ($P(n, r) = \frac{n!}{(n-r)!}$), and combinations ($C(n, r) = \frac{n!}{r!(n-r)!}$).
+  * Probability: Bayes' Theorem posterior probability calculations ($P(A|B) = \frac{P(B|A)P(A)}{P(B)}$).
+* **Sets & Propositional Logic**:
+  * Set operations: Union ($A \cup B$), Intersection ($A \cap B$), and Difference ($A \setminus B$).
+  * Truth table generation, Tautology/Contradiction classification, and conditional implication contrapositive analysis ($p \to q \equiv \neg q \to \neg p$).
+
+### 2. Socratic Learning Cycle
+Engineered around the pedagogical cycle:
+$$\text{Assess} \longrightarrow \text{Identify Weaknesses} \longrightarrow \text{Teach Prerequisite} \longrightarrow \text{Worked Example} \longrightarrow \text{Practice} \longrightarrow \text{Check} \longrightarrow \text{Explain Mistake} \longrightarrow \text{Mastery}$$
+* **Diagnostic Assessment**: Generates targeted multi-item diagnostics in any mathematical domain.
+* **Weakness Detection & Remediation Plan**: Pinpoints failed prerequisite concepts and generates prescriptive action plans.
+* **Prerequisite Instruction**: Explains conceptual theory and axioms before attempting problem solving.
+* **Structured Worked Examples**: Step-by-step problem breakdowns with concept summaries and key takeaways.
+* **Answer Evaluation & Mistake Rationalization**: Compares student responses, analyzes the specific error, and triggers remedial worked examples.
+* **Mastery Progress**: Tracks consecutive correct attempts until 80%+ topic mastery is achieved.
+
+### 3. Philippine BLEPT LET Mathematics Majorship Review Engine
+* **Table of Specifications (TOS)**: Directly aligned with the Philippine Professional Regulation Commission (PRC) Board Licensure Examination for Professional Teachers (BLEPT) Mathematics Specialization specifications:
+  * `LET-MATH-01`: Arithmetic, Number Theory & Real Number Systems (15%)
+  * `LET-MATH-02`: College Algebra, Advanced Algebra & Linear Systems (20%)
+  * `LET-MATH-03`: Plane & Solid Geometry and Trigonometry (20%)
+  * `LET-MATH-04`: Calculus & Differential Equations (20%)
+  * `LET-MATH-05`: Probability and Statistics (15%)
+  * `LET-MATH-06`: Modern Mathematics, Logic, and Set Theory (10%)
+* **Curated Question Bank**: 20 authentic board-exam-style questions with 4 options (A, B, C, D) and detailed distractor rationalizations (explaining why common misconceptions lead to specific wrong choices).
+* **Mock Exam Simulator**: Interactive 20-item examination with instant scoring evaluated against the official 75.0% passing threshold, competency breakdown, and distractor feedback.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (141 automated tests across 23 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, and Document Intelligence specifications):
+Run the full Vitest suite (183 automated tests across 27 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, and BLEPT LET Review specifications):
 ```bash
 # Run all tests
 npm test
