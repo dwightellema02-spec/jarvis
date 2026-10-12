@@ -724,6 +724,267 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- Phase 8: Research Engine UI Handlers ---
+  const researchToggleBtn = document.getElementById('research-toggle-btn');
+  const researchModal = document.getElementById('research-modal');
+  const closeResearchModal = document.getElementById('close-research-modal');
+  const resTabEpistemic = document.getElementById('res-tab-epistemic');
+  const resTabCitations = document.getElementById('res-tab-citations');
+  const resTabQuestions = document.getElementById('res-tab-questions');
+  const resTabCompare = document.getElementById('res-tab-compare');
+  const resPanelEpistemic = document.getElementById('res-panel-epistemic');
+  const resPanelCitations = document.getElementById('res-panel-citations');
+  const resPanelQuestions = document.getElementById('res-panel-questions');
+  const resPanelCompare = document.getElementById('res-panel-compare');
+
+  if (researchToggleBtn && researchModal && closeResearchModal) {
+    researchToggleBtn.addEventListener('click', async () => {
+      researchModal.classList.remove('hidden');
+      await loadResearchSourcesList();
+    });
+
+    closeResearchModal.addEventListener('click', () => {
+      researchModal.classList.add('hidden');
+    });
+
+    researchModal.addEventListener('click', (e) => {
+      if (e.target === researchModal) researchModal.classList.add('hidden');
+    });
+
+    function setResTab(active) {
+      [resTabEpistemic, resTabCitations, resTabQuestions, resTabCompare].forEach((btn) => {
+        btn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        btn.style.color = '#cbd5e1';
+      });
+      [resPanelEpistemic, resPanelCitations, resPanelQuestions, resPanelCompare].forEach((p) =>
+        p.classList.add('hidden')
+      );
+
+      if (active === 'epistemic') {
+        resTabEpistemic.style.borderColor = '#a855f7';
+        resTabEpistemic.style.color = '#a855f7';
+        resPanelEpistemic.classList.remove('hidden');
+      } else if (active === 'citations') {
+        resTabCitations.style.borderColor = '#a855f7';
+        resTabCitations.style.color = '#a855f7';
+        resPanelCitations.classList.remove('hidden');
+      } else if (active === 'questions') {
+        resTabQuestions.style.borderColor = '#a855f7';
+        resTabQuestions.style.color = '#a855f7';
+        resPanelQuestions.classList.remove('hidden');
+      } else if (active === 'compare') {
+        resTabCompare.style.borderColor = '#a855f7';
+        resTabCompare.style.color = '#a855f7';
+        resPanelCompare.classList.remove('hidden');
+      }
+    }
+
+    resTabEpistemic.addEventListener('click', () => setResTab('epistemic'));
+    resTabCitations.addEventListener('click', () => setResTab('citations'));
+    resTabQuestions.addEventListener('click', () => setResTab('questions'));
+    resTabCompare.addEventListener('click', () => setResTab('compare'));
+
+    // 1. Epistemic Classifier
+    const resClassifyBtn = document.getElementById('res-classify-btn');
+    const resInputText = document.getElementById('res-input-text');
+    const resEpistemicResults = document.getElementById('res-epistemic-results');
+
+    if (resClassifyBtn) {
+      resClassifyBtn.addEventListener('click', async () => {
+        const text = resInputText.value.trim();
+        if (!text) return;
+        try {
+          resEpistemicResults.classList.remove('hidden');
+          resEpistemicResults.innerHTML = '<span style="color: #94a3b8;">Classifying epistemic statements...</span>';
+          const res = await fetch('/api/jarvis/research/classify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            resEpistemicResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const badgeColor = {
+            FACT: '#10b981',
+            CLAIM: '#3b82f6',
+            OPINION: '#ec4899',
+            INFERENCE: '#f59e0b',
+            UNCERTAINTY: '#eab308',
+          };
+
+          const stmtsHtml = (data.data.statements || [])
+            .map(
+              (s) => `
+              <div style="margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #1e293b; border-left: 4px solid ${badgeColor[s.category] || '#94a3b8'}; border-radius: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                  <span style="background: ${badgeColor[s.category] || '#94a3b8'}; color: #000; font-size: 0.75rem; font-weight: bold; padding: 1px 6px; border-radius: 4px;">${s.category}</span>
+                  <span style="font-size: 0.75rem; color: #94a3b8;">Confidence: ${(s.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div style="font-size: 0.9rem; color: #f8fafc;">"${s.text}"</div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">${s.rationale}</div>
+              </div>
+            `
+            )
+            .join('');
+
+          resEpistemicResults.innerHTML = `
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem; color: #cbd5e1;">
+              <span>Total: <strong>${data.data.totalStatements}</strong></span>
+              <span style="color: #10b981;">Facts: <strong>${data.data.counts.FACT}</strong></span>
+              <span style="color: #3b82f6;">Claims: <strong>${data.data.counts.CLAIM}</strong></span>
+              <span style="color: #ec4899;">Opinions: <strong>${data.data.counts.OPINION}</strong></span>
+              <span style="color: #f59e0b;">Inferences: <strong>${data.data.counts.INFERENCE}</strong></span>
+              <span style="color: #eab308;">Uncertainty: <strong>${data.data.counts.UNCERTAINTY}</strong></span>
+            </div>
+            ${stmtsHtml}
+          `;
+        } catch (err) {
+          resEpistemicResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Sources & Citations
+    const resSourceSelect = document.getElementById('res-source-select');
+    const resGetCitationsBtn = document.getElementById('res-get-citations-btn');
+    const resCitationsDisplay = document.getElementById('res-citations-display');
+
+    async function loadResearchSourcesList() {
+      try {
+        const res = await fetch('/api/jarvis/research/sources');
+        const data = await res.json();
+        if (data.success && resSourceSelect) {
+          resSourceSelect.innerHTML = data.data
+            .map((s) => `<option value="${s.id}">${s.title} (${s.publishedYear || 'n.d.'})</option>`)
+            .join('');
+        }
+      } catch (err) {
+        console.error('Failed to load sources list:', err);
+      }
+    }
+
+    if (resGetCitationsBtn) {
+      resGetCitationsBtn.addEventListener('click', async () => {
+        const sourceId = resSourceSelect.value;
+        if (!sourceId) return;
+        try {
+          resCitationsDisplay.innerHTML = '<span style="color: #94a3b8;">Formatting citations...</span>';
+          const res = await fetch(`/api/jarvis/research/citations/${sourceId}`);
+          const data = await res.json();
+          if (!data.success) {
+            resCitationsDisplay.innerHTML = `<span style="color: #ef4444;">Error generating citations.</span>`;
+            return;
+          }
+
+          const citesHtml = data.data
+            .map(
+              (c) => `
+              <div style="margin-bottom: 0.75rem; background: #1e293b; padding: 0.5rem 0.75rem; border-radius: 6px;">
+                <div style="color: #a855f7; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.25rem;">${c.format}</div>
+                <div style="font-family: monospace; font-size: 0.85rem; color: #f8fafc; white-space: pre-wrap;">${c.citationString}</div>
+              </div>
+            `
+            )
+            .join('');
+
+          resCitationsDisplay.innerHTML = `
+            <h4 style="color: #a855f7; margin-top: 0;">Academic & Scientific Citations</h4>
+            ${citesHtml}
+          `;
+        } catch (err) {
+          resCitationsDisplay.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Question Builder
+    const resGenerateQBtn = document.getElementById('res-generate-q-btn');
+    const resQTopic = document.getElementById('res-q-topic');
+    const resQPop = document.getElementById('res-q-pop');
+    const resQInt = document.getElementById('res-q-int');
+    const resQOut = document.getElementById('res-q-out');
+    const resQuestionResult = document.getElementById('res-question-result');
+
+    if (resGenerateQBtn) {
+      resGenerateQBtn.addEventListener('click', async () => {
+        const topic = resQTopic.value.trim();
+        const population = resQPop.value.trim();
+        const intervention = resQInt.value.trim();
+        const outcome = resQOut.value.trim();
+        if (!topic) return;
+
+        try {
+          resQuestionResult.classList.remove('hidden');
+          resQuestionResult.innerHTML = '<span style="color: #94a3b8;">Formulating research question...</span>';
+          const res = await fetch('/api/jarvis/research/questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, population, intervention, outcome, framework: 'PICO' }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            resQuestionResult.innerHTML = `<span style="color: #ef4444;">Error formulating question.</span>`;
+            return;
+          }
+          const q = data.data;
+
+          resQuestionResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; font-size: 1rem; color: #a855f7; font-weight: bold;">Primary Inquiry:</div>
+            <div style="font-size: 1.05rem; color: #f8fafc; margin-bottom: 0.75rem;">"${q.primaryQuestion}"</div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;"><strong>Hypotheses:</strong></div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #94a3b8;">
+              <li>${q.hypotheses.nullHypothesis}</li>
+              <li>${q.hypotheses.alternativeHypothesis}</li>
+            </ul>
+            <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #10b981;">✓ ${q.finerAssessment.notes}</div>
+          `;
+        } catch (err) {
+          resQuestionResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Compare Sources
+    const resRunCompareBtn = document.getElementById('res-run-compare-btn');
+    const resCompareResult = document.getElementById('res-compare-result');
+
+    if (resRunCompareBtn) {
+      resRunCompareBtn.addEventListener('click', async () => {
+        try {
+          resCompareResult.innerHTML = '<span style="color: #94a3b8;">Running multi-source synthesis...</span>';
+          const res = await fetch('/api/jarvis/research/compare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sourceIds: ['src_prc_blept', 'src_tuklas_pedagogy'] }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            resCompareResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+          const comp = data.data;
+          resCompareResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; font-size: 0.95rem; color: #a855f7; font-weight: bold;">Consensus Level: ${comp.consensusLevel.replace('_', ' ')}</div>
+            <div style="font-size: 0.9rem; color: #f8fafc; margin-bottom: 0.75rem;">${comp.summary}</div>
+            <div style="font-size: 0.85rem; color: #10b981; font-weight: bold; margin-bottom: 0.25rem;">Points of Agreement:</div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.75rem;">
+              ${comp.pointsOfAgreement.map((p) => `<li>${p}</li>`).join('')}
+            </ul>
+            <div style="font-size: 0.85rem; color: #f59e0b; font-weight: bold; margin-bottom: 0.25rem;">Points of Divergence / Focus:</div>
+            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #cbd5e1;">
+              ${comp.pointsOfContradiction.length ? comp.pointsOfContradiction.map((p) => `<li>${p}</li>`).join('') : '<li>No overt methodological contradictions identified.</li>'}
+            </ul>
+          `;
+        } catch (err) {
+          resCompareResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

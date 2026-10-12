@@ -46,6 +46,16 @@ import {
   MathCheckAnswerTool,
   MathLetReviewTool,
 } from '../math/index.js';
+import {
+  ResearchManager,
+  ResearchAgent,
+  ResearchClassifyEpistemicTool,
+  ResearchGenerateCitationTool,
+  ResearchCompareSourcesTool,
+  ResearchDevelopQuestionTool,
+  ResearchCreateNoteTool,
+  ResearchToKnowledgeTool,
+} from '../research/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -62,6 +72,7 @@ export interface JarvisCoreConfig {
   secondBrain?: SecondBrainManager;
   documentIntelligence?: DocumentIntelligenceManager;
   mathEngine?: MathematicsEngine;
+  researchManager?: ResearchManager;
 }
 
 export interface JarvisChatRequest {
@@ -100,6 +111,7 @@ export class JarvisCore {
   private secondBrain: SecondBrainManager;
   private documentIntelligence: DocumentIntelligenceManager;
   private mathEngine: MathematicsEngine;
+  private researchManager: ResearchManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -188,7 +200,26 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new MathCheckAnswerTool(this.mathEngine));
     this.toolRegistry.registerImplementation(new MathLetReviewTool(this.mathEngine));
 
-    logger.info('JARVIS Core initialized with Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Research Engine, Agent, and Tools
+    this.researchManager =
+      config.researchManager ||
+      new ResearchManager(
+        this.permissionManager,
+        this.guardian,
+        this.auditLogger,
+        this.secondBrain
+      );
+    const researchAgent = new ResearchAgent(this.researchManager);
+    this.agentRegistry.registerImplementation(researchAgent);
+
+    this.toolRegistry.registerImplementation(new ResearchClassifyEpistemicTool(this.researchManager));
+    this.toolRegistry.registerImplementation(new ResearchGenerateCitationTool(this.researchManager));
+    this.toolRegistry.registerImplementation(new ResearchCompareSourcesTool(this.researchManager));
+    this.toolRegistry.registerImplementation(new ResearchDevelopQuestionTool(this.researchManager));
+    this.toolRegistry.registerImplementation(new ResearchCreateNoteTool(this.researchManager));
+    this.toolRegistry.registerImplementation(new ResearchToKnowledgeTool(this.researchManager));
+
+    logger.info('JARVIS Core initialized with Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -526,6 +557,10 @@ export class JarvisCore {
 
   public getMathematicsEngine(): MathematicsEngine {
     return this.mathEngine;
+  }
+
+  public getResearchManager(): ResearchManager {
+    return this.researchManager;
   }
 
   public async orchestrate(

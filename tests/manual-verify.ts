@@ -293,7 +293,53 @@ async function runManualVerification() {
       const letEval = await letEvalRes.json();
       console.log('   LET Eval Score:', letEval.data.score, '/', letEval.data.total, '| Passed (>=75%):', letEval.data.passed);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6 & 7) PASSED SUCCESSFULLY! ===');
+      console.log('27. Testing Phase 8 Epistemic Classification (POST /api/jarvis/research/classify)');
+      const epistemicRes = await fetch('http://127.0.0.1:3099/api/jarvis/research/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: 'In 2024, 450 students were tested. The authors argue that Socratic dialogue is best. Therefore retention increases. However, results are possibly tentative.',
+        }),
+      });
+      const epistemicData = await epistemicRes.json();
+      console.log('   Epistemic Statements:', epistemicData.data.totalStatements, '| Facts:', epistemicData.data.counts.FACT, '| Claims:', epistemicData.data.counts.CLAIM, '| Opinions:', epistemicData.data.counts.OPINION, '| Uncertainty:', epistemicData.data.counts.UNCERTAINTY);
+
+      console.log('28. Testing Phase 8 Academic Citations (GET /api/jarvis/research/citations/:sourceId)');
+      const citeRes = await fetch('http://127.0.0.1:3099/api/jarvis/research/citations/src_prc_blept');
+      const citeData = await citeRes.json();
+      console.log('   Formats Generated:', citeData.data.map((c: any) => c.format).join(', '));
+
+      console.log('29. Testing Phase 8 Multi-Source Comparison (POST /api/jarvis/research/compare)');
+      const compRes = await fetch('http://127.0.0.1:3099/api/jarvis/research/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceIds: ['src_prc_blept', 'src_tuklas_pedagogy'] }),
+      });
+      const compData = await compRes.json();
+      console.log('   Consensus Level:', compData.data.consensusLevel, '| Points of Agreement:', compData.data.pointsOfAgreement.length);
+
+      console.log('30. Testing Phase 8 Research Note Synthesis & Second Brain Ingestion');
+      const noteRes = await fetch('http://127.0.0.1:3099/api/jarvis/research/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'Mathematics Pedagogy Synthesis Note',
+          topic: 'Philippine LET Review & Socratic Remediation',
+          rawText: 'In 2024, 450 candidates joined the study. Scaffolded distractor feedback accelerates conceptual mastery.',
+          sourceIds: ['src_prc_blept', 'src_tuklas_pedagogy'],
+        }),
+      });
+      const noteData = await noteRes.json();
+      console.log('   Research Note Created:', noteData.data.title, '| ID:', noteData.data.id);
+
+      const toBrainRes = await fetch(`http://127.0.0.1:3099/api/jarvis/research/notes/${noteData.data.id}/to-knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+      });
+      const toBrainData = await toBrainRes.json();
+      console.log('   Ingested to Second Brain Nodes:', toBrainData.data.createdNodeIds.length);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1, 2, 3, 4, 5, 6, 7 & 8) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

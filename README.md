@@ -312,9 +312,46 @@ $$\text{Assess} \longrightarrow \text{Identify Weaknesses} \longrightarrow \text
 
 ---
 
+## 🔬 Phase 8 Architecture: Research Intelligence Engine
+
+JARVIS features an academic research engine designed to uphold scholarly rigor and prevent citation hallucinations:
+
+### 1. Epistemic Classification Engine
+Classifies every passage or sentence into 5 epistemic categories:
+* **FACT**: Verified historical, empirical, experimental, or demographic statements supported by quantitative metrics (`"In 2024, 450 participants completed the trial"`).
+* **CLAIM**: Formal assertions or theoretical positions advanced by authors (`"Smith et al. argue that Socratic dialogue improves retention"`).
+* **OPINION**: Subjective value judgments, personal assessments, or beliefs (`"This is the most remarkable approach"`).
+* **INFERENCE**: Deductive or inductive logical conclusions drawn from premises (`"Therefore, retention rates increase"`).
+* **UNCERTAINTY**: Hedged or tentative assertions requiring further corroboration (`"Results may possibly suggest tentative correlation"`).
+
+### 2. Multi-Format Academic Citation Engine
+Generates authentic citations without hallucinatory formatting across 5 academic citation standards:
+* **APA 7th Edition**: `Author(s) (Year). Title. Journal/Source, Volume(Issue), Pages. DOI/URL`
+* **IEEE Standard**: `[#] Authors, "Title," Source, vol. X, no. Y, pp. Z, Month Year. [Online]. Available: URL`
+* **Chicago 17th Edition**: `Author(s). "Title." Source volume, no. issue (Year): pages.`
+* **Harvard Style**: `Author(s) (Year) 'Title', Source, Volume(Issue), pp. Pages.`
+* **BibTeX Format**: Clean, valid `@article` / `@book` entries for direct LaTeX integration.
+
+### 3. PICO & FINER Research Question Generator
+* **PICO Framework**: Formulates structured questions identifying Population (P), Intervention (I), Comparison (C), and Outcome (O).
+* **FINER Criteria**: Evaluates Feasibility, Interest, Novelty, Ethics, and Relevance.
+* **Hypothesis Formulation**: Automatically derives testable Null ($H_0$) and Alternative ($H_1$) hypotheses.
+
+### 4. Multi-Source Evidence Comparator
+* Synthesizes multiple empirical papers side-by-side.
+* Computes consensus level: `STRONG_CONSENSUS`, `MODERATE_CONSENSUS`, `CONTESTED`, or `NO_CONSENSUS`.
+* Highlights exact points of agreement and explicit contradictions.
+
+### 5. Research Synthesis & Second Brain Ingestion
+* Generates structured markdown research notes with executive summaries and epistemic breakdowns.
+* Ingests verified facts directly into persistent Second Brain knowledge nodes (`domain: 'study'`), connecting evidence nodes to root topics via directed `supports` relationship edges.
+* Built-in **anti-SSRF security** prevents ingestion of private/loopback IP ranges (`127.0.0.1`, `localhost`, `10.0.0.0/8`, `192.168.0.0/16`, `169.254.169.254`) and non-HTTP protocols.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (183 automated tests across 27 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, and BLEPT LET Review specifications):
+Run the full Vitest suite (208 automated tests across 30 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, and Research Intelligence):
 ```bash
 # Run all tests
 npm test

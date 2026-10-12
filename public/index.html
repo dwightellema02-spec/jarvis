@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 7: Mathematics & Learning Engine Active</span>
+        <span class="badge phase-badge">Phase 8: Research Engine Active</span>
       </div>
       <div class="header-meta">
+        <button id="research-toggle-btn" class="btn btn-outline" style="border-color: rgba(168, 85, 247, 0.4); color: #a855f7;" title="Scientific Research & Epistemic Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Research</span>
+        </button>
         <button id="math-toggle-btn" class="btn btn-outline" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;" title="Mathematics & LET Review Engine">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
           <span>Math & LET</span>
@@ -270,6 +274,70 @@
           </div>
           <div id="let-workspace" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
             <p style="color: #94a3b8; margin: 0;">Prepare for the Philippine BLEPT Majorship in Mathematics. Click "Start LET Mock Exam" to begin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- Phase 8 Research Engine Modal Overlay -->
+  <div id="research-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="res-title">
+    <div class="profile-card-modal" style="max-width: 920px;">
+      <div class="modal-header">
+        <h2 id="res-title" style="color: #a855f7;">🔬 Research Engine & Epistemic Intelligence</h2>
+        <button id="close-research-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05);">
+          <h4 style="color: #a855f7;">Epistemic Evaluation: Fact, Claim, Opinion, Inference, Uncertainty</h4>
+          <p>Scientific rigor, citation generation (APA, IEEE, Chicago, Harvard, BibTeX), PICO/FINER question development, and multi-source evidence comparison.</p>
+        </div>
+
+        <!-- Mode Selectors -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem;">
+          <button id="res-tab-epistemic" class="btn btn-outline" style="border-color: #a855f7; color: #a855f7; font-weight: bold;">Epistemic Classifier</button>
+          <button id="res-tab-citations" class="btn btn-outline">Sources & Citations</button>
+          <button id="res-tab-questions" class="btn btn-outline">Question Builder</button>
+          <button id="res-tab-compare" class="btn btn-outline">Compare Sources</button>
+        </div>
+
+        <!-- Tab 1: Epistemic Classifier -->
+        <div id="res-panel-epistemic">
+          <textarea id="res-input-text" rows="3" placeholder="Paste literature passage or research statements to analyze for Fact, Claim, Opinion, Inference, Uncertainty..." style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; font-family: sans-serif; font-size: 0.9rem; margin-bottom: 0.75rem;"></textarea>
+          <button id="res-classify-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold; margin-bottom: 1rem;">Analyze Epistemic Structure</button>
+          <div id="res-epistemic-results" class="hidden" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 2: Sources & Citations -->
+        <div id="res-panel-citations" class="hidden">
+          <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+            <select id="res-source-select" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;"></select>
+            <button id="res-get-citations-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff;">Generate Citations</button>
+          </div>
+          <div id="res-citations-display" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Select a source to generate APA, IEEE, Chicago, Harvard, and BibTeX citations.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: Question Builder -->
+        <div id="res-panel-questions" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input type="text" id="res-q-topic" placeholder="Topic (e.g. Philippine Mathematics Learning)" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <input type="text" id="res-q-pop" placeholder="Population (e.g. Grade 10 Filipino students)" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input type="text" id="res-q-int" placeholder="Intervention (e.g. Socratic Scaffolded Remediation)" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <input type="text" id="res-q-out" placeholder="Outcome (e.g. BLEPT pass rate / Conceptual mastery)" style="flex: 1; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+          </div>
+          <button id="res-generate-q-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold; margin-bottom: 1rem;">Develop Research Question (PICO & FINER)</button>
+          <div id="res-question-result" class="hidden" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Tab 4: Compare Sources -->
+        <div id="res-panel-compare" class="hidden">
+          <div style="margin-bottom: 1rem;">
+            <button id="res-run-compare-btn" class="btn btn-primary" style="background: #a855f7; border-color: #a855f7; color: #fff; font-weight: bold;">Compare BLEPT Table of Specs vs Tuklas Pedagogy</button>
+          </div>
+          <div id="res-compare-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <p style="color: #94a3b8; margin: 0;">Click above to perform multi-source synthesis, detect consensus, agreements, and contradictions.</p>
           </div>
         </div>
       </div>
