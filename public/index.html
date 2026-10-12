@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 11: DevEnv Integration Active</span>
+        <span class="badge phase-badge">Phase 12: Tuklas EdTech Active</span>
       </div>
       <div class="header-meta">
+        <button id="tuklas-toggle-btn" class="btn btn-outline" style="border-color: rgba(236, 72, 153, 0.4); color: #ec4899;" title="Tuklas EdTech Platform Integration">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>Tuklas</span>
+        </button>
         <button id="devenv-toggle-btn" class="btn btn-outline" style="border-color: rgba(234, 88, 12, 0.4); color: #ea580c;" title="Development Environment Integration">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
           <span>DevEnv</span>
@@ -637,6 +641,127 @@
           </div>
           <div id="dev-build-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
             <p style="color: #94a3b8; margin: 0;">Trigger build, typecheck, or test runners directly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 12 Tuklas EdTech Integration Modal Overlay -->
+  <div id="tuklas-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="tuklas-title">
+    <div class="profile-card-modal" style="max-width: 960px;">
+      <div class="modal-header">
+        <h2 id="tuklas-title" style="color: #ec4899;">🎓 Tuklas EdTech Platform (Phase 12)</h2>
+        <button id="close-tuklas-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="border-color: rgba(236, 72, 153, 0.3); background: rgba(236, 72, 153, 0.05);">
+          <h4 style="color: #ec4899;">Authorized Tuklas API Integration, Philippine DepEd K-12 Curricula & BLEPT Licensure</h4>
+          <p>Search standard lessons, inspect student mastery heatmaps, generate adaptive practice items with Socratic hints, grade assessments, diagnose learning misconceptions, extract anonymized cohort research data, and manage teacher assignments.</p>
+        </div>
+
+        <!-- Sub Tabs -->
+        <div class="second-brain-tabs" style="margin-bottom: 1rem;">
+          <button class="sb-tab active" data-tuklastab="lessons">1. Curriculum & Lessons</button>
+          <button class="sb-tab" data-tuklastab="mastery">2. Student Mastery</button>
+          <button class="sb-tab" data-tuklastab="practice">3. Practice Generator</button>
+          <button class="sb-tab" data-tuklastab="assessment">4. Assessment Grader</button>
+          <button class="sb-tab" data-tuklastab="diagnostics">5. Mistake Diagnostics</button>
+          <button class="sb-tab" data-tuklastab="teacher">6. Research & Teacher Desk</button>
+        </div>
+
+        <!-- Tab 1: Curriculum & Lessons -->
+        <div id="tuklas-panel-lessons">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input type="text" id="tuklas-search-query" placeholder="Search keywords (e.g. algebra, factoring, discriminant)" style="flex: 1; padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="tuklas-search-subject" style="padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="">All Subjects</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Science">Science</option>
+            </select>
+            <button id="tuklas-search-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; color: #fff; font-weight: bold;">Search</button>
+          </div>
+          <div id="tuklas-lessons-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Click Search to browse Tuklas curriculum modules and Philippine DepEd competencies.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Student Mastery -->
+        <div id="tuklas-panel-mastery" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <select id="tuklas-student-select" style="padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="student_dwight">Dwight (Lead Learner)</option>
+              <option value="student_maria">Maria Santos (Grade 9)</option>
+              <option value="student_juan">Juan Dela Cruz (Grade 8)</option>
+            </select>
+            <button id="tuklas-load-student-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; color: #fff; font-weight: bold;">Load Progress</button>
+          </div>
+          <div id="tuklas-student-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Select a student to inspect mastery percentages, competency heatmaps, and learning streaks.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: Practice Generator -->
+        <div id="tuklas-panel-practice" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input type="text" id="tuklas-practice-comp" placeholder="Competency Code (e.g. M8AL-Ia-b-1, LET-MATH-02)" value="M8AL-Ia-b-1" style="flex: 1; padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <select id="tuklas-practice-diff" style="padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="medium">Medium</option>
+              <option value="easy">Easy</option>
+              <option value="hard">Hard</option>
+            </select>
+            <button id="tuklas-gen-practice-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; color: #fff; font-weight: bold;">Generate Practice</button>
+          </div>
+          <div id="tuklas-practice-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Generate adaptive practice questions with hints and step-by-step Socratic walkthroughs.</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Assessment Grader -->
+        <div id="tuklas-panel-assessment" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <select id="tuklas-assess-id" style="padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+              <option value="assess_math_g8">Grade 8 Mathematics Unit Diagnostic on Factoring</option>
+              <option value="assess_blept_alg">BLEPT College Algebra Diagnostic Exam</option>
+            </select>
+            <button id="tuklas-eval-assess-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; color: #fff; font-weight: bold;">Submit & Grade Assessment</button>
+          </div>
+          <div id="tuklas-assess-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Submit test answers and evaluate against official scoring keys and passing thresholds.</p>
+          </div>
+        </div>
+
+        <!-- Tab 5: Mistake Diagnostics -->
+        <div id="tuklas-panel-diagnostics" class="hidden">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="tuklas-diag-comp" value="M8AL-Ia-b-1" placeholder="Competency (e.g. M8AL-Ia-b-1)" style="flex: 1; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+              <input type="text" id="tuklas-diag-wrong" value="(5x + 8y)^2" placeholder="Student's Wrong Answer" style="flex: 1; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+              <input type="text" id="tuklas-diag-correct" value="(5x - 8y)(5x + 8y)" placeholder="Target Correct Answer" style="flex: 1; padding: 0.4rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            </div>
+            <button id="tuklas-run-diag-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; color: #fff; font-weight: bold;">Analyze Misconception</button>
+          </div>
+          <div id="tuklas-diag-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Deep pedagogical diagnosis: analyzes conceptual, procedural, computational, or misreading errors and links remedial lessons.</p>
+          </div>
+        </div>
+
+        <!-- Tab 6: Research & Teacher Desk -->
+        <div id="tuklas-panel-teacher" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="tuklas-load-cohort-btn" class="btn btn-outline" style="border-color: #ec4899; color: #ec4899;">Extract Cohort Research Data</button>
+            <button id="tuklas-list-asgns-btn" class="btn btn-outline">List Active Assignments</button>
+          </div>
+          <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px;">
+            <div style="font-size: 0.85rem; color: #ec4899; font-weight: bold; margin-bottom: 0.4rem;">Create Teacher Assignment</div>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <input type="text" id="tuklas-asgn-title" placeholder="Assignment Title" value="Polynomial Factoring Set" style="flex: 1; padding: 0.35rem; background: #1e293b; border: 1px solid #475569; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+              <input type="text" id="tuklas-asgn-comp" placeholder="Competency" value="M8AL-Ia-b-1" style="width: 120px; padding: 0.35rem; background: #1e293b; border: 1px solid #475569; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+              <button id="tuklas-create-asgn-btn" class="btn btn-primary" style="background: #ec4899; border-color: #ec4899; font-size: 0.85rem;">Assign</button>
+            </div>
+          </div>
+          <div id="tuklas-teacher-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 380px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Inspect anonymized cohort datasets (Data Privacy Act compliant) or manage classroom task assignments.</p>
           </div>
         </div>
       </div>

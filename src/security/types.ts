@@ -29,6 +29,7 @@ export enum ResourceType {
   EXTERNAL_ACCOUNTS = 'EXTERNAL_ACCOUNTS',
   SECURITY = 'SECURITY',
   SYSTEM = 'SYSTEM',
+  TUKLAS = 'TUKLAS',
 }
 
 export type PermissionAction =

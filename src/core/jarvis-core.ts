@@ -90,6 +90,12 @@ import {
   DevEnvRunBuildTool,
   DevEnvRunTestsTool,
 } from '../devenv/index.js';
+import {
+  TuklasManager,
+  TuklasAgent,
+  TuklasClient,
+  createTuklasTools,
+} from '../tuklas/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -110,6 +116,7 @@ export interface JarvisCoreConfig {
   dataStatisticsManager?: DataStatisticsManager;
   codingManager?: CodingManager;
   devEnvManager?: DevEnvManager;
+  tuklasManager?: TuklasManager;
 }
 
 export interface JarvisChatRequest {
@@ -152,6 +159,7 @@ export class JarvisCore {
   private dataStatisticsManager: DataStatisticsManager;
   private codingManager: CodingManager;
   private devEnvManager: DevEnvManager;
+  private tuklasManager: TuklasManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -310,7 +318,23 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new DevEnvRunBuildTool(this.devEnvManager));
     this.toolRegistry.registerImplementation(new DevEnvRunTestsTool(this.devEnvManager));
 
-    logger.info('JARVIS Core initialized with DevEnv Engine, Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Tuklas EdTech Engine, Agent, and Tools
+    this.tuklasManager =
+      config.tuklasManager ||
+      new TuklasManager(
+        new TuklasClient(),
+        this.permissionManager,
+        this.guardian,
+        this.auditLogger
+      );
+    const tuklasAgent = new TuklasAgent(this.tuklasManager);
+    this.agentRegistry.registerImplementation(tuklasAgent);
+
+    for (const tool of createTuklasTools(this.tuklasManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Tuklas EdTech Engine, DevEnv Engine, Coding Engine, Data & Statistics Engine, Research Engine, Mathematics Engine, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -664,6 +688,10 @@ export class JarvisCore {
 
   public getDevEnvManager(): DevEnvManager {
     return this.devEnvManager;
+  }
+
+  public getTuklasManager(): TuklasManager {
+    return this.tuklasManager;
   }
 
   public async orchestrate(

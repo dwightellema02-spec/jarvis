@@ -2061,6 +2061,440 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 12: TUKLAS EDTECH CONTROLLER ====================
+  const tuklasModal = document.getElementById('tuklas-modal');
+  const tuklasToggleBtn = document.getElementById('tuklas-toggle-btn');
+  const closeTuklasModal = document.getElementById('close-tuklas-modal');
+
+  if (tuklasModal && tuklasToggleBtn) {
+    tuklasToggleBtn.addEventListener('click', () => {
+      tuklasModal.classList.remove('hidden');
+    });
+
+    if (closeTuklasModal) {
+      closeTuklasModal.addEventListener('click', () => {
+        tuklasModal.classList.add('hidden');
+      });
+    }
+
+    tuklasModal.addEventListener('click', (e) => {
+      if (e.target === tuklasModal) {
+        tuklasModal.classList.add('hidden');
+      }
+    });
+
+    // Subtab switching
+    const tuklasTabs = tuklasModal.querySelectorAll('.sb-tab[data-tuklastab]');
+    const tuklasPanels = {
+      lessons: document.getElementById('tuklas-panel-lessons'),
+      mastery: document.getElementById('tuklas-panel-mastery'),
+      practice: document.getElementById('tuklas-panel-practice'),
+      assessment: document.getElementById('tuklas-panel-assessment'),
+      diagnostics: document.getElementById('tuklas-panel-diagnostics'),
+      teacher: document.getElementById('tuklas-panel-teacher'),
+    };
+
+    tuklasTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        tuklasTabs.forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tuklastab;
+        Object.keys(tuklasPanels).forEach((key) => {
+          if (tuklasPanels[key]) {
+            if (key === target) tuklasPanels[key].classList.remove('hidden');
+            else tuklasPanels[key].classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // 1. Search Lessons
+    const tuklasSearchBtn = document.getElementById('tuklas-search-btn');
+    const tuklasSearchQuery = document.getElementById('tuklas-search-query');
+    const tuklasSearchSubject = document.getElementById('tuklas-search-subject');
+    const tuklasLessonsResult = document.getElementById('tuklas-lessons-result');
+
+    const searchLessons = async () => {
+      try {
+        tuklasLessonsResult.innerHTML = '<span style="color: #ec4899;">Searching Tuklas curricula...</span>';
+        const q = (tuklasSearchQuery && tuklasSearchQuery.value.trim()) || '';
+        const sub = (tuklasSearchSubject && tuklasSearchSubject.value.trim()) || '';
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (sub) params.set('subject', sub);
+
+        const res = await fetch(`/api/jarvis/tuklas/lessons/search?${params.toString()}`, {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          tuklasLessonsResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const lessons = data.data.lessons || [];
+        if (lessons.length === 0) {
+          tuklasLessonsResult.innerHTML = '<p style="color: #94a3b8;">No matching lessons found.</p>';
+          return;
+        }
+
+        const html = lessons.map((l) => `
+          <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #1e293b; border-radius: 6px; border-left: 3px solid #ec4899;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+              <span style="font-weight: bold; color: #f8fafc; font-size: 0.95rem;">${l.title}</span>
+              <span class="badge" style="background: #334155; color: #ec4899; font-size: 0.75rem;">${l.competencyCode}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem;">
+              ${l.subject} • ${l.gradeLevel} • ${l.estimatedMinutes} mins • Author: ${l.author}
+            </div>
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin: 0 0 0.5rem 0;">${l.summary}</p>
+            <div style="font-size: 0.75rem; color: #64748b;">
+              Tags: ${l.tags.map((t) => `<span style="background: #0f172a; padding: 2px 5px; border-radius: 3px; margin-right: 4px;">#${t}</span>`).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        tuklasLessonsResult.innerHTML = `
+          <div style="font-weight: bold; color: #ec4899; margin-bottom: 0.5rem;">Found ${lessons.length} Lesson Modules</div>
+          ${html}
+        `;
+      } catch (err) {
+        tuklasLessonsResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    };
+
+    if (tuklasSearchBtn) {
+      tuklasSearchBtn.addEventListener('click', searchLessons);
+    }
+
+    // 2. Student Mastery
+    const tuklasLoadStudentBtn = document.getElementById('tuklas-load-student-btn');
+    const tuklasStudentSelect = document.getElementById('tuklas-student-select');
+    const tuklasStudentResult = document.getElementById('tuklas-student-result');
+
+    if (tuklasLoadStudentBtn && tuklasStudentSelect && tuklasStudentResult) {
+      tuklasLoadStudentBtn.addEventListener('click', async () => {
+        try {
+          const studentId = tuklasStudentSelect.value;
+          tuklasStudentResult.innerHTML = '<span style="color: #ec4899;">Loading student progress...</span>';
+          const res = await fetch(`/api/jarvis/tuklas/students/${studentId}/progress`, {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasStudentResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const s = data.data;
+          const compBadges = Object.entries(s.competencyScores || {}).map(([code, score]) => {
+            const color = score >= 85 ? '#10b981' : score >= 75 ? '#f59e0b' : '#ef4444';
+            return `
+              <div style="display: flex; justify-content: space-between; padding: 0.3rem 0.5rem; background: #1e293b; border-radius: 4px; margin-bottom: 0.25rem; font-size: 0.85rem;">
+                <span style="font-family: monospace; color: #cbd5e1;">${code}</span>
+                <span style="font-weight: bold; color: ${color};">${score}%</span>
+              </div>
+            `;
+          }).join('');
+
+          tuklasStudentResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <h4 style="margin: 0; color: #f8fafc;">${s.studentName}</h4>
+                <div style="font-size: 0.8rem; color: #94a3b8;">${s.enrolledGrade} • Active Streak: ${s.streakDays} days 🔥</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 1.25rem; font-weight: bold; color: #ec4899;">${s.overallMasteryPercent}%</div>
+                <div style="font-size: 0.75rem; color: #94a3b8;">Overall Mastery</div>
+              </div>
+            </div>
+            <h5 style="color: #ec4899; margin: 0 0 0.4rem 0;">Competency Mastery Heatmap</h5>
+            <div style="margin-bottom: 0.75rem;">${compBadges}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">Completed Lessons: ${s.completedLessonIds.length} modules</div>
+          `;
+        } catch (err) {
+          tuklasStudentResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Practice Generator
+    const tuklasGenPracticeBtn = document.getElementById('tuklas-gen-practice-btn');
+    const tuklasPracticeComp = document.getElementById('tuklas-practice-comp');
+    const tuklasPracticeDiff = document.getElementById('tuklas-practice-diff');
+    const tuklasPracticeResult = document.getElementById('tuklas-practice-result');
+
+    if (tuklasGenPracticeBtn && tuklasPracticeResult) {
+      tuklasGenPracticeBtn.addEventListener('click', async () => {
+        try {
+          tuklasPracticeResult.innerHTML = '<span style="color: #ec4899;">Generating adaptive practice...</span>';
+          const competencyCode = (tuklasPracticeComp && tuklasPracticeComp.value.trim()) || 'M8AL-Ia-b-1';
+          const difficulty = (tuklasPracticeDiff && tuklasPracticeDiff.value) || 'medium';
+
+          const res = await fetch('/api/jarvis/tuklas/practice/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ competencyCode, difficulty, count: 2 }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasPracticeResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const set = data.data;
+          const itemsHtml = set.items.map((it, idx) => `
+            <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #1e293b; border-radius: 6px;">
+              <div style="font-weight: bold; color: #f8fafc; font-size: 0.9rem; margin-bottom: 0.4rem;">
+                Item ${idx + 1}: ${it.question}
+              </div>
+              <div style="margin-bottom: 0.4rem; font-size: 0.85rem; color: #cbd5e1;">
+                ${(it.options || []).map((opt) => `<div>${opt}</div>`).join('')}
+              </div>
+              <div style="font-size: 0.8rem; background: #0f172a; padding: 0.4rem; border-radius: 4px; color: #f59e0b; margin-bottom: 0.25rem;">
+                💡 <strong>Hint:</strong> ${it.hint}
+              </div>
+              <div style="font-size: 0.8rem; background: #0f172a; padding: 0.4rem; border-radius: 4px; color: #10b981;">
+                ✓ <strong>Answer & Explanation:</strong> Option ${it.correctAnswer} — ${it.explanation}
+              </div>
+            </div>
+          `).join('');
+
+          tuklasPracticeResult.innerHTML = `
+            <div style="font-weight: bold; color: #ec4899; margin-bottom: 0.5rem;">Adaptive Practice Set (${set.difficulty.toUpperCase()})</div>
+            ${itemsHtml}
+          `;
+        } catch (err) {
+          tuklasPracticeResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Assessment Grader
+    const tuklasEvalAssessBtn = document.getElementById('tuklas-eval-assess-btn');
+    const tuklasAssessId = document.getElementById('tuklas-assess-id');
+    const tuklasAssessResult = document.getElementById('tuklas-assess-result');
+
+    if (tuklasEvalAssessBtn && tuklasAssessResult) {
+      tuklasEvalAssessBtn.addEventListener('click', async () => {
+        try {
+          tuklasAssessResult.innerHTML = '<span style="color: #ec4899;">Evaluating submitted answers...</span>';
+          const assessmentId = (tuklasAssessId && tuklasAssessId.value) || 'assess_math_g8';
+
+          const res = await fetch('/api/jarvis/tuklas/assessments/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              assessmentId,
+              studentId: 'student_dwight',
+              answers: { item_alg_01: 'C', item_poly_02: 'B', item_poly_03: 'B' },
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasAssessResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const r = data.data;
+          tuklasAssessResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: ${r.passed ? '#10b981' : '#ef4444'}; font-size: 1.1rem;">
+                ${r.passed ? 'PASSED (>=75%)' : 'REMEDIATION REQUIRED'}
+              </span>
+              <span style="font-weight: bold; color: #ec4899;">${r.score} / ${r.totalItems} (${r.percentage}%)</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              Student: ${r.studentId} • Evaluated at: ${new Date(r.evaluatedAt).toLocaleTimeString()}
+            </div>
+            ${r.details.map((d, i) => `
+              <div style="font-size: 0.8rem; background: #1e293b; padding: 0.4rem; border-radius: 4px; margin-bottom: 0.3rem;">
+                <strong>Item ${i + 1}:</strong> Your Answer: <code style="color: ${d.isCorrect ? '#10b981' : '#ef4444'};">${d.studentAnswer}</code> | Correct: <code style="color: #10b981;">${d.correctAnswer}</code>
+                <div style="color: #94a3b8; margin-top: 0.2rem;">${d.explanation}</div>
+              </div>
+            `).join('')}
+          `;
+        } catch (err) {
+          tuklasAssessResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. Mistake Diagnostics
+    const tuklasRunDiagBtn = document.getElementById('tuklas-run-diag-btn');
+    const tuklasDiagComp = document.getElementById('tuklas-diag-comp');
+    const tuklasDiagWrong = document.getElementById('tuklas-diag-wrong');
+    const tuklasDiagCorrect = document.getElementById('tuklas-diag-correct');
+    const tuklasDiagResult = document.getElementById('tuklas-diag-result');
+
+    if (tuklasRunDiagBtn && tuklasDiagResult) {
+      tuklasRunDiagBtn.addEventListener('click', async () => {
+        try {
+          tuklasDiagResult.innerHTML = '<span style="color: #ec4899;">Diagnosing student mistake...</span>';
+          const competencyCode = (tuklasDiagComp && tuklasDiagComp.value.trim()) || 'M8AL-Ia-b-1';
+          const wrongAnswer = (tuklasDiagWrong && tuklasDiagWrong.value.trim()) || '(5x + 8y)^2';
+          const correctAnswer = (tuklasDiagCorrect && tuklasDiagCorrect.value.trim()) || '(5x - 8y)(5x + 8y)';
+
+          const res = await fetch('/api/jarvis/tuklas/diagnostics/analyze-mistakes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ competencyCode, wrongAnswer, correctAnswer }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasDiagResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const diag = data.data;
+          tuklasDiagResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: bold; color: #ec4899;">Diagnostic Classification</span>
+              <span class="badge" style="background: #334155; color: #f59e0b; text-transform: uppercase;">
+                ${diag.errorType} Error
+              </span>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem; color: #f8fafc; margin-bottom: 0.5rem;">
+              <strong>Misconception:</strong> ${diag.misconceptionDescription}
+            </div>
+            <div style="background: #0f172a; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem; color: #10b981; margin-bottom: 0.5rem;">
+              <strong>Pedagogical Remediation:</strong> ${diag.remedialExplanation}
+            </div>
+            ${diag.recommendedLessonTitle ? `
+              <div style="font-size: 0.85rem; color: #38bdf8;">
+                📘 <strong>Recommended Lesson:</strong> ${diag.recommendedLessonTitle}
+              </div>
+            ` : ''}
+          `;
+        } catch (err) {
+          tuklasDiagResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Research & Teacher Desk
+    const tuklasLoadCohortBtn = document.getElementById('tuklas-load-cohort-btn');
+    const tuklasListAsgnsBtn = document.getElementById('tuklas-list-asgns-btn');
+    const tuklasCreateAsgnBtn = document.getElementById('tuklas-create-asgn-btn');
+    const tuklasTeacherResult = document.getElementById('tuklas-teacher-result');
+
+    if (tuklasLoadCohortBtn && tuklasTeacherResult) {
+      tuklasLoadCohortBtn.addEventListener('click', async () => {
+        try {
+          tuklasTeacherResult.innerHTML = '<span style="color: #ec4899;">Extracting anonymized cohort dataset...</span>';
+          const res = await fetch('/api/jarvis/tuklas/research/cohort-data', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasTeacherResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const c = data.data;
+          const recordsHtml = (c.records || []).map((r) => `
+            <tr>
+              <td style="padding: 0.3rem; font-family: monospace; color: #ec4899;">${r.anonymizedId}</td>
+              <td style="padding: 0.3rem; color: #cbd5e1;">${r.gradeLevel}</td>
+              <td style="padding: 0.3rem; font-weight: bold; color: ${r.score >= 75 ? '#10b981' : '#ef4444'};">${r.score}%</td>
+              <td style="padding: 0.3rem; color: #cbd5e1;">${r.modulesCompleted}</td>
+              <td style="padding: 0.3rem; color: #cbd5e1;">${r.timeSpentMinutes}m</td>
+            </tr>
+          `).join('');
+
+          tuklasTeacherResult.innerHTML = `
+            <div style="font-weight: bold; color: #ec4899; margin-bottom: 0.25rem;">${c.cohortName}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              Enrolled: ${c.studentCount} | Avg Score: ${c.averageScore}% | Passing Rate: ${c.passingRate}% (Anonymized under RA 10173)
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+                  <th>Anonymized ID</th><th>Grade</th><th>Score</th><th>Modules</th><th>Time</th>
+                </tr>
+              </thead>
+              <tbody>${recordsHtml}</tbody>
+            </table>
+          `;
+        } catch (err) {
+          tuklasTeacherResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (tuklasListAsgnsBtn && tuklasTeacherResult) {
+      tuklasListAsgnsBtn.addEventListener('click', async () => {
+        try {
+          tuklasTeacherResult.innerHTML = '<span style="color: #ec4899;">Listing assignments...</span>';
+          const res = await fetch('/api/jarvis/tuklas/assignments', {
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            tuklasTeacherResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const asgns = data.data.assignments || [];
+          if (asgns.length === 0) {
+            tuklasTeacherResult.innerHTML = '<p style="color: #94a3b8;">No active assignments found.</p>';
+            return;
+          }
+
+          const html = asgns.map((a) => `
+            <div style="margin-bottom: 0.4rem; padding: 0.5rem; background: #1e293b; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-weight: bold; color: #f8fafc; font-size: 0.85rem;">${a.title}</span>
+                <span style="color: #94a3b8; font-size: 0.8rem;"> (${a.competencyCode})</span>
+              </div>
+              <span class="badge" style="background: #334155; color: #ec4899; font-size: 0.75rem;">Due: ${new Date(a.dueDate).toLocaleDateString()}</span>
+            </div>
+          `).join('');
+
+          tuklasTeacherResult.innerHTML = `
+            <div style="font-weight: bold; color: #ec4899; margin-bottom: 0.4rem;">Classroom Assignments (${asgns.length})</div>
+            ${html}
+          `;
+        } catch (err) {
+          tuklasTeacherResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (tuklasCreateAsgnBtn && tuklasTeacherResult) {
+      tuklasCreateAsgnBtn.addEventListener('click', async () => {
+        try {
+          const title = (document.getElementById('tuklas-asgn-title')?.value || '').trim();
+          const competencyCode = (document.getElementById('tuklas-asgn-comp')?.value || '').trim();
+          if (!title || !competencyCode) {
+            alert('Please enter assignment title and competency.');
+            return;
+          }
+
+          const res = await fetch('/api/jarvis/tuklas/assignments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              classId: 'class_section_euler',
+              title,
+              competencyCode,
+              dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert(`Assignment "${title}" created successfully!`);
+            tuklasListAsgnsBtn?.click();
+          } else {
+            alert(`Failed: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

@@ -509,7 +509,64 @@ async function runManualVerification() {
       const typecheckData = await typecheckRes.json();
       console.log('   Typecheck Success:', typecheckData.data.success, '| Duration:', typecheckData.data.durationMs + 'ms');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 11) PASSED SUCCESSFULLY! ===');
+      console.log('43. Testing Phase 12 Tuklas Curriculum Search & Lesson Fetch (/api/jarvis/tuklas/lessons/*)');
+      const tuklasSearchRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/lessons/search?q=algebra', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const tuklasSearchData = await tuklasSearchRes.json();
+      const tuklasLessonRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/lessons/lesson_quad_03', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const tuklasLessonData = await tuklasLessonRes.json();
+      console.log('   Matched Lessons:', tuklasSearchData.data.count, '| Top Title:', tuklasSearchData.data.lessons[0]?.title);
+      console.log('   Fetched Lesson:', tuklasLessonData.data.title, '| Prereqs:', tuklasLessonData.data.prerequisiteCompetencies?.join(', '));
+
+      console.log('44. Testing Phase 12 Tuklas Student Mastery Progress (/api/jarvis/tuklas/students/:id/progress)');
+      const progressRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/students/student_dwight/progress', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const progressData = await progressRes.json();
+      console.log('   Student:', progressData.data.studentName, '| Mastery:', progressData.data.overallMasteryPercent + '%', '| Streak:', progressData.data.streakDays, 'days');
+
+      console.log('45. Testing Phase 12 Tuklas Practice Generation & Assessment Evaluation (/api/jarvis/tuklas/practice & evaluate)');
+      const practiceRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/practice/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ competencyCode: 'M8AL-Ia-b-1', count: 2, difficulty: 'medium' }),
+      });
+      const practiceData = await practiceRes.json();
+      const evalRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/assessments/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          assessmentId: 'assess_math_g8',
+          studentId: 'student_dwight',
+          answers: { item_alg_01: 'C', item_poly_02: 'B', item_poly_03: 'B' },
+        }),
+      });
+      const evalData = await evalRes.json();
+      console.log('   Practice Items Generated:', practiceData.data.items?.length, '| Difficulty:', practiceData.data.difficulty);
+      console.log('   Assessment Score:', evalData.data.score + '/' + evalData.data.totalItems, '| Passed:', evalData.data.passed);
+
+      console.log('46. Testing Phase 12 Tuklas Mistake Diagnostics & Cohort Research (/api/jarvis/tuklas/diagnostics & research)');
+      const diagRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/diagnostics/analyze-mistakes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          competencyCode: 'M8AL-Ia-b-1',
+          wrongAnswer: '(5x + 8y)^2',
+          correctAnswer: '(5x - 8y)(5x + 8y)',
+        }),
+      });
+      const diagData = await diagRes.json();
+      const cohortRes = await fetch('http://127.0.0.1:3099/api/jarvis/tuklas/research/cohort-data', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cohortData = await cohortRes.json();
+      console.log('   Error Diagnostic Type:', diagData.data.errorType, '| Remedial Lesson:', diagData.data.recommendedLessonTitle);
+      console.log('   Cohort:', cohortData.data.cohortName, '| Passing Rate:', cohortData.data.passingRate + '%', '| Anonymized Records:', cohortData.data.records?.length);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 12) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

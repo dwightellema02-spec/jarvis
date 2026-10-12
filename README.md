@@ -211,6 +211,17 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/devenv/build` | Phase 11 Real project build executor (`npm run build`) with duration profiling |
 | `POST` | `/api/jarvis/devenv/typecheck` | Phase 11 Real TypeScript compilation checker (`npm run typecheck`) |
 | `POST` | `/api/jarvis/devenv/test` | Phase 11 Real test runner execution (`npm test`) with filter support |
+| `GET` | `/api/jarvis/tuklas/status` | Phase 12 Tuklas EdTech service status (local/remote mode, counts) |
+| `GET` | `/api/jarvis/tuklas/lessons/search` | Phase 12 Search Tuklas curriculum lessons by subject, grade, and competency |
+| `GET` | `/api/jarvis/tuklas/lessons/:id` | Phase 12 Retrieve detailed lesson markdown, objectives, and prerequisites |
+| `POST` | `/api/jarvis/tuklas/lessons` | Phase 12 Authorized teacher function to publish curriculum lesson modules |
+| `GET` | `/api/jarvis/tuklas/students/:id/progress` | Phase 12 Inspect student mastery heatmaps, streaks, and competency scores |
+| `POST` | `/api/jarvis/tuklas/practice/generate` | Phase 12 Generate adaptive practice items with Socratic hints and steps |
+| `POST` | `/api/jarvis/tuklas/assessments/evaluate` | Phase 12 Grade assessment submissions against passing threshold (75%) |
+| `POST` | `/api/jarvis/tuklas/diagnostics/analyze-mistakes` | Phase 12 Misconception diagnostics with recommended remedial lesson links |
+| `GET` | `/api/jarvis/tuklas/research/cohort-data` | Phase 12 Export anonymized cohort learning metrics (RA 10173 compliant) |
+| `POST` | `/api/jarvis/tuklas/assignments` | Phase 12 Authorized teacher function to create student task assignments |
+| `GET` | `/api/jarvis/tuklas/assignments` | Phase 12 List active classroom assignments by class section |
 
 ---
 
@@ -484,9 +495,45 @@ JARVIS features a secure, real development environment interface operating under
 
 ---
 
+## 🎓 Phase 12 Architecture: Tuklas EdTech Integration
+
+JARVIS features a secure bridge to the Tuklas Educational Technology Platform, adhering to Philippine Department of Education (DepEd) K-12 competencies, Professional Regulation Commission (PRC) BLEPT Licensure standards, and the Philippine Data Privacy Act of 2012 (RA 10173):
+
+### 1. Curriculum & Lesson Intelligence
+* **Curriculum Alignment**: Built-in lesson modules aligned with official DepEd competencies (`M7AL-IIa-1` Algebraic Expressions, `M8AL-Ia-b-1` Factoring Polynomials, `M9AL-Ia-b-1` Quadratic Equations, `M10SP-IVa-1` Measures of Position, `S8FE-Ia-15` Newton's Laws of Motion) and PRC BLEPT standards (`LET-MATH-02` College Algebra).
+* **Search Engine**: Full-text and metadata filtering by keyword, subject, grade level, and competency codes.
+* **Instructional Structure**: Modules provide explicit learning objectives, prerequisite competencies, estimated duration, content markdown, and concept tags.
+* **Teacher Publishing Workflow**: Authorized instructors can create and publish new curriculum lessons, strictly gated by `PermissionLevel.WRITE` on `ResourceType.TUKLAS`.
+
+### 2. Student Mastery & Learning Analytics
+* **Progress Tracking**: Monitors student overall mastery percentages ($0-100\%$), consecutive daily learning streaks, and completed lesson counts.
+* **Competency Mastery Heatmap**: Breaks down mastery scores per curriculum competency, instantly revealing specific learning gaps.
+
+### 3. Adaptive Practice & Assessment Grader
+* **Practice Generator**: Creates targeted multi-item practice sets across easy, medium, and hard difficulty tiers with Socratic hints and step-by-step rationalizations.
+* **Automated Assessment Evaluation**: Grades student submissions against answer keys, evaluating pass/fail status relative to the official 75.0% threshold.
+
+### 4. Mistake Diagnostics & Remedial Linking
+* **Deep Pedagogical Diagnostics**: Classifies student errors across four error categories:
+  * `Conceptual`: Misunderstanding underlying mathematical definitions or theorems (e.g. sign error confusing difference of two squares with perfect square trinomials).
+  * `Procedural`: Order of operations or skipped factoring sequence.
+  * `Computational`: Arithmetic or radical calculation slip.
+  * `Misreading`: Misinterpreting prompt conditions or unit mismatches.
+* **Prescriptive Remediation**: Automatically links the diagnosed misconception directly to the recommended Tuklas curriculum lesson.
+
+### 5. Cohort Research & Data Privacy (RA 10173)
+* **Psychometric Metrics**: Calculates cohort mastery rates, item difficulty indices ($0.0-1.0$), and item discrimination indices ($-1.0$ to $+1.0$).
+* **Privacy Compliance**: Automatically anonymizes all student records (e.g. `anon_st_8a1f`) to uphold the Philippine Data Privacy Act of 2012 (RA 10173) and prevent PII exfiltration.
+
+### 6. Agent, Tools & Security Gating
+* Gated by `ResourceType.TUKLAS` with default-deny permissions (`READ` for student access, `WRITE` for teacher functions).
+* Integrated with `TuklasAgent` (`id: 'tuklas-agent'`) and 8 registered tools: `tuklas.search_lessons`, `tuklas.get_lesson`, `tuklas.check_student_progress`, `tuklas.create_practice`, `tuklas.evaluate_assessment`, `tuklas.analyze_mistakes`, `tuklas.get_research_data`, `tuklas.manage_teacher_tasks`.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (266 automated tests across 39 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Status/Diff/Log, Dependency Auditing, and Build/Typecheck Runners):
+Run the full Vitest suite (297 automated tests across 42 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, and RA 10173 Privacy Compliance):
 ```bash
 # Run all tests
 npm test
