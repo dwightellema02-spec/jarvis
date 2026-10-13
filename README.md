@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 24 — Skill & Tool Builder Studio Active**
+> **Current Status**: **Phase 25 — Multi-Agent Collaboration Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -229,6 +229,15 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/skills/:id/uninstall` | Phase 24 Safely unregister custom tool from ToolRegistry |
 | `DELETE` | `/api/jarvis/skills/:id` | Phase 24 Delete custom draft skill record |
 | `POST` | `/api/tools/:id/execute` | Phase 24 Direct live execution endpoint for registered tools |
+| `GET` | `/api/jarvis/collaboration/templates` | Phase 25 List predefined multi-agent collaboration templates |
+| `GET` | `/api/jarvis/collaboration/missions` | Phase 25 Enumerate multi-agent missions with status filters |
+| `GET` | `/api/jarvis/collaboration/missions/:id` | Phase 25 Retrieve detailed mission plan, steps, blackboard, messages, and reviews |
+| `POST` | `/api/jarvis/collaboration/missions` | Phase 25 Create a multi-agent mission plan with topology (pipeline, parallel, hierarchical, consensus) |
+| `POST` | `/api/jarvis/collaboration/missions/:id/run` | Phase 25 Run a multi-agent mission end-to-end across cooperating agents |
+| `GET` | `/api/jarvis/collaboration/missions/:id/blackboard` | Phase 25 Inspect shared mission blackboard entries or query key |
+| `POST` | `/api/jarvis/collaboration/missions/:id/blackboard` | Phase 25 Write or update an artifact on the shared mission blackboard |
+| `POST` | `/api/jarvis/collaboration/missions/:id/message` | Phase 25 Transmit direct inter-agent communication, query, or handoff on mission bus |
+| `POST` | `/api/jarvis/collaboration/missions/:id/review` | Phase 25 Conduct cross-agent peer review critique and verification before consensus |
 
 ---
 
@@ -1070,16 +1079,67 @@ JARVIS provides autonomous skill synthesis, safe sandboxed execution, strict gov
 * **Sandboxed Test Harness Tab**: Target selector with AST screening clearance indicators, overall suite status, pass/fail breakdowns, and microsecond latency metrics.
 * **Governance & Hot-Loader Tab**: Operator review panel for approving/rejecting drafts with audit notes, plus a live interactive test bench to invoke installed custom tools with JSON parameters.
 
+
+---
+
+## 🤝 Phase 25 Architecture: Multi-Agent Collaboration
+
+JARVIS implements an autonomous, resilient multi-agent orchestration architecture that coordinates specialized agents to execute complex objectives requiring cross-domain intelligence:
+
+### 1. Collaboration Topologies
+* **Pipeline Topology**: Sequential step execution where output of step $N$ flows into step $N+1$ via blackboard handoffs.
+* **Parallel Topology**: Independent task steps execute concurrently using `Promise.all()`, merging results back to the blackboard.
+* **Hierarchical Topology**: Lead orchestrator agent decomposes objectives, delegates tasks to specialized workers, and synthesizes final deliverables.
+* **Consensus Topology**: Multi-agent deliberative execution requiring cross-agent peer reviews and majority approval before accepting final outputs.
+
+### 2. Shared Blackboard Working Memory
+* Scoped, version-controlled shared memory store (`SharedBlackboard`) accessible by all participating agents.
+* Each entry tracks value, authoring agent ID, ISO timestamp, and sequential version number.
+* Supports key lookups, prefix filtering, and state rollbacks.
+
+### 3. Inter-Agent Communication Bus
+* Structured message passing between collaborating agents (`task`, `result`, `critique`, `query`, `clarification`, `handoff`).
+* Enables transparent audit trails of inter-agent reasoning, requests, and milestone deliverables.
+
+### 4. Cross-Agent Peer Review & Anti-Hallucination Consensus
+* Specialized peer review mechanism where cooperating agents critique and verify peer deliverables (e.g., Mathematics Agent auditing Coding Agent implementation bounds).
+* Records critique comments, quantitative alignment score (0–100), actionable recommendations, and approval flags.
+
+### 5. Predefined Collaboration Mission Templates
+1. **STEM Science & Mathematics Discovery Pipeline** (`pipeline`): Research survey $\rightarrow$ Mathematical derivation $\rightarrow$ Simulation code synthesis.
+2. **Competitive Product & Tech Landscape Analysis** (`parallel`): Concurrent research extraction, financial valuation, and product market fit analysis.
+3. **Full-Stack Feature Engineering** (`hierarchical`): Lead assistant coordinates data modeling, backend coding, and UI animation styling.
+4. **Mission-Critical System Security Consensus** (`consensus`): Dev environment auditing, AST code review, and cross-agent peer verification before signoff.
+
+### 6. Security Gating, Collaboration Agent & 8 Tools
+* Gated by `ResourceType.SYSTEM` (`READ` for templates, status, and blackboard queries; `WRITE` for mission creation, messaging, blackboard writes, and peer reviews; `EXECUTE` for end-to-end execution).
+* Coordinated by `MultiAgentManager`, `SharedBlackboard`, and `CollaborationAgent` (`id: 'collaboration-agent'`, `version: '0.25.0-phase25'`).
+* 8 Registered Tools:
+  1. `collaboration.create_mission` — Creates a multi-agent mission plan with defined topology.
+  2. `collaboration.run_mission` — Executes a multi-agent mission end-to-end.
+  3. `collaboration.get_mission_status` — Retrieves live execution status, step outcomes, and blackboard state.
+  4. `collaboration.list_missions` — Enumerates multi-agent missions with status filters.
+  5. `collaboration.send_agent_message` — Transmits direct communication or handoffs on the bus.
+  6. `collaboration.read_blackboard` — Reads shared working memory from the mission blackboard.
+  7. `collaboration.write_blackboard` — Writes or updates findings on the mission blackboard.
+  8. `collaboration.peer_review` — Conducts cross-agent critique and verification before consensus.
+
+### 7. Interactive HUD Multi-Agent Studio
+* **Active Missions Tab**: Live mission list with status pills, topology badges, step progress counters, and execution trigger buttons.
+* **Dispatcher Tab**: Mission planner form prefilled from 4 templates or custom goals, with topology selection and agent checklist.
+* **Shared Blackboard Tab**: Live viewer for blackboard key-value entries with version histories and interactive entry authoring.
+* **Inter-Agent Bus Tab**: Real-time communication feed displaying agent-to-agent messages with sender/recipient badges, message type tags, and cross-agent peer review trigger.
+
 ---
 
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (657 automated tests across 70 test files covering all phases, plus 108 end-to-end manual verification steps):
+Run the full Vitest suite (682 automated tests across 72 test files covering all phases, plus 114 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 24
+# Run manual end-to-end verification across Phases 1 to 25
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

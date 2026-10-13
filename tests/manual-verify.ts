@@ -1427,7 +1427,93 @@ async function runManualVerification() {
       const installedToolPostUninstall = toolsPostUninstallData.tools?.find((t: any) => t.id === 'custom.celsius_to_fahrenheit');
       console.log('   Skill Uninstalled Status:', uninstallData.data?.status, '| Live Tool Removed:', !installedToolPostUninstall);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 24) PASSED SUCCESSFULLY! ===');
+      console.log('109. Testing Phase 25 Multi-Agent Collaboration Discovery & Contract (GET /api/agents & /api/tools)');
+      const collabAgentsRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const collabAgentsData = await collabAgentsRes.json();
+      const collabAgent = collabAgentsData.agents?.find((a: any) => a.id === 'collaboration-agent');
+      const collabToolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const collabToolsData = await collabToolsRes.json();
+      const collabTools = collabToolsData.tools?.filter((t: any) => t.id.startsWith('collaboration.'));
+      console.log('   Collaboration Agent Registered:', collabAgent?.name, '| Version:', collabAgent?.version);
+      console.log('   Collaboration Tools Count:', collabTools?.length, '| Tools:', collabTools?.map((t: any) => t.id).join(', '));
+
+      console.log('110. Testing Phase 25 Predefined Collaboration Templates (GET /api/jarvis/collaboration/templates)');
+      const templatesRes = await fetch('http://127.0.0.1:3099/api/jarvis/collaboration/templates');
+      const templatesData = await templatesRes.json();
+      console.log('   Templates Count:', templatesData.count, '| First Template:', templatesData.data?.[0]?.name, '| Topology:', templatesData.data?.[0]?.topology);
+
+      console.log('111. Testing Phase 25 Multi-Agent Mission Creation (POST /api/jarvis/collaboration/missions)');
+      const createMissionRes = await fetch('http://127.0.0.1:3099/api/jarvis/collaboration/missions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'Algorithmic Convex Optimization Pipeline',
+          objective: 'Synthesize gradient descent solver with numeric validation and code module',
+          topology: 'pipeline',
+          participatingAgentIds: ['mathematics-agent', 'data-agent', 'coding-agent'],
+          steps: [
+            { name: 'Gradient Formulation', agentId: 'mathematics-agent', description: 'Derive analytic gradient vector' },
+            { name: 'Statistical Convergence', agentId: 'data-agent', description: 'Evaluate learning rate bounds' },
+            { name: 'TypeScript Solver', agentId: 'coding-agent', description: 'Implement solver module' },
+          ],
+        }),
+      });
+      const createMissionData = await createMissionRes.json();
+      const missionId = createMissionData.data?.id;
+      console.log('   Mission Created:', missionId, '| Title:', createMissionData.data?.title, '| Status:', createMissionData.data?.status);
+
+      console.log('112. Testing Phase 25 End-to-End Mission Execution (POST /:id/run)');
+      const runMissionRes = await fetch(`http://127.0.0.1:3099/api/jarvis/collaboration/missions/${missionId}/run`, {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const runMissionData = await runMissionRes.json();
+      const allStepsDone = runMissionData.data?.steps?.every((s: any) => s.status === 'completed');
+      console.log('   Mission Executed Status:', runMissionData.data?.status, '| Steps Cleared:', `${runMissionData.data?.steps?.length} steps`, '| All Steps Completed:', allStepsDone);
+
+      console.log('113. Testing Phase 25 Shared Blackboard Inspection & Updates (GET & POST /blackboard)');
+      const bbWriteRes = await fetch(`http://127.0.0.1:3099/api/jarvis/collaboration/missions/${missionId}/blackboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          key: 'metrics.loss',
+          value: 0.0012,
+          author: 'data-agent',
+        }),
+      });
+      const bbWriteData = await bbWriteRes.json();
+      const bbReadRes = await fetch(`http://127.0.0.1:3099/api/jarvis/collaboration/missions/${missionId}/blackboard?key=metrics.loss`, {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const bbReadData = await bbReadRes.json();
+      console.log('   Blackboard Entry Written:', bbWriteData.data?.key, '| Version:', bbWriteData.data?.version, '| Value Read Back:', bbReadData.data);
+
+      console.log('114. Testing Phase 25 Inter-Agent Messaging & Cross-Agent Peer Review (POST /message & /review)');
+      const msgRes = await fetch(`http://127.0.0.1:3099/api/jarvis/collaboration/missions/${missionId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          fromAgentId: 'mathematics-agent',
+          toAgentId: 'coding-agent',
+          type: 'handoff',
+          content: 'Convex Hessian verified positive definite. Handing off for solver coding.',
+        }),
+      });
+      const msgData = await msgRes.json();
+      const peerReviewRes = await fetch(`http://127.0.0.1:3099/api/jarvis/collaboration/missions/${missionId}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          reviewerAgentId: 'mathematics-agent',
+          targetStepId: runMissionData.data?.steps?.[2]?.id,
+          critique: 'Verified gradient update vector matches Lipschitz continuity bounds.',
+        }),
+      });
+      const peerReviewData = await peerReviewRes.json();
+      console.log('   Inter-Agent Message Sent:', msgData.data?.id, '| Type:', msgData.data?.type);
+      console.log('   Cross-Agent Peer Review:', peerReviewData.data?.approved ? 'APPROVED' : 'REJECTED', '| Score:', peerReviewData.data?.score, '| Reviewer:', peerReviewData.data?.reviewerAgentId);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 25) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

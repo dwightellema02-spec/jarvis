@@ -8593,9 +8593,562 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // PHASE 25: MULTI-AGENT COLLABORATION STUDIO
+  // ==========================================
+  function initCollaborationStudio() {
+    const navBtn = document.getElementById('nav-collaboration');
+    const chipBtn = document.getElementById('chip-collaboration-agent');
+    const modal = document.getElementById('collaboration-modal');
+    const closeBtn = document.getElementById('collaboration-modal-close');
+    const backdrop = document.getElementById('collaboration-modal-backdrop');
+    const refreshBtn = document.getElementById('collab-refresh-btn');
+
+    if (!modal) return;
+
+    let activeFilter = 'all';
+    let cachedMissions = [];
+
+    function openModal() {
+      modal.style.display = 'flex';
+      refreshMissions();
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    if (navBtn) navBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipBtn) chipBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    if (refreshBtn) refreshBtn.addEventListener('click', () => refreshMissions());
+
+    // Tab switching
+    const tabBtns = modal.querySelectorAll('.hud-tab-btn');
+    const tabPanels = modal.querySelectorAll('.hud-tab-content');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTabId = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => {
+          b.classList.remove('active');
+          b.style.color = '#94a3b8';
+          b.style.borderBottom = 'none';
+        });
+        tabPanels.forEach((p) => {
+          p.classList.remove('active');
+          p.style.display = 'none';
+        });
+
+        btn.classList.add('active');
+        btn.style.color = '#818cf8';
+        btn.style.borderBottom = '2px solid #818cf8';
+
+        const activePanel = document.getElementById(targetTabId);
+        if (activePanel) {
+          activePanel.classList.add('active');
+          activePanel.style.display = 'block';
+        }
+
+        if (targetTabId === 'collab-tab-missions') refreshMissions();
+        if (targetTabId === 'collab-tab-blackboard') refreshBlackboardView();
+        if (targetTabId === 'collab-tab-bus') refreshBusView();
+      });
+    });
+
+    // Preset templates for Dispatch
+    const templateSelect = document.getElementById('collab-template-select');
+    if (templateSelect) {
+      templateSelect.addEventListener('change', () => {
+        const val = templateSelect.value;
+        const titleInput = document.getElementById('collab-input-title');
+        const topologyInput = document.getElementById('collab-input-topology');
+        const objectiveInput = document.getElementById('collab-input-objective');
+        const agentsInput = document.getElementById('collab-input-agents');
+        const stepsInput = document.getElementById('collab-input-steps');
+
+        if (val === 'stem_research_pipeline') {
+          if (titleInput) titleInput.value = 'STEM Science & Mathematics Discovery Pipeline';
+          if (topologyInput) topologyInput.value = 'pipeline';
+          if (objectiveInput) objectiveInput.value = 'Scientific inquiry -> Closed-form math derivation -> Statistical validation -> Production code.';
+          if (agentsInput) agentsInput.value = 'research-agent, mathematics-agent, data-agent, coding-agent';
+          if (stepsInput) stepsInput.value = JSON.stringify([
+            { name: 'Literature Survey', agentId: 'research-agent', description: 'Query epistemic sources and extract prior art.' },
+            { name: 'Mathematical Formulation', agentId: 'mathematics-agent', description: 'Derive analytic proof and boundary conditions.' },
+            { name: 'Statistical Verification', agentId: 'data-agent', description: 'Evaluate parameter distribution stability.' },
+            { name: 'Production Implementation', agentId: 'coding-agent', description: 'Scaffold optimized TypeScript solver.' }
+          ], null, 2);
+        } else if (val === 'venture_product_builder') {
+          if (titleInput) titleInput.value = 'Autonomous Venture & Product Innovation Sprint';
+          if (topologyInput) topologyInput.value = 'hierarchical';
+          if (objectiveInput) objectiveInput.value = 'Product strategy -> Tech architecture -> Visual branding -> Core microservice prototype.';
+          if (agentsInput) agentsInput.value = 'innovation-agent, research-agent, creative-agent, coding-agent';
+          if (stepsInput) stepsInput.value = JSON.stringify([
+            { name: 'Market & PMF Discovery', agentId: 'innovation-agent', description: 'Analyze market sizing and RICE feature matrix.' },
+            { name: 'Architectural Blueprint', agentId: 'research-agent', description: 'Define tech stack and API schema requirements.' },
+            { name: 'Visual Identity & UX', agentId: 'creative-agent', description: 'Synthesize SVG vector branding and design tokens.' },
+            { name: 'Prototype Scaffolding', agentId: 'coding-agent', description: 'Scaffold core endpoints and automated tests.' }
+          ], null, 2);
+        } else if (val === 'security_audit_consensus') {
+          if (titleInput) titleInput.value = 'Code Review & Security Audit Ensemble';
+          if (topologyInput) topologyInput.value = 'consensus';
+          if (objectiveInput) objectiveInput.value = 'Scaffold feature implementation -> AST security screening -> Cross-agent peer review.';
+          if (agentsInput) agentsInput.value = 'coding-agent, skill-builder-agent, proactive-agent';
+          if (stepsInput) stepsInput.value = JSON.stringify([
+            { name: 'Feature Implementation', agentId: 'coding-agent', description: 'Generate feature code and patch proposal.' },
+            { name: 'Sandbox AST Threat Audit', agentId: 'skill-builder-agent', description: 'Screen for dangerous tokens and secret leaks.' },
+            { name: 'Operational Risk Evaluation', agentId: 'proactive-agent', description: 'Assess milestone impact and stability risks.' }
+          ], null, 2);
+        } else if (val === 'cross_domain_parallel_analysis') {
+          if (titleInput) titleInput.value = 'Multi-Perspective Parallel Intelligence Ensemble';
+          if (topologyInput) topologyInput.value = 'parallel';
+          if (objectiveInput) objectiveInput.value = 'Concurrent evaluation across scientific, mathematical, and financial domains.';
+          if (agentsInput) agentsInput.value = 'research-agent, mathematics-agent, finance-agent';
+          if (stepsInput) stepsInput.value = JSON.stringify([
+            { name: 'Macro Epistemic Context', agentId: 'research-agent', description: 'Evaluate domain background and prior art.' },
+            { name: 'Quantitative Modeling', agentId: 'mathematics-agent', description: 'Compute algebraic models and sensitivity coefficients.' },
+            { name: 'Financial Feasibility', agentId: 'finance-agent', description: 'Analyze DCF valuation and capital efficiency.' }
+          ], null, 2);
+        }
+      });
+    }
+
+    // Filter Buttons in Active Missions
+    const filterGroup = document.getElementById('collab-filter-group');
+    if (filterGroup) {
+      filterGroup.querySelectorAll('button').forEach((b) => {
+        b.addEventListener('click', () => {
+          filterGroup.querySelectorAll('button').forEach((btn) => {
+            btn.classList.remove('active');
+            btn.style.background = '#0b1329';
+            btn.style.color = '#94a3b8';
+            btn.style.borderColor = '#334155';
+          });
+          b.classList.add('active');
+          b.style.background = 'rgba(99, 102, 241, 0.2)';
+          b.style.color = '#818cf8';
+          b.style.borderColor = '#6366f1';
+          activeFilter = b.getAttribute('data-filter') || 'all';
+          renderMissionCards();
+        });
+      });
+    }
+
+    // Submit Dispatch Mission
+    const dispatchSubmitBtn = document.getElementById('collab-dispatch-submit-btn');
+    if (dispatchSubmitBtn) {
+      dispatchSubmitBtn.addEventListener('click', async () => {
+        const title = (document.getElementById('collab-input-title')?.value || '').trim();
+        const objective = (document.getElementById('collab-input-objective')?.value || '').trim();
+        const topology = document.getElementById('collab-input-topology')?.value || 'pipeline';
+        const agentsRaw = (document.getElementById('collab-input-agents')?.value || '').trim();
+        const stepsRaw = (document.getElementById('collab-input-steps')?.value || '').trim();
+
+        if (!title || !objective) {
+          alert('Please enter Mission Title and Objective.');
+          return;
+        }
+
+        const participatingAgentIds = agentsRaw ? agentsRaw.split(',').map((a) => a.trim()).filter(Boolean) : undefined;
+        let steps = undefined;
+        if (stepsRaw) {
+          try {
+            steps = JSON.parse(stepsRaw);
+          } catch (e) {
+            alert('Steps must be valid JSON array.');
+            return;
+          }
+        }
+
+        try {
+          dispatchSubmitBtn.disabled = true;
+          dispatchSubmitBtn.textContent = 'Launching...';
+
+          const res = await fetch('/api/jarvis/collaboration/missions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              title,
+              objective,
+              topology,
+              participatingAgentIds,
+              steps,
+            }),
+          });
+          const data = await res.json();
+          dispatchSubmitBtn.disabled = false;
+          dispatchSubmitBtn.textContent = '🚀 Dispatch Multi-Agent Mission';
+
+          if (data.success) {
+            alert(`Mission "${data.data?.title}" successfully dispatched!`);
+            const missionsTabBtn = modal.querySelector('[data-tab="collab-tab-missions"]');
+            if (missionsTabBtn) missionsTabBtn.click();
+          } else {
+            alert(`Error creating mission: ${data.error}`);
+          }
+        } catch (err) {
+          dispatchSubmitBtn.disabled = false;
+          dispatchSubmitBtn.textContent = '🚀 Dispatch Multi-Agent Mission';
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    // Refresh Missions
+    async function refreshMissions() {
+      const statusLabel = document.getElementById('collab-missions-status-label');
+      const countBadge = document.getElementById('collab-missions-count');
+
+      try {
+        if (statusLabel) statusLabel.textContent = 'Loading team missions...';
+        const res = await fetch('/api/jarvis/collaboration/missions', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          cachedMissions = data.data;
+          if (countBadge) countBadge.textContent = cachedMissions.length;
+          if (statusLabel) statusLabel.textContent = `${cachedMissions.length} missions active`;
+          renderMissionCards();
+          populateMissionDropdowns();
+        }
+      } catch (err) {
+        if (statusLabel) statusLabel.textContent = `Error loading: ${err.message}`;
+      }
+    }
+
+    // Render Cards in Active Missions
+    function renderMissionCards() {
+      const container = document.getElementById('collab-missions-cards');
+      if (!container) return;
+
+      let list = cachedMissions;
+      if (activeFilter !== 'all') {
+        list = list.filter((m) => m.status === activeFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: #64748b; background: #020617; border: 1px dashed #334155; border-radius: 8px;">
+            No missions matching filter "${activeFilter}". Dispatch a new mission in the Dispatch tab.
+          </div>
+        `;
+        return;
+      }
+
+      const statusColors = {
+        completed: { bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981', text: '#10b981' },
+        running: { bg: 'rgba(0, 240, 255, 0.2)', border: '#00f0ff', text: '#00f0ff' },
+        pending: { bg: 'rgba(245, 158, 11, 0.2)', border: '#f59e0b', text: '#f59e0b' },
+        failed: { bg: 'rgba(239, 68, 68, 0.2)', border: '#ef4444', text: '#ef4444' },
+      };
+
+      container.innerHTML = list.map((m) => {
+        const color = statusColors[m.status] || { bg: '#1e293b', border: '#475569', text: '#cbd5e1' };
+        const completedSteps = m.steps?.filter((s) => s.status === 'completed').length || 0;
+        const totalSteps = m.steps?.length || 1;
+        const pct = Math.round((completedSteps / totalSteps) * 100);
+
+        return `
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <strong style="color: #fff; font-size: 0.92rem;">${m.title}</strong>
+                <span style="background: ${color.bg}; border: 1px solid ${color.border}; color: ${color.text}; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 600;">
+                  ${m.status}
+                </span>
+              </div>
+              <div style="font-family: monospace; font-size: 0.72rem; color: #818cf8; margin-bottom: 6px;">
+                ${m.id} • <span style="color: #38bdf8;">topology: ${m.topology}</span>
+              </div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">${m.objective}</p>
+              
+              <!-- Agent chips -->
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
+                ${(m.participatingAgentIds || []).map((a) => `
+                  <span style="background: #0b1329; border: 1px solid #334155; color: #cbd5e1; font-size: 0.68rem; padding: 2px 6px; border-radius: 3px;">
+                    🤖 ${a}
+                  </span>
+                `).join('')}
+              </div>
+
+              <!-- Progress bar -->
+              <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">
+                  <span>Step Progress</span>
+                  <span>${completedSteps}/${totalSteps} (${pct}%)</span>
+                </div>
+                <div style="height: 6px; background: #0f172a; border-radius: 3px; overflow: hidden;">
+                  <div style="width: ${pct}%; height: 100%; background: ${m.status === 'completed' ? '#10b981' : '#6366f1'}; border-radius: 3px; transition: width 0.3s;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #0f172a; padding-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+              ${m.status !== 'completed' ? `
+                <button class="btn-mission-run btn btn-sm" data-id="${m.id}" style="padding: 4px 10px; font-size: 0.72rem; background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; color: #818cf8; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                  ▶ Run Mission
+                </button>
+              ` : ''}
+              <button class="btn-mission-bb btn btn-sm" data-id="${m.id}" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 4px; cursor: pointer;">
+                📋 Blackboard
+              </button>
+              <button class="btn-mission-bus btn btn-sm" data-id="${m.id}" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(168, 85, 247, 0.1); border: 1px solid #a855f7; color: #c084fc; border-radius: 4px; cursor: pointer;">
+                💬 Bus Log
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.btn-mission-run').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          btn.textContent = 'Running...';
+          btn.disabled = true;
+          try {
+            const res = await fetch(`/api/jarvis/collaboration/missions/${encodeURIComponent(id)}/run`, {
+              method: 'POST',
+              headers: { 'x-user-id': 'dwight' },
+            });
+            const data = await res.json();
+            if (data.success) {
+              refreshMissions();
+            } else {
+              alert(`Mission failed: ${data.error}`);
+            }
+          } catch (err) {
+            alert(`Error: ${err.message}`);
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-mission-bb').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const bbTabBtn = modal.querySelector('[data-tab="collab-tab-blackboard"]');
+          if (bbTabBtn) bbTabBtn.click();
+          const bbSelect = document.getElementById('blackboard-mission-select');
+          if (bbSelect) {
+            bbSelect.value = id;
+            refreshBlackboardView();
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-mission-bus').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const busTabBtn = modal.querySelector('[data-tab="collab-tab-bus"]');
+          if (busTabBtn) busTabBtn.click();
+          const busSelect = document.getElementById('bus-mission-select');
+          if (busSelect) {
+            busSelect.value = id;
+            refreshBusView();
+          }
+        });
+      });
+    }
+
+    // Populate Mission Dropdowns
+    function populateMissionDropdowns() {
+      const bbSelect = document.getElementById('blackboard-mission-select');
+      const busSelect = document.getElementById('bus-mission-select');
+
+      if (bbSelect) {
+        const cur = bbSelect.value;
+        bbSelect.innerHTML = cachedMissions.map((m) => `
+          <option value="${m.id}">${m.title} (${m.id}) [${m.status}]</option>
+        `).join('');
+        if (cur) bbSelect.value = cur;
+      }
+
+      if (busSelect) {
+        const cur = busSelect.value;
+        busSelect.innerHTML = cachedMissions.map((m) => `
+          <option value="${m.id}">${m.title} (${m.id})</option>
+        `).join('');
+        if (cur) busSelect.value = cur;
+      }
+    }
+
+    // Tab 3: Blackboard
+    const bbRefreshBtn = document.getElementById('blackboard-refresh-btn');
+    if (bbRefreshBtn) bbRefreshBtn.addEventListener('click', () => refreshBlackboardView());
+
+    const bbMissionSelect = document.getElementById('blackboard-mission-select');
+    if (bbMissionSelect) bbMissionSelect.addEventListener('change', () => refreshBlackboardView());
+
+    async function refreshBlackboardView() {
+      const missionId = document.getElementById('blackboard-mission-select')?.value;
+      const container = document.getElementById('blackboard-entries-container');
+      if (!missionId || !container) return;
+
+      try {
+        container.innerHTML = '<div style="color: #64748b; font-size: 0.78rem;">Loading blackboard data...</div>';
+        const res = await fetch(`/api/jarvis/collaboration/missions/${encodeURIComponent(missionId)}/blackboard`, {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const entries = Object.entries(data.data);
+          if (entries.length === 0) {
+            container.innerHTML = '<div style="color: #64748b; font-size: 0.78rem;">Blackboard is empty for this mission.</div>';
+            return;
+          }
+
+          container.innerHTML = entries.map(([k, v]) => `
+            <div style="background: #070c18; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <code style="color: #38bdf8; font-size: 0.78rem;">${k}</code>
+                <span style="font-size: 0.68rem; color: #64748b;">stored artifact</span>
+              </div>
+              <pre style="margin: 0; color: #cbd5e1; font-family: monospace; font-size: 0.72rem; white-space: pre-wrap; word-break: break-all;">${typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v)}</pre>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        if (container) container.innerHTML = `<div style="color: #ef4444; font-size: 0.78rem;">Error: ${err.message}</div>`;
+      }
+    }
+
+    // Write to Blackboard
+    const bbWriteBtn = document.getElementById('bb-write-btn');
+    if (bbWriteBtn) {
+      bbWriteBtn.addEventListener('click', async () => {
+        const missionId = document.getElementById('blackboard-mission-select')?.value;
+        const key = (document.getElementById('bb-input-key')?.value || '').trim();
+        const rawVal = (document.getElementById('bb-input-value')?.value || '').trim();
+        const author = (document.getElementById('bb-input-author')?.value || 'dwight').trim();
+
+        if (!missionId || !key || !rawVal) {
+          alert('Please enter Mission, Key, and Value.');
+          return;
+        }
+
+        let value = rawVal;
+        try {
+          value = JSON.parse(rawVal);
+        } catch (_) {}
+
+        try {
+          const res = await fetch(`/api/jarvis/collaboration/missions/${encodeURIComponent(missionId)}/blackboard`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ key, value, author }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('bb-input-key').value = '';
+            document.getElementById('bb-input-value').value = '';
+            refreshBlackboardView();
+          } else {
+            alert(`Error: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    // Tab 4: Bus & Peer Reviews
+    const busMissionSelect = document.getElementById('bus-mission-select');
+    if (busMissionSelect) busMissionSelect.addEventListener('change', () => refreshBusView());
+
+    async function refreshBusView() {
+      const missionId = document.getElementById('bus-mission-select')?.value;
+      const messagesFeed = document.getElementById('bus-messages-feed');
+      const reviewsFeed = document.getElementById('bus-reviews-feed');
+      if (!missionId) return;
+
+      try {
+        const res = await fetch(`/api/jarvis/collaboration/missions/${encodeURIComponent(missionId)}`, {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const m = data.data;
+
+          // Render messages
+          if (messagesFeed) {
+            if (!m.messages || m.messages.length === 0) {
+              messagesFeed.innerHTML = '<div style="color: #64748b; font-size: 0.78rem;">No inter-agent messages logged yet.</div>';
+            } else {
+              messagesFeed.innerHTML = m.messages.map((msg) => `
+                <div style="background: #070c18; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 10px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #fff;">
+                      🤖 ${msg.fromAgentId} &rarr; ${msg.toAgentId}
+                    </span>
+                    <span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 3px; background: rgba(99, 102, 241, 0.2); color: #818cf8;">${msg.type}</span>
+                  </div>
+                  <p style="margin: 0; font-size: 0.78rem; color: #cbd5e1; line-height: 1.4;">${msg.content}</p>
+                </div>
+              `).join('');
+            }
+          }
+
+          // Render peer reviews
+          if (reviewsFeed) {
+            if (!m.reviews || m.reviews.length === 0) {
+              reviewsFeed.innerHTML = '<div style="color: #64748b; font-size: 0.75rem;">No peer reviews recorded.</div>';
+            } else {
+              reviewsFeed.innerHTML = m.reviews.map((r) => `
+                <div style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 6px 8px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 2px;">
+                    <span style="color: #10b981; font-weight: 600;">${r.reviewerAgentId} on ${r.targetStepId}</span>
+                    <span style="color: ${r.approved ? '#10b981' : '#ef4444'}; font-weight: bold;">${r.approved ? 'APPROVED' : 'REJECTED'} (${r.score}%)</span>
+                  </div>
+                  <div style="font-size: 0.72rem; color: #94a3b8;">${r.critique}</div>
+                </div>
+              `).join('');
+            }
+          }
+        }
+      } catch (err) {
+        if (messagesFeed) messagesFeed.innerHTML = `<div style="color: #ef4444; font-size: 0.78rem;">Error: ${err.message}</div>`;
+      }
+    }
+
+    // Trigger Peer Review
+    const triggerReviewBtn = document.getElementById('bus-trigger-review-btn');
+    if (triggerReviewBtn) {
+      triggerReviewBtn.addEventListener('click', async () => {
+        const missionId = document.getElementById('bus-mission-select')?.value;
+        const reviewerAgentId = (document.getElementById('bus-reviewer-agent')?.value || '').trim();
+        const targetStepId = (document.getElementById('bus-target-step')?.value || '').trim();
+        const critique = (document.getElementById('bus-critique-notes')?.value || '').trim();
+
+        if (!missionId || !reviewerAgentId || !targetStepId) {
+          alert('Please enter Mission, Reviewer Agent, and Target Step ID.');
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/jarvis/collaboration/missions/${encodeURIComponent(missionId)}/review`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ reviewerAgentId, targetStepId, critique }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert('Peer review recorded successfully!');
+            refreshBusView();
+          } else {
+            alert(`Error: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
   initSkillBuilderStudio();
+  initCollaborationStudio();
   initSession();
 });
 

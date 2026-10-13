@@ -45,6 +45,7 @@ import { createDeviceRoutes } from './routes/devices.js';
 import { createGoalsRouter } from './routes/goals.js';
 import { createProactiveRouter } from './routes/proactive.js';
 import { createSkillsRouter } from './routes/skills.js';
+import { createCollaborationRouter } from './routes/collaboration.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -329,7 +330,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.24.0-phase24';
+  const version = '0.25.0-phase25';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -354,6 +355,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis/goals', createGoalsRouter(core.getGoalsManager()));
   app.use('/api/jarvis/proactive', createProactiveRouter(core.getProactiveManager()));
   app.use('/api/jarvis/skills', createSkillsRouter(core.getSkillBuilderManager()));
+  app.use('/api/jarvis/collaboration', createCollaborationRouter(core.getCollaborationManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

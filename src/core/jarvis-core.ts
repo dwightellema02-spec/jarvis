@@ -164,6 +164,11 @@ import {
   SkillBuilderAgent,
   createSkillBuilderTools,
 } from '../skills/index.js';
+import {
+  MultiAgentManager,
+  CollaborationAgent,
+  createCollaborationTools,
+} from '../collaboration/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -197,6 +202,7 @@ export interface JarvisCoreConfig {
   goalsManager?: GoalsManager;
   proactiveManager?: ProactiveManager;
   skillBuilderManager?: SkillBuilderManager;
+  collaborationManager?: MultiAgentManager;
 }
 
 export interface JarvisChatRequest {
@@ -252,6 +258,7 @@ export class JarvisCore {
   private goalsManager: GoalsManager;
   private proactiveManager: ProactiveManager;
   private skillBuilderManager: SkillBuilderManager;
+  private collaborationManager: MultiAgentManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -589,7 +596,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Multi-Agent Collaboration Engine, Agent, and Tools
+    this.collaborationManager =
+      config.collaborationManager ||
+      new MultiAgentManager(this.agentRegistry, {
+        guardian: this.guardian,
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+      });
+    const collaborationAgent = new CollaborationAgent(this.collaborationManager);
+    this.agentRegistry.registerImplementation(collaborationAgent);
+
+    for (const tool of createCollaborationTools(this.collaborationManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -995,6 +1017,10 @@ export class JarvisCore {
 
   public getSkillBuilderManager(): SkillBuilderManager {
     return this.skillBuilderManager;
+  }
+
+  public getCollaborationManager(): MultiAgentManager {
+    return this.collaborationManager;
   }
 
   public async orchestrate(
