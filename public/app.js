@@ -9145,10 +9145,309 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // PHASE 26: VERIFICATION & ANTI-HALLUCINATION STUDIO
+  // ==========================================
+  function initVerificationStudio() {
+    const verificationModal = document.getElementById('verification-modal');
+    const closeBtn = document.getElementById('close-verification-modal-btn');
+    const navVerification = document.getElementById('nav-verification');
+    const chipVerificationAgent = document.getElementById('chip-verification-agent');
+
+    function openModal() {
+      if (verificationModal) {
+        verificationModal.style.display = 'flex';
+        loadAttestationsLedger();
+      }
+    }
+
+    function closeModal() {
+      if (verificationModal) {
+        verificationModal.style.display = 'none';
+      }
+    }
+
+    if (navVerification) navVerification.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipVerificationAgent) chipVerificationAgent.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    // Tab Switching
+    const tabBtns = document.querySelectorAll('button[data-v-tab]');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach((b) => {
+          b.style.borderColor = '#334155';
+          b.style.color = '#94a3b8';
+        });
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#10b981';
+
+        const targetId = btn.getAttribute('data-v-tab');
+        document.querySelectorAll('.v-tab-content').forEach((c) => {
+          c.style.display = 'none';
+        });
+        const target = document.getElementById(targetId);
+        if (target) target.style.display = 'block';
+
+        if (targetId === 'tab-v-ledger') {
+          loadAttestationsLedger();
+        }
+      });
+    });
+
+    // 1. Attestations Ledger & Metrics
+    async function loadAttestationsLedger() {
+      const totalEl = document.getElementById('v-metric-total');
+      const passRateEl = document.getElementById('v-metric-passrate');
+      const statusEl = document.getElementById('v-metric-status');
+      const tableBody = document.getElementById('v-attestations-table-body');
+
+      try {
+        const reportRes = await fetch('/api/jarvis/verification/report', { headers: { 'x-user-id': 'dwight' } });
+        const reportData = await reportRes.json();
+        if (reportData.success) {
+          if (totalEl) totalEl.textContent = reportData.data.totalAttestations;
+          if (passRateEl) passRateEl.textContent = `${reportData.data.passRatePercent}%`;
+          if (statusEl) statusEl.textContent = reportData.data.complianceStatus;
+        }
+
+        const attestRes = await fetch('/api/jarvis/verification/attestations', { headers: { 'x-user-id': 'dwight' } });
+        const attestData = await attestRes.json();
+        if (attestData.success && tableBody) {
+          if (attestData.data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="padding: 12px; text-align: center; color: #94a3b8;">No attestations recorded yet.</td></tr>';
+            return;
+          }
+
+          tableBody.innerHTML = attestData.data.map((a) => {
+            const verdictBadge = a.passed
+              ? '<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 2px 6px; border-radius: 4px; font-weight: bold;">PASSED</span>'
+              : '<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; padding: 2px 6px; border-radius: 4px; font-weight: bold;">FAILED</span>';
+            const dateStr = new Date(a.verifiedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            return `
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 6px; font-family: monospace; color: #38bdf8;">${a.attestationId}</td>
+                <td style="padding: 6px; color: #f8fafc; font-weight: 500;">${a.actionName}</td>
+                <td style="padding: 6px;">${verdictBadge}</td>
+                <td style="padding: 6px; color: #94a3b8;">${a.passedChecks}/${a.totalChecks}</td>
+                <td style="padding: 6px; font-family: monospace; color: #64748b;" title="${a.fingerprint}">${a.fingerprint.slice(0, 16)}...</td>
+                <td style="padding: 6px; color: #64748b;">${dateStr}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" style="color: #ef4444; padding: 12px;">Failed to load attestations: ${err.message}</td></tr>`;
+      }
+    }
+
+    const refreshBtn = document.getElementById('v-refresh-attestations-btn');
+    if (refreshBtn) refreshBtn.addEventListener('click', loadAttestationsLedger);
+
+    // 2. Multi-Modal Inspector Presets
+    const presetSelect = document.getElementById('v-inspector-preset');
+    const actionInput = document.getElementById('v-inspector-action-name');
+    const payloadInput = document.getElementById('v-inspector-payload');
+
+    if (presetSelect && actionInput && payloadInput) {
+      presetSelect.addEventListener('change', () => {
+        const val = presetSelect.value;
+        if (val === 'process_and_schema') {
+          actionInput.value = 'simulated.build_and_deploy';
+          payloadInput.value = '{"exitCode": 0, "status": "COMPLETED", "bundleSize": 14205}';
+        } else if (val === 'math_tolerance') {
+          actionInput.value = 'math.eigenvalue_calculation';
+          payloadInput.value = '{"result": 42.00005, "iterations": 15}';
+        } else if (val === 'code_syntax') {
+          actionInput.value = 'code.ast_generator';
+          payloadInput.value = '{"code": "function executeTask(ctx) { return ctx.status === 200; }"}';
+        } else if (val === 'file_integrity') {
+          actionInput.value = 'fs.artifact_integrity';
+          payloadInput.value = '{"filePath": "package.json"}';
+        }
+      });
+    }
+
+    // Run Inspector Verification
+    const inspectorRunBtn = document.getElementById('v-inspector-run-btn');
+    if (inspectorRunBtn) {
+      inspectorRunBtn.addEventListener('click', async () => {
+        const actionName = (actionInput?.value || 'unspecified_action').trim();
+        const preset = presetSelect?.value || 'process_and_schema';
+        let parsedPayload = {};
+        try {
+          parsedPayload = JSON.parse(payloadInput?.value || '{}');
+        } catch {
+          parsedPayload = payloadInput?.value;
+        }
+
+        let checks = [];
+        if (preset === 'process_and_schema') {
+          checks = [
+            { type: 'exit_code_zero', expected: 0 },
+            { type: 'schema_valid', expected: ['exitCode', 'status'] },
+          ];
+        } else if (preset === 'math_tolerance') {
+          checks = [
+            { type: 'computation_verified', expected: 42.0, options: { tolerance: 0.001 } },
+          ];
+        } else if (preset === 'code_syntax') {
+          checks = [
+            { type: 'code_syntax_valid', target: 'synthesized_code.js' },
+          ];
+        } else if (preset === 'file_integrity') {
+          checks = [
+            { type: 'file_exists', target: 'package.json' },
+            { type: 'file_size', target: 'package.json', expected: 50 },
+          ];
+        }
+
+        const statusBox = document.getElementById('v-inspector-result-status');
+        const logBox = document.getElementById('v-inspector-evidence-log');
+
+        try {
+          if (statusBox) statusBox.innerHTML = '<span style="color: #38bdf8;">Running independent verification suite...</span>';
+          const res = await fetch('/api/jarvis/verification/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ actionName, checks, runtimePayload: parsedPayload }),
+          });
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            const a = data.data;
+            if (statusBox) {
+              statusBox.innerHTML = a.passed
+                ? `<span style="color: #10b981; font-weight: bold;">VERIFICATION PASSED</span> (${a.passedChecks}/${a.totalChecks} checks cleared) • SHA-256: <code style="color: #38bdf8;">${a.fingerprint.slice(0, 16)}...</code>`
+                : `<span style="color: #ef4444; font-weight: bold;">VERIFICATION FAILED</span> (${a.failedChecks} checks failed) • Root cause: ${a.diagnosis?.rootCauseCategory || 'Unknown'}`;
+            }
+            if (logBox) {
+              logBox.textContent = JSON.stringify(a.evidence, null, 2);
+            }
+          } else {
+            if (statusBox) statusBox.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          }
+        } catch (err) {
+          if (statusBox) statusBox.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. Anti-Hallucination Gate Runner
+    const hallBtn = document.getElementById('v-hallucination-run-btn');
+    if (hallBtn) {
+      hallBtn.addEventListener('click', async () => {
+        const claimText = (document.getElementById('v-hallucination-claim')?.value || '').trim();
+        const sourcesRaw = (document.getElementById('v-hallucination-sources')?.value || '').trim();
+        const strictness = document.getElementById('v-hallucination-strictness')?.value || 'standard';
+        const summaryBox = document.getElementById('v-hallucination-summary');
+        const citationsBox = document.getElementById('v-hallucination-citations');
+
+        const groundingSources = sourcesRaw.split('\n').map((s) => s.trim()).filter((s) => s.length > 5);
+
+        try {
+          if (summaryBox) summaryBox.innerHTML = '<span style="color: #ec4899;">Auditing text grounding against reference sources...</span>';
+          const res = await fetch('/api/jarvis/verification/hallucination-audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ claimText, groundingSources, strictness }),
+          });
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            const a = data.data;
+            const riskPct = Math.round(a.hallucinationRisk * 100);
+            const riskColor = a.passed ? '#10b981' : '#ef4444';
+
+            if (summaryBox) {
+              summaryBox.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: bold; color: ${riskColor};">${a.passed ? 'GATE PASSED: VERIFIED GROUNDED' : 'GATE FLAGGED: HIGH HALLUCINATION RISK'}</span>
+                  <span style="padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.4); color: ${riskColor}; font-weight: bold;">Risk: ${riskPct}%</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">${a.auditNotes}</div>
+              `;
+            }
+
+            if (citationsBox) {
+              if (a.citationMatches.length === 0 && a.unsupportedClaims.length === 0) {
+                citationsBox.innerHTML = '<div style="color: #64748b;">No sentences parsed.</div>';
+              } else {
+                let html = '';
+                if (a.citationMatches.length > 0) {
+                  html += '<div style="color: #10b981; font-weight: bold; margin-bottom: 4px;">Grounded Citations:</div>';
+                  html += a.citationMatches.map((c) => `
+                    <div style="background: #020617; border-left: 3px solid #10b981; padding: 4px 8px; margin-bottom: 4px; border-radius: 0 4px 4px 0;">
+                      <div style="color: #e2e8f0;">"${c.claim}"</div>
+                      <div style="color: #64748b; font-size: 0.7rem;">Source snippet: ${c.sourceSnippet} (Score: ${Math.round(c.score * 100)}%)</div>
+                    </div>
+                  `).join('');
+                }
+                if (a.unsupportedClaims.length > 0) {
+                  html += '<div style="color: #ef4444; font-weight: bold; margin: 8px 0 4px 0;">Unsupported Claims (Hallucinations):</div>';
+                  html += a.unsupportedClaims.map((u) => `
+                    <div style="background: #020617; border-left: 3px solid #ef4444; padding: 4px 8px; margin-bottom: 4px; border-radius: 0 4px 4px 0;">
+                      <div style="color: #fca5a5;">"${u}"</div>
+                    </div>
+                  `).join('');
+                }
+                citationsBox.innerHTML = html;
+              }
+            }
+          }
+        } catch (err) {
+          if (summaryBox) summaryBox.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Auto-Retry Loop Simulator
+    const retryBtn = document.getElementById('v-retry-run-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', async () => {
+        const actionName = (document.getElementById('v-retry-action-name')?.value || 'simulated_action').trim();
+        const maxAttempts = parseInt(document.getElementById('v-retry-max-attempts')?.value || '3', 10);
+        const simulatedSuccessOnAttempt = parseInt(document.getElementById('v-retry-pass-attempt')?.value || '2', 10);
+        const summaryBox = document.getElementById('v-retry-summary');
+        const logBox = document.getElementById('v-retry-log');
+
+        try {
+          if (summaryBox) summaryBox.innerHTML = '<span style="color: #f59e0b;">Executing self-healing loop with autonomous verification...</span>';
+          const res = await fetch('/api/jarvis/verification/retry-loop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              actionName,
+              checks: [{ type: 'schema_valid', expected: ['attempt', 'passed'] }],
+              maxAttempts,
+              simulatedSuccessOnAttempt,
+            }),
+          });
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            const loop = data.data;
+            if (summaryBox) {
+              summaryBox.innerHTML = loop.finalPassed
+                ? `<span style="color: #10b981; font-weight: bold;">SELF-HEALING LOOP SUCCEEDED</span> (Resolved in ${loop.attemptsUsed}/${loop.maxAttempts} attempts)`
+                : `<span style="color: #ef4444; font-weight: bold;">SELF-HEALING LOOP EXHAUSTED</span> (${loop.attemptsUsed} attempts failed)`;
+            }
+            if (logBox) {
+              logBox.textContent = loop.recoveryLog.join('\n');
+            }
+          }
+        } catch (err) {
+          if (summaryBox) summaryBox.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
   initSkillBuilderStudio();
   initCollaborationStudio();
+  initVerificationStudio();
   initSession();
 });
 

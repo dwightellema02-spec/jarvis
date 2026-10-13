@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 25 — Multi-Agent Collaboration Active**
+> **Current Status**: **Phase 26 — Verification Engine Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -238,6 +238,14 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/collaboration/missions/:id/blackboard` | Phase 25 Write or update an artifact on the shared mission blackboard |
 | `POST` | `/api/jarvis/collaboration/missions/:id/message` | Phase 25 Transmit direct inter-agent communication, query, or handoff on mission bus |
 | `POST` | `/api/jarvis/collaboration/missions/:id/review` | Phase 25 Conduct cross-agent peer review critique and verification before consensus |
+| `POST` | `/api/jarvis/verification/verify` | Phase 26 Run multi-checker verification plan with cryptographic SHA-256 fingerprinting |
+| `POST` | `/api/jarvis/verification/evidence` | Phase 26 Collect single empirical evidence item across filesystem, processes, schemas, and math |
+| `POST` | `/api/jarvis/verification/hallucination-audit` | Phase 26 Audit assertion grounding against source facts with risk index scoring |
+| `POST` | `/api/jarvis/verification/diagnose` | Phase 26 Synthesize failure diagnosis, root-cause classification, and remedy |
+| `POST` | `/api/jarvis/verification/retry-loop` | Phase 26 Execute self-healing auto-retry loop until verification passes or retries exhausted |
+| `GET` | `/api/jarvis/verification/attestations` | Phase 26 List historical verification attestations with pass/fail and action filters |
+| `GET` | `/api/jarvis/verification/attestations/:id` | Phase 26 Retrieve specific attestation with evidence fingerprint |
+| `GET` | `/api/jarvis/verification/report` | Phase 26 Retrieve executive verification compliance and policy status report |
 
 ---
 
@@ -1132,14 +1140,67 @@ JARVIS implements an autonomous, resilient multi-agent orchestration architectur
 
 ---
 
+## 🛡️ Phase 26 Architecture: Verification Engine
+
+JARVIS enforces a foundational anti-hallucination and truth-asserting invariant:
+$$\text{CAPABILITY} \neq \text{PERMISSION} \qquad \text{and} \qquad \text{ASSERTION} \neq \text{EVIDENCE}$$
+
+No task, tool, or action is accepted as "Done" merely because a model returns a successful prompt completion. The Verification Engine independently inspects the real environment, collects empirical evidence, detects hallucinations, and drives automated self-healing loops:
+
+$$\text{ACTION} \longrightarrow \text{RAW RESULT} \longrightarrow \text{VERIFICATION ENGINE} \longrightarrow \begin{cases} \text{PASS} & \longrightarrow \text{SIGNED ATTESTATION} \\ \text{FAIL} & \longrightarrow \text{DIAGNOSIS} \longrightarrow \text{SELF-HEALING RETRY} \end{cases}$$
+
+### 1. Multi-Modal Evidence Collector
+* **Filesystem Invariants**: Inspects actual disk files (`file_exists`, `file_size`, `file_content` token patterns, `file_hash` SHA-256 integrity).
+* **Process & Execution Invariants**: Verifies process termination code (`exit_code_zero`), inspects standard output for required markers (`stdout_match`), and scans stderr for forbidden crash signatures (`stderr_clean`).
+* **Schema & Type Integrity**: Validates structured object definitions (`schema_valid`), enforces runtime primitive and collection types (`type_integrity`), and checks numeric bounds (`range_bounds`).
+* **Mathematical & Computational Proofs**: Evaluates algebraic and numerical outputs within specified floating-point tolerances (`computation_verified`, `tolerance_diff`).
+* **Code Syntax & AST Safety**: Parses synthesized code artifacts to guarantee syntactic correctness (`code_syntax_valid`).
+* **Cryptographic Evidence Fingerprints**: Hashes entire evidence bundles with SHA-256 to produce tamper-evident proof of verification.
+
+### 2. Anti-Hallucination Grounding Gate
+* Compares model claims and responses against verified ground-truth sources (Second Brain knowledge nodes, research literature, official manuals).
+* Decomposes responses into atomic claims, measures token-level source overlap, and computes an objective **Hallucination Risk Index** ($0.0$ to $1.0$).
+* Rejects outputs exceeding strictness tolerance thresholds (e.g. $> 0.30$ in standard mode, $> 0.15$ in strict mode) and isolates unsupported claims.
+
+### 3. Failure Diagnosis & Self-Healing Auto-Retry Loop
+* Automatically analyzes failed verification checks to identify root cause categories:
+  * `missing_artifact`, `syntax_error`, `tolerance_exceeded`, `hallucination_detected`, `schema_mismatch`, `execution_fault`.
+* Synthesizes actionable remediation directives, classifies severity, and assesses retryability.
+* Coordinates automated retry loops (`executeAutoRetryLoop()`), adapting parameters across attempts until verification succeeds or max retries are safely exhausted.
+
+### 4. Verification Attestation Ledger & Governance Reporting
+* Persists signed `VerificationAttestation` records detailing passed/failed checks, raw evidence items, diagnostic summaries, and SHA-256 fingerprints.
+* Exposes compliance analytics (`/api/jarvis/verification/report`) calculating system-wide pass rate percentages, failure breakdowns, and policy adherence.
+
+### 5. Security Gating, Verification Agent & 8 Tools
+* Gated by `ResourceType.SYSTEM` (`READ` for evidence collection, hallucination audits, diagnosis, and reports; `WRITE` / `EXECUTE` for action verification and self-healing retry loops).
+* Coordinated by `VerificationSuiteManager`, `EvidenceCollector`, `AntiHallucinationAuditor`, and `VerificationAgent` (`id: 'verification-agent'`, `version: '0.26.0-phase26'`).
+* 8 Registered Tools:
+  1. `verification.verify_action` — Executes multi-checker verification plan with cryptographic fingerprinting.
+  2. `verification.collect_evidence` — Gathers empirical evidence across filesystem, processes, schemas, and computations.
+  3. `verification.audit_hallucination` — Compares assertions against ground-truth sources to score hallucination risk.
+  4. `verification.diagnose_failure` — Synthesizes root-cause diagnosis, classification, and remedy from failed checks.
+  5. `verification.execute_recovery_loop` — Executes automated retry loop with diagnostic adjustments until verified.
+  6. `verification.get_attestation` — Retrieves a cryptographic evidence attestation by ID.
+  7. `verification.list_attestations` — Enumerates verification attestations with pass/fail and action filters.
+  8. `verification.generate_audit_report` — Synthesizes executive compliance and policy report.
+
+### 6. Interactive HUD Truth & Verification Center
+* **Attestations Ledger Tab**: Real-time table of verified actions with pass/fail pills, check counters, SHA-256 fingerprint snippets, and executive compliance metrics.
+* **Multi-Modal Inspector Tab**: Interactive test bench to run verification presets (Process & Schema, Math Tolerance, Code Syntax, File Integrity) against live JSON payloads.
+* **Anti-Hallucination Gate Tab**: Ground-truth claim evaluator with source reference inputs, strictness controls, risk dial, citation matches, and hallucination warnings.
+* **Diagnostic & Auto-Retry Loop Tab**: Self-healing loop simulator streaming attempt progression, failure diagnosis, and verified convergence.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (682 automated tests across 72 test files covering all phases, plus 114 end-to-end manual verification steps):
+Run the full Vitest suite (709 automated tests across 74 test files covering all phases, plus 120 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 25
+# Run manual end-to-end verification across Phases 1 to 26
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

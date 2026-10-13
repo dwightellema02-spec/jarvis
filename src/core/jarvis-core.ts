@@ -169,6 +169,11 @@ import {
   CollaborationAgent,
   createCollaborationTools,
 } from '../collaboration/index.js';
+import {
+  VerificationSuiteManager,
+  VerificationAgent,
+  createVerificationTools,
+} from '../verification/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -203,6 +208,7 @@ export interface JarvisCoreConfig {
   proactiveManager?: ProactiveManager;
   skillBuilderManager?: SkillBuilderManager;
   collaborationManager?: MultiAgentManager;
+  verificationSuite?: VerificationSuiteManager;
 }
 
 export interface JarvisChatRequest {
@@ -259,6 +265,7 @@ export class JarvisCore {
   private proactiveManager: ProactiveManager;
   private skillBuilderManager: SkillBuilderManager;
   private collaborationManager: MultiAgentManager;
+  private verificationSuite: VerificationSuiteManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -611,7 +618,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Verification Suite Engine, Agent, and Tools (Phase 26)
+    this.verificationSuite =
+      config.verificationSuite ||
+      new VerificationSuiteManager({
+        guardian: this.guardian,
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+      });
+    const verificationAgent = new VerificationAgent(this.verificationSuite);
+    this.agentRegistry.registerImplementation(verificationAgent);
+
+    for (const tool of createVerificationTools(this.verificationSuite)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Phase 26 Verification Suite Engine, Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -1021,6 +1043,10 @@ export class JarvisCore {
 
   public getCollaborationManager(): MultiAgentManager {
     return this.collaborationManager;
+  }
+
+  public getVerificationSuite(): VerificationSuiteManager {
+    return this.verificationSuite;
   }
 
   public async orchestrate(

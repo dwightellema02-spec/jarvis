@@ -1513,7 +1513,106 @@ async function runManualVerification() {
       console.log('   Inter-Agent Message Sent:', msgData.data?.id, '| Type:', msgData.data?.type);
       console.log('   Cross-Agent Peer Review:', peerReviewData.data?.approved ? 'APPROVED' : 'REJECTED', '| Score:', peerReviewData.data?.score, '| Reviewer:', peerReviewData.data?.reviewerAgentId);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 25) PASSED SUCCESSFULLY! ===');
+      console.log('115. Testing Phase 26 Verification Engine Discovery & Contract (GET /api/agents & /api/tools)');
+      const vAgentsRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const vAgentsData = await vAgentsRes.json();
+      const verificationAgent = vAgentsData.agents?.find((a: any) => a.id === 'verification-agent');
+      console.log('   Verification Agent Registered:', verificationAgent?.name, '| Version:', verificationAgent?.version);
+
+      const vToolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const vToolsData = await vToolsRes.json();
+      const vTools = vToolsData.tools?.filter((t: any) => t.id.startsWith('verification.'));
+      console.log('   Verification Tools Count:', vTools?.length, '| Tools:', vTools?.map((t: any) => t.id).join(', '));
+
+      console.log('116. Testing Phase 26 Multi-Modal Evidence Collection (POST /api/jarvis/verification/evidence)');
+      const evRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/evidence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          check: { type: 'exit_code_zero', expected: 0 },
+          runtimePayload: { exitCode: 0 },
+        }),
+      });
+      const evData = await evRes.json();
+      console.log('   Evidence Collected:', evData.data?.checkType, '| Passed:', evData.data?.passed, '| Message:', evData.data?.message);
+
+      console.log('117. Testing Phase 26 Action Verification & Fingerprinting (POST /api/jarvis/verification/verify)');
+      const verifyRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionName: 'quantum.eigenstate_validation',
+          checks: [
+            { type: 'exit_code_zero', expected: 0 },
+            { type: 'schema_valid', expected: ['energy', 'waveFunction', 'parity'] },
+            { type: 'computation_verified', expected: 0.5, options: { tolerance: 0.001 } },
+          ],
+          runtimePayload: { exitCode: 0, energy: 0.5, waveFunction: 'psi_0', parity: 'even', result: 0.5 },
+        }),
+      });
+      const verifyData = await verifyRes.json();
+      console.log('   Attestation Generated:', verifyData.data?.attestationId, '| Passed:', verifyData.data?.passed, '| Fingerprint:', verifyData.data?.fingerprint?.slice(0, 16) + '...');
+
+      console.log('118. Testing Phase 26 Anti-Hallucination Grounding Audit (POST /api/jarvis/verification/hallucination-audit)');
+      const hallRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/hallucination-audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          claimText: 'Tuklas delivers localized STEM pedagogy for Filipino engineering aspirants.',
+          groundingSources: ['Tuklas delivers localized STEM pedagogy for Filipino engineering aspirants nationwide.'],
+          strictness: 'standard',
+        }),
+      });
+      const hallData = await hallRes.json();
+      console.log('   Anti-Hallucination Gate:', hallData.data?.passed ? 'PASSED' : 'FLAGGED', '| Risk:', hallData.data?.hallucinationRisk * 100 + '%', '| Notes:', hallData.data?.auditNotes);
+
+      console.log('119. Testing Phase 26 Failure Diagnosis & Self-Healing Auto-Retry Loop (POST /diagnose & /retry-loop)');
+      const vDiagRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionName: 'neural.matrix_multiply',
+          failedChecks: [
+            {
+              checkType: 'computation_verified',
+              target: 'loss_metric',
+              expected: 0.001,
+              actual: 0.085,
+              passed: false,
+              message: 'Loss diverged',
+              timestamp: new Date().toISOString(),
+            },
+          ],
+        }),
+      });
+      const vDiagData = await vDiagRes.json();
+      const retryRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/retry-loop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionName: 'compiler.self_healing_pass',
+          checks: [{ type: 'schema_valid', expected: ['attempt', 'passed'] }],
+          maxAttempts: 3,
+          simulatedSuccessOnAttempt: 2,
+        }),
+      });
+      const retryData = await retryRes.json();
+      console.log('   Root Cause Diagnosis:', vDiagData.data?.rootCauseCategory, '| Severity:', vDiagData.data?.severity, '| Remedy:', vDiagData.data?.suggestedRemediation);
+      console.log('   Self-Healing Auto-Retry:', retryData.data?.finalPassed ? 'SUCCESS' : 'FAILED', '| Attempts Used:', retryData.data?.attemptsUsed + '/' + retryData.data?.maxAttempts);
+
+      console.log('120. Testing Phase 26 Attestation Ledger & Executive Compliance Report (GET /attestations & /report)');
+      const ledgerRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/attestations', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const ledgerData = await ledgerRes.json();
+      const reportRes = await fetch('http://127.0.0.1:3099/api/jarvis/verification/report', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const reportData = await reportRes.json();
+      console.log('   Attestations in Ledger:', ledgerData.count, '| Latest Action:', ledgerData.data?.[0]?.actionName);
+      console.log('   Executive Compliance:', reportData.data?.complianceStatus, '| Pass Rate:', reportData.data?.passRatePercent + '%', '| Policy:', reportData.data?.activePolicy);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 26) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

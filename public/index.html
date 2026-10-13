@@ -185,6 +185,13 @@
               </div>
               <span class="hud-nav-badge">P25</span>
             </a>
+            <a href="#" id="nav-verification" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Verification</span>
+              </div>
+              <span class="hud-nav-badge">P26</span>
+            </a>
           </nav>
         </div>
 
@@ -454,6 +461,14 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#6366f1"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-verification-agent" title="Open Verification & Anti-Hallucination Center">
+                <div class="agent-chip-header">
+                  <span>Verification Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -3980,6 +3995,209 @@ Direct Phone: 555-883-9102</textarea>
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- Verification & Anti-Hallucination Truth Center Modal (Phase 26) -->
+  <div id="verification-modal" class="hud-modal" style="display: none;">
+    <div class="hud-modal-content" style="max-width: 1050px; width: 95%;">
+      <div class="hud-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;">
+        <div>
+          <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #10b981;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            Verification & Anti-Hallucination Truth Center
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981;">PHASE 26</span>
+          </h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #94a3b8;">
+            Autonomous Truth Assertions • Multi-Modal Evidence Collector • Anti-Hallucination Gate • Diagnostic Auto-Retry Loop
+          </p>
+        </div>
+        <button id="close-verification-modal-btn" class="hud-modal-close" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Studio Navigation Tabs -->
+      <div class="hud-tabs" style="display: flex; gap: 8px; margin: 1rem 0; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem;">
+        <button class="hud-tab active" data-v-tab="tab-v-ledger" style="padding: 6px 14px; background: none; border: 1px solid #10b981; border-radius: 6px; color: #10b981; cursor: pointer;">
+          Attestations Ledger
+        </button>
+        <button class="hud-tab" data-v-tab="tab-v-inspector" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Multi-Modal Inspector
+        </button>
+        <button class="hud-tab" data-v-tab="tab-v-hallucination" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Anti-Hallucination Gate
+        </button>
+        <button class="hud-tab" data-v-tab="tab-v-retry" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Diagnostic & Auto-Retry Loop
+        </button>
+      </div>
+
+      <!-- Tab 1: Attestations Ledger -->
+      <div id="tab-v-ledger" class="v-tab-content">
+        <!-- Top Metrics Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Total Attestations</div>
+            <div id="v-metric-total" style="font-size: 1.4rem; font-weight: 700; color: #38bdf8;">--</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Verified Pass Rate</div>
+            <div id="v-metric-passrate" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">--</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Compliance Status</div>
+            <div id="v-metric-status" style="font-size: 1.2rem; font-weight: 700; color: #00f0ff;">--</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Active Policy</div>
+            <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 4px; font-weight: 600;">Zero Fake Completions</div>
+          </div>
+        </div>
+
+        <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="margin: 0; font-size: 0.88rem; color: #e2e8f0;">Cryptographic Evidence Attestations</h4>
+            <button id="v-refresh-attestations-btn" style="padding: 4px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; font-size: 0.75rem; cursor: pointer;">
+              Refresh Ledger
+            </button>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid #1e293b; color: #94a3b8;">
+                <th style="padding: 6px;">Attestation ID</th>
+                <th style="padding: 6px;">Action / Tool</th>
+                <th style="padding: 6px;">Verdict</th>
+                <th style="padding: 6px;">Checks</th>
+                <th style="padding: 6px;">Fingerprint (SHA-256)</th>
+                <th style="padding: 6px;">Verified At</th>
+              </tr>
+            </thead>
+            <tbody id="v-attestations-table-body">
+              <!-- Rendered via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Multi-Modal Inspector -->
+      <div id="tab-v-inspector" class="v-tab-content" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Left: Verification Form -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #38bdf8;">Execute Verification Plan</h4>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Target Action Name</label>
+              <input id="v-inspector-action-name" type="text" value="simulated.build_and_deploy" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Check Preset</label>
+              <select id="v-inspector-preset" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;">
+                <option value="process_and_schema">Process Exit 0 & Schema Validation</option>
+                <option value="math_tolerance">Mathematical Computation (Tolerance: 0.0001)</option>
+                <option value="code_syntax">JavaScript Syntax & AST Safety</option>
+                <option value="file_integrity">Filesystem Exists & Size Check</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Runtime Output Payload (JSON)</label>
+              <textarea id="v-inspector-payload" rows="4" style="width: 100%; padding: 6px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #fff; font-family: monospace; font-size: 0.75rem;">{"exitCode": 0, "status": "COMPLETED", "bundleSize": 14205}</textarea>
+            </div>
+            <button id="v-inspector-run-btn" style="width: 100%; padding: 8px; background: #10b981; border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">
+              Execute Independent Verification
+            </button>
+          </div>
+
+          <!-- Right: Attestation & Evidence Results -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #10b981;">Verification Result & Fingerprint</h4>
+            <div id="v-inspector-result-status" style="margin-bottom: 0.75rem; padding: 8px 12px; background: #0b1329; border-radius: 4px; font-size: 0.8rem; color: #94a3b8;">
+              Ready to verify action. Select preset and press execute.
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Evidence Collection Log:</div>
+            <pre id="v-inspector-evidence-log" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-size: 0.72rem; color: #38bdf8; max-height: 220px; overflow-y: auto; white-space: pre-wrap;">// Evidence items will appear here after execution</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Anti-Hallucination Gate -->
+      <div id="tab-v-hallucination" class="v-tab-content" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Left: Audit Inputs -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #ec4899;">Grounded Claim Verification</h4>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Claim Text to Audit</label>
+              <textarea id="v-hallucination-claim" rows="3" style="width: 100%; padding: 6px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;">The Philippine Licensure Examination for Teachers requires at least a 75 percent general average rating with no rating below 50 percent.</textarea>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Grounding Reference Sources (One per line)</label>
+              <textarea id="v-hallucination-sources" rows="4" style="width: 100%; padding: 6px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.75rem;">The Philippine Licensure Examination for Teachers (LET) is administered by the Professional Regulation Commission.
+To pass the LET, a candidate must obtain a general average rating of at least 75% with no grade below 50% in any subject.</textarea>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.72rem; color: #94a3b8;">Gate Strictness</label>
+                <select id="v-hallucination-strictness" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;">
+                  <option value="standard">Standard (Max 30% risk allowed)</option>
+                  <option value="strict">Strict (Max 15% risk allowed)</option>
+                  <option value="lenient">Lenient (Max 55% risk allowed)</option>
+                </select>
+              </div>
+            </div>
+            <button id="v-hallucination-run-btn" style="width: 100%; padding: 8px; background: #ec4899; border: none; border-radius: 4px; color: #fff; font-weight: 600; cursor: pointer;">
+              Audit Anti-Hallucination Gate
+            </button>
+          </div>
+
+          <!-- Right: Audit Findings -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #10b981;">Gate Verdict & Citations</h4>
+            <div id="v-hallucination-summary" style="margin-bottom: 0.75rem; padding: 10px 14px; background: #0b1329; border-radius: 4px; font-size: 0.8rem; color: #94a3b8;">
+              Submit claim text and grounding sources to evaluate ground-truth confidence.
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Citation Matches & Unsupported Claims:</div>
+            <div id="v-hallucination-citations" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; max-height: 220px; overflow-y: auto; font-size: 0.75rem; color: #cbd5e1;">
+              <!-- Citations rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Diagnostic & Auto-Retry Loop -->
+      <div id="tab-v-retry" class="v-tab-content" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <!-- Left: Auto-Retry Trigger -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #f59e0b;">Self-Healing Auto-Retry Simulator</h4>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Action Name</label>
+              <input id="v-retry-action-name" type="text" value="optimizer.convergence_test" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="font-size: 0.72rem; color: #94a3b8;">Max Attempts</label>
+                <input id="v-retry-max-attempts" type="number" value="3" min="1" max="5" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; color: #94a3b8;">Pass On Attempt</label>
+                <input id="v-retry-pass-attempt" type="number" value="2" min="1" max="5" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+              </div>
+            </div>
+            <button id="v-retry-run-btn" style="width: 100%; padding: 8px; background: #f59e0b; border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">
+              Execute Auto-Retry & Self-Healing Loop
+            </button>
+          </div>
+
+          <!-- Right: Diagnostic & Recovery Log -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #10b981;">Self-Healing Recovery Log</h4>
+            <div id="v-retry-summary" style="margin-bottom: 0.75rem; padding: 8px 12px; background: #0b1329; border-radius: 4px; font-size: 0.8rem; color: #94a3b8;">
+              Ready. Press Execute to observe self-healing progression across attempts.
+            </div>
+            <pre id="v-retry-log" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-size: 0.72rem; color: #f59e0b; max-height: 220px; overflow-y: auto; white-space: pre-wrap;">// Recovery log will stream here</pre>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
