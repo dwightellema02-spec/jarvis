@@ -3191,6 +3191,437 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Phase 15: Innovation Studio Modal & Controller
+  const innovToggleBtn = document.getElementById('innovation-toggle-btn');
+  const innovModal = document.getElementById('innovation-modal');
+  const closeInnovModalBtn = document.getElementById('close-innovation-modal');
+
+  if (innovToggleBtn && innovModal) {
+    innovToggleBtn.addEventListener('click', () => {
+      innovModal.classList.remove('hidden');
+    });
+
+    if (closeInnovModalBtn) {
+      closeInnovModalBtn.addEventListener('click', () => {
+        innovModal.classList.add('hidden');
+      });
+    }
+
+    // Tab Switching
+    const innovTabs = [
+      { btn: 'innov-tab-blueprint', panel: 'innov-panel-blueprint' },
+      { btn: 'innov-tab-market', panel: 'innov-panel-market' },
+      { btn: 'innov-tab-personas', panel: 'innov-panel-personas' },
+      { btn: 'innov-tab-features', panel: 'innov-panel-features' },
+      { btn: 'innov-tab-ux-tech', panel: 'innov-panel-ux-tech' },
+      { btn: 'innov-tab-roadmap', panel: 'innov-panel-roadmap' },
+    ];
+
+    innovTabs.forEach((tab) => {
+      const b = document.getElementById(tab.btn);
+      if (b) {
+        b.addEventListener('click', () => {
+          innovTabs.forEach((t) => {
+            const btnEl = document.getElementById(t.btn);
+            const panelEl = document.getElementById(t.panel);
+            if (btnEl) {
+              btnEl.style.background = '#1e293b';
+              btnEl.style.color = '#94a3b8';
+            }
+            if (panelEl) panelEl.classList.add('hidden');
+          });
+          b.style.background = '#14b8a6';
+          b.style.color = '#fff';
+          const targetPanel = document.getElementById(tab.panel);
+          if (targetPanel) targetPanel.classList.remove('hidden');
+        });
+      }
+    });
+
+    // 1. Full Blueprint Synthesis
+    const genBpBtn = document.getElementById('innov-generate-bp-btn');
+    const bpResult = document.getElementById('innov-bp-result');
+
+    if (genBpBtn && bpResult) {
+      genBpBtn.addEventListener('click', async () => {
+        try {
+          const title = (document.getElementById('innov-bp-title')?.value || '').trim() || 'JARVIS Cloud OS';
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          const category = document.getElementById('innov-bp-category')?.value || 'ai_devtools';
+          const scaleTier = document.getElementById('innov-bp-tier')?.value || 'starter';
+
+          bpResult.innerHTML = '<span style="color: #14b8a6;">Synthesizing 12-stage venture architecture with deterministic RICE & PMF scoring...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/blueprint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ title, idea, category, scaleTier }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            bpResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const bp = data.data;
+          const viabilityColor = bp.viability.overallScorePercent >= 80 ? '#10b981' : '#f59e0b';
+
+          bpResult.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+              <div>
+                <h3 style="margin: 0; color: #14b8a6; font-size: 1.25rem;">${bp.productName}</h3>
+                <div style="font-size: 0.85rem; color: #94a3b8;">${bp.tagline}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 0.8rem; color: #94a3b8;">PMF Viability Score</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: ${viabilityColor};">${bp.viability.overallScorePercent}%</div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+              <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: #94a3b8;">TAM Sizing</div>
+                <div style="font-size: 0.85rem; font-weight: bold; color: #38bdf8;">${bp.marketResearch.tamSamSom.tam.split(' ')[0]}</div>
+              </div>
+              <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: #94a3b8;">Target ICPs</div>
+                <div style="font-size: 0.85rem; font-weight: bold; color: #c084fc;">${bp.targetPersonas.length} Archetypes</div>
+              </div>
+              <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: #94a3b8;">Agile Timeline</div>
+                <div style="font-size: 0.85rem; font-weight: bold; color: #10b981;">${bp.roadmap.totalEstimatedWeeks} Weeks (5 Sprints)</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 0.75rem;">
+              <strong style="color: #f8fafc; font-size: 0.85rem;">Top Must-Have Feature (RICE Prioritized):</strong>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.85rem; color: #cbd5e1; margin-top: 0.25rem;">
+                <span style="color: #14b8a6; font-weight: bold;">[${bp.features[0]?.category.toUpperCase()}]</span> ${bp.features[0]?.name} &mdash; <em>RICE Score: ${bp.features[0]?.rice.score}</em>
+              </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: #94a3b8;">
+              Blueprint ID: <code>${bp.id}</code> &bull; Tech Stack: <strong>${bp.technicalBlueprint.techStack.frontend.split(' ')[0]} / ${bp.technicalBlueprint.techStack.backend.split(' ')[0]}</strong>
+            </div>
+          `;
+        } catch (err) {
+          bpResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 2. Market Research Tab
+    const runMarketBtn = document.getElementById('innov-run-market-btn');
+    const marketResult = document.getElementById('innov-market-result');
+
+    if (runMarketBtn && marketResult) {
+      runMarketBtn.addEventListener('click', async () => {
+        try {
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          const category = document.getElementById('innov-bp-category')?.value || 'ai_devtools';
+
+          marketResult.innerHTML = '<span style="color: #14b8a6;">Estimating TAM/SAM/SOM and competitor matrix...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ idea, category }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            marketResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const m = data.data;
+          const compsHtml = m.competitors.map((c) => `
+            <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; margin-bottom: 0.4rem;">
+              <strong style="color: #38bdf8;">${c.name}</strong><br/>
+              <span style="font-size: 0.8rem; color: #cbd5e1;">Moat: ${c.differentiation}</span>
+            </div>
+          `).join('');
+
+          marketResult.innerHTML = `
+            <div style="margin-bottom: 0.75rem;">
+              <div style="font-size: 0.85rem; color: #94a3b8;">TAM: <strong style="color: #10b981;">${m.tamSamSom.tam}</strong></div>
+              <div style="font-size: 0.85rem; color: #94a3b8;">SAM: <strong style="color: #38bdf8;">${m.tamSamSom.sam}</strong></div>
+              <div style="font-size: 0.85rem; color: #94a3b8;">SOM: <strong style="color: #c084fc;">${m.tamSamSom.som}</strong></div>
+            </div>
+            <h4 style="margin: 0.5rem 0; color: #14b8a6; font-size: 0.9rem;">Competitor Differentiation Matrix</h4>
+            ${compsHtml}
+          `;
+        } catch (err) {
+          marketResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 3. User Personas Tab
+    const runPersonasBtn = document.getElementById('innov-run-personas-btn');
+    const personasResult = document.getElementById('innov-personas-result');
+
+    if (runPersonasBtn && personasResult) {
+      runPersonasBtn.addEventListener('click', async () => {
+        try {
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          personasResult.innerHTML = '<span style="color: #14b8a6;">Synthesizing ICP archetypes and JTBD...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/personas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ idea, count: 2 }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            personasResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const personas = data.data;
+          const html = personas.map((p) => `
+            <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <strong style="color: #14b8a6;">${p.name}</strong>
+                <span class="badge" style="background: #0f172a; color: #38bdf8;">${p.role}</span>
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.25rem 0;">${p.archetype} &bull; Willingness to Pay: <strong>${p.willingnessToPay.toUpperCase()}</strong></div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; font-style: italic; margin-top: 0.25rem;">${p.quote}</div>
+            </div>
+          `).join('');
+
+          personasResult.innerHTML = html;
+        } catch (err) {
+          personasResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 4. Features Prioritization Tab
+    const runFeaturesBtn = document.getElementById('innov-run-features-btn');
+    const featuresResult = document.getElementById('innov-features-result');
+
+    if (runFeaturesBtn && featuresResult) {
+      runFeaturesBtn.addEventListener('click', async () => {
+        try {
+          featuresResult.innerHTML = '<span style="color: #14b8a6;">Evaluating RICE scores and MoSCoW buckets...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/features', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              features: [
+                { name: 'Core Pipeline', description: 'Engine runner', reach: 9, impact: 5, confidence: 0.9, effort: 4 },
+                { name: 'Security Guardian', description: 'RBAC and threat gate', reach: 8, impact: 4, confidence: 0.85, effort: 4 },
+                { name: 'Web Cockpit', description: 'Telemetry UI', reach: 8, impact: 4, confidence: 0.8, effort: 3 },
+                { name: 'API Hooks', description: 'REST webhooks', reach: 7, impact: 3, confidence: 0.8, effort: 3 },
+              ],
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            featuresResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const features = data.data;
+          const rows = features.map((f) => `
+            <tr style="border-bottom: 1px solid #334155;">
+              <td style="padding: 0.4rem; color: #14b8a6; font-weight: bold;">[${f.category.toUpperCase()}]</td>
+              <td style="padding: 0.4rem; color: #f8fafc;">${f.name}</td>
+              <td style="padding: 0.4rem; color: #38bdf8;">${f.rice.score}</td>
+              <td style="padding: 0.4rem; color: #94a3b8;">${f.complexity}</td>
+            </tr>
+          `).join('');
+
+          featuresResult.innerHTML = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid #334155; text-align: left; color: #94a3b8;">
+                  <th style="padding: 0.4rem;">MoSCoW</th>
+                  <th style="padding: 0.4rem;">Feature</th>
+                  <th style="padding: 0.4rem;">RICE Score</th>
+                  <th style="padding: 0.4rem;">Complexity</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        } catch (err) {
+          featuresResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 5. UX & Architecture Tab
+    const runJourneyBtn = document.getElementById('innov-run-journey-btn');
+    const runTechBtn = document.getElementById('innov-run-tech-btn');
+    const uxTechResult = document.getElementById('innov-ux-tech-result');
+
+    if (runJourneyBtn && uxTechResult) {
+      runJourneyBtn.addEventListener('click', async () => {
+        try {
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          uxTechResult.innerHTML = '<span style="color: #14b8a6;">Mapping 5-stage UX Journey...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/journey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ idea }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            uxTechResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const steps = data.data;
+          const html = steps.map((s) => `
+            <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; margin-bottom: 0.4rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <strong style="color: #14b8a6;">Stage ${s.stepNumber}: ${s.stage}</strong>
+                <span style="font-size: 0.75rem; color: #38bdf8;">Mood: ${s.emotionalState}</span>
+              </div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">Wireframe: <em>${s.wireframeCue}</em></div>
+            </div>
+          `).join('');
+
+          uxTechResult.innerHTML = html;
+        } catch (err) {
+          uxTechResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (runTechBtn && uxTechResult) {
+      runTechBtn.addEventListener('click', async () => {
+        try {
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          uxTechResult.innerHTML = '<span style="color: #38bdf8;">Generating technical architecture blueprint...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/technical', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ idea, scaleTier: 'starter' }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            uxTechResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const t = data.data;
+          uxTechResult.innerHTML = `
+            <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+              <strong style="color: #38bdf8;">Architecture: ${t.architectureType}</strong>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.25rem;">
+                Frontend: ${t.techStack.frontend}<br/>
+                Backend: ${t.techStack.backend}<br/>
+                Database: ${t.techStack.database}
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">
+              REST Endpoints: <strong>${t.apiEndpoints.length}</strong> | Data Schemas: <strong>${t.dataModels.length}</strong>
+            </div>
+          `;
+        } catch (err) {
+          uxTechResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    // 6. Roadmap & Viability Tab
+    const runRoadmapBtn = document.getElementById('innov-run-roadmap-btn');
+    const runViabilityBtn = document.getElementById('innov-run-viability-btn');
+    const roadmapResult = document.getElementById('innov-roadmap-result');
+
+    if (runRoadmapBtn && roadmapResult) {
+      runRoadmapBtn.addEventListener('click', async () => {
+        try {
+          const title = (document.getElementById('innov-bp-title')?.value || '').trim() || 'JARVIS Venture';
+          roadmapResult.innerHTML = '<span style="color: #14b8a6;">Planning 5-sprint agile roadmap...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/roadmap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ title }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            roadmapResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const r = data.data;
+          const sprintsHtml = r.sprints.map((s) => `
+            <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; margin-bottom: 0.4rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <strong style="color: #14b8a6;">${s.title}</strong>
+                <span class="badge" style="background: #0f172a; color: ${s.riskLevel === 'HIGH' ? '#ef4444' : s.riskLevel === 'MEDIUM' ? '#f59e0b' : '#10b981'};">${s.riskLevel} RISK</span>
+              </div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">Goal: ${s.goal}</div>
+            </div>
+          `).join('');
+
+          roadmapResult.innerHTML = `
+            <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #94a3b8;">
+              Total Estimated Duration: <strong style="color: #10b981;">${r.totalEstimatedWeeks} Weeks</strong> across ${r.sprints.length} Sprints
+            </div>
+            ${sprintsHtml}
+          `;
+        } catch (err) {
+          roadmapResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (runViabilityBtn && roadmapResult) {
+      runViabilityBtn.addEventListener('click', async () => {
+        try {
+          const idea = (document.getElementById('innov-bp-idea')?.value || '').trim() || 'Autonomous AI Platform';
+          roadmapResult.innerHTML = '<span style="color: #a855f7;">Calculating PMF viability score...</span>';
+
+          const res = await fetch('/api/jarvis/innovation/viability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ idea }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            roadmapResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+            return;
+          }
+
+          const v = data.data;
+          roadmapResult.innerHTML = `
+            <div style="text-align: center; margin-bottom: 0.75rem;">
+              <div style="font-size: 0.85rem; color: #94a3b8;">Overall PMF Viability</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #10b981;">${v.overallScorePercent}%</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Market</div>
+                <div style="font-weight: bold; color: #38bdf8;">${v.marketOpportunityScore}%</div>
+              </div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Feasibility</div>
+                <div style="font-weight: bold; color: #10b981;">${v.technicalFeasibilityScore}%</div>
+              </div>
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Defensibility</div>
+                <div style="font-weight: bold; color: #c084fc;">${v.competitiveDefensibilityScore}%</div>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: #cbd5e1;">
+              <strong>Strategic Advantage:</strong> ${v.keyStrengths[0] || 'Modularity and built-in security'}
+            </div>
+          `;
+        } catch (err) {
+          roadmapResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initSession();
 });

@@ -687,7 +687,78 @@ async function runManualVerification() {
       console.log('   FFmpeg Present:', animToolsData.data.ffmpegInstalled, '| Blender Present:', animToolsData.data.blenderInstalled, '| Canvas Supported:', animToolsData.data.canvasSupported);
       console.log('   Honest Reporting Notes:', animToolsData.data.notes[0]);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 14) PASSED SUCCESSFULLY! ===');
+      console.log('55. Testing Phase 15 Innovation Status & Market Research (/api/jarvis/innovation/status & /research)');
+      const innovStatusRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/status');
+      const innovStatusData = await innovStatusRes.json();
+      const marketRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          idea: 'Autonomous Venture Architecture and Developer Productivity Studio',
+          category: 'ai_devtools',
+        }),
+      });
+      const marketData = await marketRes.json();
+      console.log('   Innovation Service:', innovStatusData.data.serviceName, '| Version:', innovStatusData.data.version);
+      console.log('   TAM Market Estimate:', marketData.data.tamSamSom.tam, '| Competitors Identified:', marketData.data.competitors.length);
+
+      console.log('56. Testing Phase 15 User Personas & RICE Prioritization (/api/jarvis/innovation/personas & /features)');
+      const personasRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/personas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          idea: 'Autonomous Venture Architecture and Developer Productivity Studio',
+          count: 2,
+        }),
+      });
+      const personasData = await personasRes.json();
+      const featuresRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/features', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          features: [
+            { name: 'Core Pipeline', description: 'Task runner', reach: 9, impact: 5, confidence: 0.9, effort: 3 },
+            { name: 'Legacy Importer', description: 'CSV Bridge', reach: 3, impact: 2, confidence: 0.5, effort: 6 },
+          ],
+        }),
+      });
+      const featuresData = await featuresRes.json();
+      console.log('   Synthesized Personas:', personasData.data.length, '| Primary ICP:', personasData.data[0]?.name, '(', personasData.data[0]?.role, ')');
+      console.log('   Top RICE Feature:', featuresData.data[0]?.name, '| Category:', featuresData.data[0]?.category, '| Score:', featuresData.data[0]?.rice?.score);
+
+      console.log('57. Testing Phase 15 UX Journey & Technical Architecture (/api/jarvis/innovation/journey & /technical)');
+      const journeyRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/journey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ idea: 'Autonomous Venture Studio' }),
+      });
+      const journeyData = await journeyRes.json();
+      const techRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/technical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ idea: 'Autonomous Venture Studio', scaleTier: 'growth' }),
+      });
+      const techData = await techRes.json();
+      console.log('   UX Journey Stages:', journeyData.data.length, '| Discovery Cue:', journeyData.data[0]?.wireframeCue.substring(0, 40) + '...');
+      console.log('   Architecture Stack:', techData.data.techStack.frontend, '| Endpoints:', techData.data.apiEndpoints.length);
+
+      console.log('58. Testing Phase 15 End-to-End Product Blueprint Synthesis (/api/jarvis/innovation/blueprint)');
+      const bpRes = await fetch('http://127.0.0.1:3099/api/jarvis/innovation/blueprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'JARVIS Enterprise Venture Studio',
+          tagline: 'Autonomous venture architecture from concept to production-grade deployment',
+          idea: 'AI Agent operating system for high-velocity software engineering ventures',
+          category: 'ai_devtools',
+          scaleTier: 'starter',
+        }),
+      });
+      const bpData = await bpRes.json();
+      console.log('   Blueprint ID:', bpData.data.id, '| Product Name:', bpData.data.productName);
+      console.log('   Viability PMF Score:', bpData.data.viability.overallScorePercent + '%', '| Sprints Planned:', bpData.data.roadmap.sprints.length);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 15) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 14: Animation Pipeline Active</span>
+        <span class="badge phase-badge">Phase 15: Product Innovation Active</span>
       </div>
       <div class="header-meta">
+        <button id="innovation-toggle-btn" class="btn btn-outline" style="border-color: rgba(20, 184, 166, 0.4); color: #14b8a6;" title="JARVIS Product Innovation & Venture Architecture Studio">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <span>Innovation</span>
+        </button>
         <button id="animation-toggle-btn" class="btn btn-outline" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;" title="JARVIS Bring It Alive Animation Pipeline">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           <span>Animation</span>
@@ -1000,6 +1004,110 @@
           </div>
           <div id="anim-tools-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
             <p style="color: #94a3b8; margin: 0;">Honest capability reporting: verifies whether FFmpeg, Blender, or Canvas runtime is installed on the host system without fake mocks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- Innovation Studio Modal Overlay -->
+  <div id="innovation-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="innovation-title">
+    <div class="profile-card-modal" style="max-width: 960px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h2 id="innovation-title">🚀 Product Innovation & Venture Architecture Studio (Phase 15)</h2>
+        <button id="close-innovation-modal" class="close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="distinction-box" style="margin-bottom: 1rem; border-left: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.08); padding: 0.75rem 1rem;">
+          <h4 style="margin: 0 0 0.25rem 0; color: #14b8a6;">12-Stage Venture Pipeline</h4>
+          <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">
+            IDEA &rarr; RESEARCH &rarr; PROBLEM &rarr; USERS &rarr; COMPETITORS &rarr; PRODUCT &rarr; FEATURES &rarr; UX/UI &rarr; ARCHITECTURE &rarr; BUILD &rarr; TEST &rarr; IMPROVE.
+            Synthesizes TAM/SAM/SOM sizing, user personas, RICE prioritization, UX flows, clean architecture blueprints, and PMF viability scoring.
+          </p>
+        </div>
+
+        <!-- Tab Controls -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; flex-wrap: wrap;">
+          <button id="innov-tab-blueprint" class="tab-btn active" style="padding: 0.4rem 0.8rem; background: #14b8a6; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Full Blueprint</button>
+          <button id="innov-tab-market" class="tab-btn" style="padding: 0.4rem 0.8rem; background: #1e293b; color: #94a3b8; border: none; border-radius: 4px; cursor: pointer;">Market Research</button>
+          <button id="innov-tab-personas" class="tab-btn" style="padding: 0.4rem 0.8rem; background: #1e293b; color: #94a3b8; border: none; border-radius: 4px; cursor: pointer;">User Personas</button>
+          <button id="innov-tab-features" class="tab-btn" style="padding: 0.4rem 0.8rem; background: #1e293b; color: #94a3b8; border: none; border-radius: 4px; cursor: pointer;">RICE Features</button>
+          <button id="innov-tab-ux-tech" class="tab-btn" style="padding: 0.4rem 0.8rem; background: #1e293b; color: #94a3b8; border: none; border-radius: 4px; cursor: pointer;">UX & Architecture</button>
+          <button id="innov-tab-roadmap" class="tab-btn" style="padding: 0.4rem 0.8rem; background: #1e293b; color: #94a3b8; border: none; border-radius: 4px; cursor: pointer;">Roadmap & Viability</button>
+        </div>
+
+        <!-- Tab 1: Full Blueprint -->
+        <div id="innov-panel-blueprint">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" id="innov-bp-title" value="JARVIS Cloud OS" placeholder="Product Venture Title" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;" />
+            <textarea id="innov-bp-idea" placeholder="Describe your product venture idea, problem domain, and target customer..." rows="2" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; resize: vertical;">Autonomous AI agent developer platform with verifiable default-deny security and clean architecture blueprints</textarea>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="innov-bp-category" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+                <option value="ai_devtools" selected>AI Developer Tools</option>
+                <option value="productivity_saas">Productivity & Second Brain</option>
+                <option value="fintech">FinTech Intelligence</option>
+                <option value="default_tech">Vertical Tech SaaS</option>
+              </select>
+              <select id="innov-bp-tier" style="padding: 0.5rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+                <option value="starter" selected>Starter MVP</option>
+                <option value="growth">Growth Scale</option>
+                <option value="enterprise">Enterprise Tier</option>
+              </select>
+              <button id="innov-generate-bp-btn" class="btn btn-primary" style="background: #14b8a6; border-color: #14b8a6; color: #fff; font-weight: bold;">Synthesize Venture</button>
+            </div>
+          </div>
+          <div id="innov-bp-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 280px;">
+            <p style="color: #94a3b8; margin: 0;">Synthesize the complete 12-stage venture architecture: Market, ICP Personas, RICE Features, UX Journey, Tech Blueprint, Sprints, and Viability Score.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Market Research -->
+        <div id="innov-panel-market" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="innov-run-market-btn" class="btn btn-outline" style="border-color: #14b8a6; color: #14b8a6;">Analyze Market & Competitors</button>
+          </div>
+          <div id="innov-market-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Calculates TAM/SAM/SOM market sizing, incumbent competitive moats, customer pain points, and market catalysts.</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: User Personas -->
+        <div id="innov-panel-personas" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="innov-run-personas-btn" class="btn btn-outline" style="border-color: #14b8a6; color: #14b8a6;">Synthesize Target Personas (ICP)</button>
+          </div>
+          <div id="innov-personas-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Generates ICP archetypes with demographics, goals, Jobs-to-be-Done (JTBD), pain points, and willingness to pay.</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: RICE Features -->
+        <div id="innov-panel-features" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="innov-run-features-btn" class="btn btn-outline" style="border-color: #14b8a6; color: #14b8a6;">Prioritize Features (RICE & MoSCoW)</button>
+          </div>
+          <div id="innov-features-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Evaluates Reach, Impact, Confidence, and Effort, assigning Must, Should, Could, and Won't categories.</p>
+          </div>
+        </div>
+
+        <!-- Tab 5: UX & Architecture -->
+        <div id="innov-panel-ux-tech" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="innov-run-journey-btn" class="btn btn-outline" style="border-color: #14b8a6; color: #14b8a6;">Map 5-Stage UX Journey</button>
+            <button id="innov-run-tech-btn" class="btn btn-outline" style="border-color: #38bdf8; color: #38bdf8;">Generate Technical Architecture</button>
+          </div>
+          <div id="innov-ux-tech-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Inspect journey stages with emotional states and UI wireframe cues, alongside full tech stack and database schemas.</p>
+          </div>
+        </div>
+
+        <!-- Tab 6: Roadmap & Viability -->
+        <div id="innov-panel-roadmap" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button id="innov-run-roadmap-btn" class="btn btn-outline" style="border-color: #14b8a6; color: #14b8a6;">Plan 5-Sprint Roadmap</button>
+            <button id="innov-run-viability-btn" class="btn btn-outline" style="border-color: #a855f7; color: #a855f7;">Evaluate Viability & PMF Score</button>
+          </div>
+          <div id="innov-roadmap-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p style="color: #94a3b8; margin: 0;">Inspect agile sprint milestones, deliverables, risk levels, launch checklist, and deterministic PMF viability score.</p>
           </div>
         </div>
       </div>

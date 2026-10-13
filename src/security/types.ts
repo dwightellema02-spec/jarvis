@@ -32,6 +32,7 @@ export enum ResourceType {
   TUKLAS = 'TUKLAS',
   CREATIVE = 'CREATIVE',
   ANIMATION = 'ANIMATION',
+  INNOVATION = 'INNOVATION',
 }
 
 export type PermissionAction =

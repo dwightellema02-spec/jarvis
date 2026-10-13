@@ -106,6 +106,11 @@ import {
   AnimationAgent,
   createAnimationTools,
 } from '../animation/index.js';
+import {
+  InnovationManager,
+  InnovationAgent,
+  createInnovationTools,
+} from '../innovation/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -129,6 +134,7 @@ export interface JarvisCoreConfig {
   tuklasManager?: TuklasManager;
   creativeManager?: CreativeManager;
   animationManager?: AnimationManager;
+  innovationManager?: InnovationManager;
 }
 
 export interface JarvisChatRequest {
@@ -174,6 +180,7 @@ export class JarvisCore {
   private tuklasManager: TuklasManager;
   private creativeManager: CreativeManager;
   private animationManager: AnimationManager;
+  private innovationManager: InnovationManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -370,7 +377,18 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Innovation & Venture Architecture Engine, Agent, and Tools
+    this.innovationManager =
+      config.innovationManager ||
+      new InnovationManager(this.permissionManager, this.guardian, this.auditLogger);
+    const innovationAgent = new InnovationAgent(this.innovationManager);
+    this.agentRegistry.registerImplementation(innovationAgent);
+
+    for (const tool of createInnovationTools(this.innovationManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -736,6 +754,10 @@ export class JarvisCore {
 
   public getAnimationManager(): AnimationManager {
     return this.animationManager;
+  }
+
+  public getInnovationManager(): InnovationManager {
+    return this.innovationManager;
   }
 
   public async orchestrate(
