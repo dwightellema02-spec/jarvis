@@ -141,6 +141,19 @@ import {
   DeviceAgent,
   createDeviceTools,
 } from '../devices/index.js';
+import {
+  GoalsManager,
+  GoalAgent,
+  ProjectAgent,
+  CreateGoalTool,
+  DecomposeIdeaTool,
+  ManageTasksTool,
+  TrackProgressTool,
+  CreateStudyPlanTool,
+  ScheduleTimeblockTool,
+  ManageProjectTool,
+  EisenhowerMatrixTool,
+} from '../goals/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -171,6 +184,7 @@ export interface JarvisCoreConfig {
   visionManager?: VisionManager;
   voiceManager?: VoiceManager;
   deviceManager?: DeviceManager;
+  goalsManager?: GoalsManager;
 }
 
 export interface JarvisChatRequest {
@@ -223,6 +237,7 @@ export class JarvisCore {
   private visionManager: VisionManager;
   private voiceManager: VoiceManager;
   private deviceManager: DeviceManager;
+  private goalsManager: GoalsManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -508,7 +523,29 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Goals & Personal Planning Engine, Agents, and Tools
+    this.goalsManager =
+      config.goalsManager ||
+      new GoalsManager({
+        permissionManager: this.permissionManager,
+        guardian: this.guardian,
+        auditLogger: this.auditLogger,
+      });
+    const goalAgent = new GoalAgent(this.goalsManager);
+    const projectAgent = new ProjectAgent(this.goalsManager);
+    this.agentRegistry.registerImplementation(goalAgent);
+    this.agentRegistry.registerImplementation(projectAgent);
+
+    this.toolRegistry.registerImplementation(new CreateGoalTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new DecomposeIdeaTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new ManageTasksTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new TrackProgressTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new CreateStudyPlanTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new ScheduleTimeblockTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new ManageProjectTool(this.goalsManager));
+    this.toolRegistry.registerImplementation(new EisenhowerMatrixTool(this.goalsManager));
+
+    logger.info('JARVIS Core initialized with Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -902,6 +939,10 @@ export class JarvisCore {
 
   public getDeviceManager(): DeviceManager {
     return this.deviceManager;
+  }
+
+  public getGoalsManager(): GoalsManager {
+    return this.goalsManager;
   }
 
   public async orchestrate(

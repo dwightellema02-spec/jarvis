@@ -6840,6 +6840,647 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ============================================================================
+  // PHASE 22: GOALS, PERSONAL PLANNING & STUDY STUDIO CONTROLLER
+  // ============================================================================
+  const navGoalsBtn = document.getElementById('nav-goals');
+  const chipGoalAgent = document.getElementById('chip-goal-agent');
+  const chipProjectAgent = document.getElementById('chip-project-agent');
+  const goalsModal = document.getElementById('goals-modal');
+  const goalsModalClose = document.getElementById('goals-modal-close');
+
+  function openGoalsModal(targetTab) {
+    if (!goalsModal) return;
+    goalsModal.style.display = 'flex';
+    if (targetTab) {
+      const tabBtn = goalsModal.querySelector(`.hud-tab-btn[data-tab="${targetTab}"]`);
+      if (tabBtn) tabBtn.click();
+    }
+    refreshGoalsAll();
+  }
+
+  function closeGoalsModal() {
+    if (goalsModal) goalsModal.style.display = 'none';
+  }
+
+  if (navGoalsBtn) navGoalsBtn.addEventListener('click', (e) => { e.preventDefault(); openGoalsModal(); });
+  if (chipGoalAgent) chipGoalAgent.addEventListener('click', () => openGoalsModal('goals-tab-roadmap'));
+  if (chipProjectAgent) chipProjectAgent.addEventListener('click', () => openGoalsModal('goals-tab-eisenhower'));
+  if (goalsModalClose) goalsModalClose.addEventListener('click', closeGoalsModal);
+
+  // Tab switching in goals modal
+  if (goalsModal) {
+    const tabBtns = goalsModal.querySelectorAll('.hud-tab-btn');
+    const tabContents = goalsModal.querySelectorAll('.hud-tab-content');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => b.classList.remove('active'));
+        tabContents.forEach((c) => c.classList.remove('active'));
+        btn.classList.add('active');
+        const activeContent = document.getElementById(target);
+        if (activeContent) activeContent.classList.add('active');
+
+        if (target === 'goals-tab-roadmap') refreshGoals();
+        else if (target === 'goals-tab-eisenhower') refreshTasksAndMatrix();
+        else if (target === 'goals-tab-schedule') refreshSchedule();
+        else if (target === 'goals-tab-study') refreshStudyPlans();
+      });
+    });
+  }
+
+  // 1. Refresh Roadmap & Goals
+  async function refreshGoals() {
+    try {
+      // Fetch analytics
+      const aRes = await fetch('/api/jarvis/goals/analytics', { headers: { 'x-user-id': 'dwight' } });
+      const aData = await aRes.json();
+      if (aData.success) {
+        const a = aData.data;
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setVal('goals-kpi-total', a.totalGoals);
+        setVal('goals-kpi-active', a.activeGoals);
+        setVal('goals-kpi-completed', a.completedGoals);
+        setVal('goals-kpi-progress', a.overallProgressAverage + '%');
+        setVal('goals-kpi-velocity', a.weeklyVelocity + '/wk');
+        setVal('goals-kpi-focus', a.focusMinutesLogged + 'm');
+      }
+
+      // Fetch goals list
+      const gRes = await fetch('/api/jarvis/goals', { headers: { 'x-user-id': 'dwight' } });
+      const gData = await gRes.json();
+      const container = document.getElementById('goals-list-container');
+      if (!container) return;
+
+      if (!gData.success || !gData.data.length) {
+        container.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 1rem; text-align: center;">No goals enrolled. Create one above or use the Idea Decomposer.</div>';
+        return;
+      }
+
+      container.innerHTML = gData.data.map((goal) => {
+        const catColors = {
+          education: '#38bdf8',
+          coding: '#10b981',
+          research: '#a855f7',
+          finance: '#f59e0b',
+          personal: '#ec4899',
+        };
+        const catColor = catColors[goal.category] || '#94a3b8';
+        const progressColor = goal.progressPct === 100 ? '#10b981' : '#f59e0b';
+
+        const milestonesHtml = (goal.milestones || []).map((m) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #1e293b; font-size: 0.8rem;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: ${m.completed ? '#10b981' : '#64748b'}; font-weight: bold;">${m.completed ? '✓' : '○'}</span>
+              <span style="color: ${m.completed ? '#94a3b8' : '#e2e8f0'}; text-decoration: ${m.completed ? 'line-through' : 'none'};">${m.title}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #64748b; font-size: 0.75rem;">Due: ${m.targetDate}</span>
+              ${!m.completed ? `<button class="btn btn-secondary complete-ms-btn" data-goal-id="${goal.id}" data-ms-id="${m.id}" style="padding: 2px 6px; font-size: 0.7rem; color: #10b981; border-color: #10b981;">Complete</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        return `
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 600; color: #fff; font-size: 0.95rem;">${goal.title}</span>
+                  <span style="font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; background: rgba(56,189,248,0.15); color: ${catColor}; border: 1px solid ${catColor}44;">
+                    ${goal.category.toUpperCase()}
+                  </span>
+                  <span style="font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    ${goal.priority.toUpperCase()}
+                  </span>
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">${goal.description}</div>
+              </div>
+              <div style="text-align: right; min-width: 100px;">
+                <span style="font-size: 0.85rem; font-weight: bold; color: ${progressColor};">${goal.progressPct}%</span>
+                <div style="font-size: 0.7rem; color: #64748b;">Target: ${goal.targetDate}</div>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin: 8px 0 10px;">
+              <div style="width: ${goal.progressPct}%; height: 100%; background: ${progressColor}; transition: width 0.3s;"></div>
+            </div>
+
+            <!-- Milestones Accordion -->
+            <div style="background: #0b1329; border-radius: 6px; padding: 8px 12px;">
+              <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 4px; font-weight: bold;">Milestones DAG</div>
+              ${milestonesHtml || '<div style="color: #64748b; font-size: 0.75rem;">No milestones defined.</div>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach milestone complete handlers
+      container.querySelectorAll('.complete-ms-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const goalId = btn.getAttribute('data-goal-id');
+          const msId = btn.getAttribute('data-ms-id');
+          try {
+            await fetch(`/api/jarvis/goals/${goalId}/milestones/${msId}/complete`, {
+              method: 'POST',
+              headers: { 'x-user-id': 'dwight' }
+            });
+            refreshGoals();
+          } catch (err) {
+            console.error('Failed to complete milestone:', err);
+          }
+        });
+      });
+    } catch (err) {
+      console.warn('Goals refresh error:', err);
+    }
+  }
+
+  // Toggle & create goal
+  const createGoalToggleBtn = document.getElementById('goals-create-toggle-btn');
+  const createGoalForm = document.getElementById('goals-create-form');
+  const createGoalSubmitBtn = document.getElementById('goals-create-submit-btn');
+
+  if (createGoalToggleBtn && createGoalForm) {
+    createGoalToggleBtn.addEventListener('click', () => {
+      createGoalForm.style.display = createGoalForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
+  if (createGoalSubmitBtn) {
+    createGoalSubmitBtn.addEventListener('click', async () => {
+      const title = document.getElementById('new-goal-title')?.value?.trim();
+      const category = document.getElementById('new-goal-category')?.value || 'personal';
+      const targetDate = document.getElementById('new-goal-date')?.value || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+      const description = document.getElementById('new-goal-desc')?.value?.trim();
+
+      if (!title || !description) {
+        alert('Please fill in goal title and description');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/jarvis/goals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ title, description, category, priority: 'high', targetDate })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (createGoalForm) createGoalForm.style.display = 'none';
+          document.getElementById('new-goal-title').value = '';
+          document.getElementById('new-goal-desc').value = '';
+          refreshGoals();
+        }
+      } catch (err) {
+        console.error('Failed to create goal:', err);
+      }
+    });
+  }
+
+  // 2. Tasks & Eisenhower Matrix
+  async function refreshTasksAndMatrix() {
+    try {
+      const res = await fetch('/api/jarvis/goals/eisenhower', { headers: { 'x-user-id': 'dwight' } });
+      const data = await res.json();
+      if (!data.success) return;
+
+      const m = data.data;
+      const renderQuadrant = (containerId, countId, tasks, accentColor) => {
+        const container = document.getElementById(containerId);
+        const countEl = document.getElementById(countId);
+        if (countEl) countEl.textContent = tasks.length;
+        if (!container) return;
+
+        if (!tasks.length) {
+          container.innerHTML = '<div style="color: #475569; font-size: 0.75rem; text-align: center; padding: 1rem;">No tasks in this quadrant</div>';
+          return;
+        }
+
+        container.innerHTML = tasks.map((t) => {
+          const isDone = t.status === 'completed';
+          return `
+            <div style="background: #020617; border: 1px solid #1e293b; border-left: 3px solid ${accentColor}; border-radius: 4px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 0.82rem; color: ${isDone ? '#94a3b8' : '#e2e8f0'}; text-decoration: ${isDone ? 'line-through' : 'none'}; font-weight: 500;">
+                  ${t.title}
+                </div>
+                <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">
+                  ⏱ ${t.estimatedMinutes}m • Assigned: <strong style="color: #38bdf8;">${t.assignedTo}</strong>
+                </div>
+              </div>
+              <div>
+                ${!isDone ? `<button class="btn btn-secondary task-done-btn" data-task-id="${t.id}" style="padding: 2px 6px; font-size: 0.68rem; color: #10b981; border-color: #10b981;">Done</button>` : `<span style="color: #10b981; font-size: 0.75rem;">✓</span>`}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.querySelectorAll('.task-done-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const taskId = btn.getAttribute('data-task-id');
+            await fetch(`/api/jarvis/goals/tasks/${taskId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+              body: JSON.stringify({ status: 'completed' })
+            });
+            refreshTasksAndMatrix();
+          });
+        });
+      };
+
+      renderQuadrant('quadrant-do-first', 'q1-count', m.do_first || [], '#ef4444');
+      renderQuadrant('quadrant-schedule', 'q2-count', m.schedule || [], '#38bdf8');
+      renderQuadrant('quadrant-delegate', 'q3-count', m.delegate || [], '#f59e0b');
+      renderQuadrant('quadrant-eliminate', 'q4-count', m.eliminate || [], '#64748b');
+    } catch (err) {
+      console.warn('Matrix refresh error:', err);
+    }
+  }
+
+  // Add task button
+  const addTaskBtn = document.getElementById('goals-add-task-btn');
+  if (addTaskBtn) {
+    addTaskBtn.addEventListener('click', async () => {
+      const title = document.getElementById('task-input-title')?.value?.trim();
+      const estimatedMinutes = Number(document.getElementById('task-input-minutes')?.value) || 45;
+      const isUrgent = document.getElementById('task-check-urgent')?.checked || false;
+      const isImportant = document.getElementById('task-check-important')?.checked || false;
+      const assignedTo = document.getElementById('task-select-assign')?.value || 'dwight';
+
+      if (!title) return;
+
+      try {
+        const res = await fetch('/api/jarvis/goals/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ title, estimatedMinutes, isUrgent, isImportant, assignedTo })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('task-input-title').value = '';
+          refreshTasksAndMatrix();
+        }
+      } catch (err) {
+        console.error('Failed to create task:', err);
+      }
+    });
+  }
+
+  // 3. Daily Schedule & Timeblocks
+  const scheduleDatePicker = document.getElementById('schedule-date-picker');
+  if (scheduleDatePicker) {
+    scheduleDatePicker.value = new Date().toISOString().split('T')[0];
+    scheduleDatePicker.addEventListener('change', refreshSchedule);
+  }
+
+  async function refreshSchedule() {
+    const date = scheduleDatePicker?.value || new Date().toISOString().split('T')[0];
+    const container = document.getElementById('schedule-blocks-container');
+    if (!container) return;
+
+    try {
+      const res = await fetch(`/api/jarvis/goals/schedule?date=${date}`);
+      const data = await res.json();
+      if (!data.success || !data.data.length) {
+        container.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 1rem; text-align: center;">No scheduled blocks for this date. Add one above!</div>';
+        return;
+      }
+
+      const typeColors = {
+        deep_work: '#38bdf8',
+        study: '#a855f7',
+        coding: '#10b981',
+        review: '#f59e0b',
+        break: '#64748b'
+      };
+
+      container.innerHTML = data.data.map((b) => {
+        const color = typeColors[b.type] || '#38bdf8';
+        return `
+          <div style="background: #020617; border: 1px solid #1e293b; border-left: 4px solid ${color}; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: monospace; font-size: 0.85rem; color: #fff; background: #0b1329; padding: 2px 8px; border-radius: 4px; border: 1px solid #334155;">
+                ${b.startTime} - ${b.endTime}
+              </span>
+              <div>
+                <div style="font-weight: 500; font-size: 0.85rem; color: ${b.completed ? '#94a3b8' : '#e2e8f0'}; text-decoration: ${b.completed ? 'line-through' : 'none'};">
+                  ${b.title}
+                </div>
+                <div style="font-size: 0.7rem; color: ${color}; text-transform: uppercase;">
+                  ${b.type.replace('_', ' ')}
+                </div>
+              </div>
+            </div>
+            <div>
+              ${!b.completed ? `<button class="btn btn-secondary complete-tb-btn" data-tb-id="${b.id}" style="padding: 2px 6px; font-size: 0.7rem; color: #10b981; border-color: #10b981;">Done</button>` : `<span style="color: #10b981; font-size: 0.8rem;">✓ Complete</span>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.complete-tb-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const tbId = btn.getAttribute('data-tb-id');
+          await fetch(`/api/jarvis/goals/schedule/block/${tbId}/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completed: true })
+          });
+          refreshSchedule();
+        });
+      });
+    } catch (err) {
+      console.warn('Schedule refresh error:', err);
+    }
+  }
+
+  // Suggest Focus Slot Button
+  const suggestBtn = document.getElementById('schedule-suggest-btn');
+  const suggestAlert = document.getElementById('schedule-suggest-alert');
+  if (suggestBtn && suggestAlert) {
+    suggestBtn.addEventListener('click', async () => {
+      const date = scheduleDatePicker?.value || new Date().toISOString().split('T')[0];
+      try {
+        const res = await fetch(`/api/jarvis/goals/schedule/suggest?date=${date}&duration=90`);
+        const data = await res.json();
+        if (data.success) {
+          const s = data.data;
+          suggestAlert.style.display = 'block';
+          suggestAlert.innerHTML = `
+            <strong>💡 Recommended Focus Window:</strong> ${s.recommendedStart} — ${s.recommendedEnd}
+            <br/>
+            <span style="color: #94a3b8; font-size: 0.78rem;">${s.reason}</span>
+          `;
+        }
+      } catch (err) {
+        console.error('Failed to get focus slot suggestion:', err);
+      }
+    });
+  }
+
+  // Add block button
+  const addBlockBtn = document.getElementById('schedule-add-block-btn');
+  if (addBlockBtn) {
+    addBlockBtn.addEventListener('click', async () => {
+      const title = document.getElementById('tb-input-title')?.value?.trim();
+      const type = document.getElementById('tb-input-type')?.value || 'deep_work';
+      const startTime = document.getElementById('tb-input-start')?.value || '14:00';
+      const endTime = document.getElementById('tb-input-end')?.value || '15:30';
+      const date = scheduleDatePicker?.value || new Date().toISOString().split('T')[0];
+
+      if (!title) return;
+
+      try {
+        const res = await fetch('/api/jarvis/goals/schedule/block', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, type, date, startTime, endTime })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('tb-input-title').value = '';
+          if (data.conflicts && data.conflicts.length > 0) {
+            alert(`Note: Block added with ${data.conflicts.length} overlapping conflict(s).`);
+          }
+          refreshSchedule();
+        }
+      } catch (err) {
+        console.error('Failed to add timeblock:', err);
+      }
+    });
+  }
+
+  // 4. Study Planner & Spaced Repetition
+  let activeReviewPlanId = null;
+  let activeReviewTopicId = null;
+
+  async function refreshStudyPlans() {
+    try {
+      // 1. Study plans
+      const pRes = await fetch('/api/jarvis/goals/study/plans');
+      const pData = await pRes.json();
+      const plansContainer = document.getElementById('study-plans-list');
+      if (plansContainer && pData.success) {
+        plansContainer.innerHTML = pData.data.map((plan) => `
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 600; color: #fff; font-size: 0.9rem;">${plan.title}</span>
+              <span style="font-size: 0.85rem; font-weight: bold; color: #10b981;">${plan.overallMasteryPct}% Mastery</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">Target: ${plan.targetExamOrGoal}</div>
+            <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+              <div style="width: ${plan.overallMasteryPct}%; height: 100%; background: #10b981;"></div>
+            </div>
+            <div style="font-size: 0.72rem; color: #64748b;">Total Studied: <strong>${plan.totalStudyHours} hrs</strong> • Daily Target: <strong>${plan.dailyHoursTarget} hrs</strong></div>
+          </div>
+        `).join('');
+      }
+
+      // 2. Due queue
+      const qRes = await fetch('/api/jarvis/goals/study/queue');
+      const qData = await qRes.json();
+      const queueContainer = document.getElementById('study-due-queue');
+      const dueCountEl = document.getElementById('study-due-count');
+      if (dueCountEl && qData.success) dueCountEl.textContent = `${qData.count} Due Today`;
+
+      if (queueContainer && qData.success) {
+        if (!qData.data.length) {
+          queueContainer.innerHTML = '<div style="color: #64748b; font-size: 0.8rem; padding: 1rem; text-align: center;">All topics reviewed! No spaced repetitions due today.</div>';
+          return;
+        }
+
+        queueContainer.innerHTML = qData.data.map((t) => `
+          <div style="background: #020617; border: 1px solid #1e293b; border-left: 3px solid #f59e0b; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 500; color: #fff;">${t.topic}</div>
+              <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+                ${t.subject} • Interval: <strong>${t.repetitionIntervalDays}d</strong> • Mastery: <strong>${t.masteryLevel}%</strong>
+              </div>
+            </div>
+            <button class="btn btn-secondary start-drill-btn" data-topic-id="${t.id}" data-topic-name="${t.topic}" style="font-size: 0.72rem; padding: 4px 8px; color: #38bdf8; border-color: #38bdf8;">
+              Review Now
+            </button>
+          </div>
+        `).join('');
+
+        queueContainer.querySelectorAll('.start-drill-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const topicId = btn.getAttribute('data-topic-id');
+            const topicName = btn.getAttribute('data-topic-name');
+            activeReviewPlanId = pData.data?.[0]?.id || 'plan_let_math_2026';
+            activeReviewTopicId = topicId;
+
+            const reviewPanel = document.getElementById('study-review-panel');
+            const reviewTitle = document.getElementById('review-topic-title');
+            if (reviewPanel && reviewTitle) {
+              reviewTitle.textContent = `Record Drill: ${topicName}`;
+              reviewPanel.style.display = 'block';
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.warn('Study planner refresh error:', err);
+    }
+  }
+
+  // Slider change
+  const studySlider = document.getElementById('study-score-slider');
+  const studyVal = document.getElementById('study-score-val');
+  if (studySlider && studyVal) {
+    studySlider.addEventListener('input', () => {
+      studyVal.textContent = `${studySlider.value}%`;
+      studyVal.style.color = Number(studySlider.value) >= 75 ? '#10b981' : '#f87171';
+    });
+  }
+
+  // Record session button
+  const recordSessionBtn = document.getElementById('study-record-session-btn');
+  if (recordSessionBtn) {
+    recordSessionBtn.addEventListener('click', async () => {
+      if (!activeReviewPlanId || !activeReviewTopicId) return;
+      const minutesSpent = Number(document.getElementById('study-minutes-input')?.value) || 45;
+      const scoreOrSelfRating = Number(studySlider?.value) || 85;
+
+      try {
+        const res = await fetch('/api/jarvis/goals/study/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            planId: activeReviewPlanId,
+            topicId: activeReviewTopicId,
+            minutesSpent,
+            scoreOrSelfRating
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const panel = document.getElementById('study-review-panel');
+          if (panel) panel.style.display = 'none';
+          refreshStudyPlans();
+        }
+      } catch (err) {
+        console.error('Failed to record study session:', err);
+      }
+    });
+  }
+
+  // 5. Idea-to-Progress Decomposer
+  const ideaDecomposeBtn = document.getElementById('idea-decompose-btn');
+  const ideaInput = document.getElementById('idea-input');
+  const ideaCategorySelect = document.getElementById('idea-category-select');
+  const ideaAutocreateCheck = document.getElementById('idea-autocreate-check');
+  const ideaPipelineResult = document.getElementById('idea-pipeline-result');
+
+  if (ideaDecomposeBtn && ideaInput && ideaPipelineResult) {
+    ideaDecomposeBtn.addEventListener('click', async () => {
+      const idea = ideaInput.value.trim();
+      if (!idea) {
+        alert('Please enter an idea or goal description');
+        return;
+      }
+      const category = ideaCategorySelect?.value || 'education';
+      const autoCreate = ideaAutocreateCheck?.checked || false;
+
+      ideaPipelineResult.style.display = 'block';
+      ideaPipelineResult.innerHTML = '<div style="color: #f59e0b; text-align: center; padding: 1.5rem;">⚡ Decomposing human idea through SMART & Eisenhower optimization engine...</div>';
+
+      try {
+        const res = await fetch('/api/jarvis/goals/decompose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ idea, category, autoCreate })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          ideaPipelineResult.innerHTML = `<div style="color: #ef4444;">Error: ${data.error}</div>`;
+          return;
+        }
+
+        const d = data.data;
+        const sg = d.smartGoal;
+
+        const milestonesHtml = (sg.milestones || []).map((m, idx) => `
+          <div style="font-size: 0.8rem; color: #e2e8f0; margin-bottom: 4px;">
+            <strong style="color: #38bdf8;">Milestone ${idx + 1}:</strong> ${m.title}
+            <span style="color: #64748b; font-size: 0.72rem;">(${m.targetMetric})</span>
+          </div>
+        `).join('');
+
+        const tasksHtml = (d.tasks || []).map((t) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 4px 8px; background: #020617; border-radius: 4px; margin-bottom: 4px;">
+            <span>${t.title}</span>
+            <span style="font-size: 0.7rem; color: ${t.quadrant === 'do_first' ? '#f87171' : '#38bdf8'}; font-weight: bold;">
+              ${t.quadrant.toUpperCase()} • ${t.estimatedMinutes}m
+            </span>
+          </div>
+        `).join('');
+
+        const stepsHtml = (d.actionSteps || []).map((step) => `
+          <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 4px;">${step}</div>
+        `).join('');
+
+        ideaPipelineResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+            <div>
+              <h4 style="margin: 0; color: #fff; font-size: 1.05rem;">${sg.title}</h4>
+              <span style="font-size: 0.75rem; color: #10b981;">✓ Successfully Decomposed (${d.estimatedDays} Days Projected)</span>
+            </div>
+            ${autoCreate ? '<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981;">Auto-Enrolled in Roadmap</span>' : ''}
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <!-- SMART Criteria -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin-top: 0; color: #38bdf8; font-size: 0.85rem; margin-bottom: 6px;">SMART Framework Definition</h5>
+              <div style="font-size: 0.75rem; color: #94a3b8; line-height: 1.5;">
+                <div><strong>S:</strong> ${sg.smart.specific}</div>
+                <div><strong>M:</strong> ${sg.smart.measurable}</div>
+                <div><strong>A:</strong> ${sg.smart.achievable}</div>
+                <div><strong>R:</strong> ${sg.smart.relevant}</div>
+                <div><strong>T:</strong> ${sg.smart.timeBound}</div>
+              </div>
+            </div>
+
+            <!-- Milestones DAG -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin-top: 0; color: #f59e0b; font-size: 0.85rem; margin-bottom: 6px;">Milestones Sequence</h5>
+              ${milestonesHtml}
+            </div>
+          </div>
+
+          <!-- Tasks & Actions -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin-top: 0; color: #a855f7; font-size: 0.85rem; margin-bottom: 6px;">Generated Eisenhower Tasks</h5>
+              ${tasksHtml}
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin-top: 0; color: #10b981; font-size: 0.85rem; margin-bottom: 6px;">Next Recommended Actions</h5>
+              ${stepsHtml}
+            </div>
+          </div>
+        `;
+
+        if (autoCreate) {
+          refreshGoals();
+          refreshTasksAndMatrix();
+        }
+      } catch (err) {
+        ideaPipelineResult.innerHTML = `<div style="color: #ef4444;">Error: ${err.message}</div>`;
+      }
+    });
+  }
+
+  function refreshGoalsAll() {
+    refreshGoals();
+    refreshTasksAndMatrix();
+    refreshSchedule();
+    refreshStudyPlans();
+  }
+
   // Start
   initSession();
 });

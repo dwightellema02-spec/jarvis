@@ -157,6 +157,13 @@
               </div>
               <span class="hud-nav-badge">P21</span>
             </a>
+            <a href="#" id="nav-goals" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Goals & Planning</span>
+              </div>
+              <span class="hud-nav-badge">P22</span>
+            </a>
           </nav>
         </div>
 
@@ -386,6 +393,22 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-goal-agent" title="Open Goals & Personal Planning Studio">
+                <div class="agent-chip-header">
+                  <span>Goal Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#f59e0b"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-project-agent" title="Open Project Workspace Studio">
+                <div class="agent-chip-header">
+                  <span>Project Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#3b82f6"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -2937,6 +2960,294 @@ Direct Phone: 555-883-9102</textarea>
             <button id="devices-reset-interlock-btn" class="btn btn-primary" style="background: #10b981; color: #000; font-weight: bold; padding: 0.6rem 2rem;">
               Reset & Restore Safety Interlock
             </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Goals & Personal Planning Studio (Phase 22) -->
+  <div id="goals-modal" class="hud-modal" style="display: none;">
+    <div class="hud-modal-content" style="max-width: 1040px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <div class="hud-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px #f59e0b;"></div>
+          <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: #fff;">
+            Goals, Personal Planning & Study Studio
+          </h2>
+          <span style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3);">
+            Phase 22 Active
+          </span>
+        </div>
+        <button id="goals-modal-close" class="hud-modal-close" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Studio Navigation Tabs -->
+      <div class="hud-modal-tabs" style="display: flex; gap: 0.5rem; margin-top: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <button class="hud-tab-btn active" data-tab="goals-tab-roadmap">🎯 Roadmap & Goals</button>
+        <button class="hud-tab-btn" data-tab="goals-tab-eisenhower">📋 Tasks & Matrix</button>
+        <button class="hud-tab-btn" data-tab="goals-tab-schedule">📅 Daily Schedule</button>
+        <button class="hud-tab-btn" data-tab="goals-tab-study">📚 Study & Spaced Repetition</button>
+        <button class="hud-tab-btn" data-tab="goals-tab-decomposer">⚡ Idea-to-Progress</button>
+      </div>
+
+      <div class="hud-modal-body" style="padding-top: 1rem;">
+
+        <!-- TAB 1: ROADMAP & ACTIVE GOALS -->
+        <div id="goals-tab-roadmap" class="hud-tab-content active">
+          <!-- KPI Summary Strip -->
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Total Goals</div>
+              <div id="goals-kpi-total" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin-top: 2px;">0</div>
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Active</div>
+              <div id="goals-kpi-active" style="font-size: 1.3rem; font-weight: bold; color: #38bdf8; margin-top: 2px;">0</div>
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Completed</div>
+              <div id="goals-kpi-completed" style="font-size: 1.3rem; font-weight: bold; color: #10b981; margin-top: 2px;">0</div>
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Avg Progress</div>
+              <div id="goals-kpi-progress" style="font-size: 1.3rem; font-weight: bold; color: #f59e0b; margin-top: 2px;">0%</div>
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Velocity</div>
+              <div id="goals-kpi-velocity" style="font-size: 1.3rem; font-weight: bold; color: #a855f7; margin-top: 2px;">14/wk</div>
+            </div>
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Focus Time</div>
+              <div id="goals-kpi-focus" style="font-size: 1.3rem; font-weight: bold; color: #06b6d4; margin-top: 2px;">0m</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #e2e8f0; font-size: 1rem;">Active Roadmap Goals</h3>
+            <button id="goals-create-toggle-btn" class="btn btn-secondary" style="font-size: 0.8rem; padding: 4px 10px;">
+              + Create New Goal
+            </button>
+          </div>
+
+          <!-- Create Goal Collapsible Form -->
+          <div id="goals-create-form" style="display: none; background: #0b1329; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Goal Title</label>
+                <input id="new-goal-title" type="text" placeholder="e.g. Pass PRC BLEPT Mathematics Specialization" style="width: 100%; padding: 6px 10px; background: #020617; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Category</label>
+                <select id="new-goal-category" style="width: 100%; padding: 6px 10px; background: #020617; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;">
+                  <option value="education">Education</option>
+                  <option value="coding">Coding</option>
+                  <option value="research">Research</option>
+                  <option value="finance">Finance</option>
+                  <option value="personal">Personal</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Target Date</label>
+                <input id="new-goal-date" type="date" style="width: 100%; padding: 6px 10px; background: #020617; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+              </div>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Description</label>
+              <textarea id="new-goal-desc" rows="2" placeholder="Measurable outcome and target objectives..." style="width: 100%; padding: 6px 10px; background: #020617; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;"></textarea>
+            </div>
+            <div style="text-align: right;">
+              <button id="goals-create-submit-btn" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 16px;">
+                Save SMART Goal
+              </button>
+            </div>
+          </div>
+
+          <!-- Goals Cards List Container -->
+          <div id="goals-list-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- TAB 2: TASKS & EISENHOWER MATRIX -->
+        <div id="goals-tab-eisenhower" class="hud-tab-content">
+          <!-- Inline Add Task Bar -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <input id="task-input-title" type="text" placeholder="Enter task action title..." style="flex: 2; min-width: 200px; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            <input id="task-input-minutes" type="number" placeholder="Mins" value="45" style="width: 70px; padding: 6px 8px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            <label style="font-size: 0.8rem; color: #f87171; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <input id="task-check-urgent" type="checkbox" /> Urgent
+            </label>
+            <label style="font-size: 0.8rem; color: #38bdf8; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <input id="task-check-important" type="checkbox" checked /> Important
+            </label>
+            <select id="task-select-assign" style="padding: 6px 8px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.8rem;">
+              <option value="dwight">Dwight (Operator)</option>
+              <option value="coding-agent">Coding Agent</option>
+              <option value="research-agent">Research Agent</option>
+              <option value="study-agent">Study Agent</option>
+            </select>
+            <button id="goals-add-task-btn" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 12px;">+ Add Task</button>
+          </div>
+
+          <!-- Eisenhower 4-Quadrant Visual Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Quadrant 1: DO FIRST -->
+            <div style="background: #0b0f19; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 1rem; min-height: 220px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.85rem; color: #f87171;">🔴 1. DO FIRST (Urgent & Important)</span>
+                <span id="q1-count" style="font-size: 0.75rem; background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 1px 6px; border-radius: 4px;">0</span>
+              </div>
+              <div id="quadrant-do-first" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+
+            <!-- Quadrant 2: SCHEDULE -->
+            <div style="background: #0b0f19; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 1rem; min-height: 220px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.85rem; color: #38bdf8;">🔵 2. SCHEDULE (Important, Not Urgent)</span>
+                <span id="q2-count" style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 1px 6px; border-radius: 4px;">0</span>
+              </div>
+              <div id="quadrant-schedule" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+
+            <!-- Quadrant 3: DELEGATE -->
+            <div style="background: #0b0f19; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 1rem; min-height: 220px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(245, 158, 11, 0.2); padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.85rem; color: #fbbf24;">🟡 3. DELEGATE (Urgent, Not Important)</span>
+                <span id="q3-count" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 1px 6px; border-radius: 4px;">0</span>
+              </div>
+              <div id="quadrant-delegate" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+
+            <!-- Quadrant 4: ELIMINATE -->
+            <div style="background: #0b0f19; border: 1px solid rgba(148, 163, 184, 0.4); border-radius: 8px; padding: 1rem; min-height: 220px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.85rem; color: #94a3b8;">⚪ 4. ELIMINATE / DROP (Neither)</span>
+                <span id="q4-count" style="font-size: 0.75rem; background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 1px 6px; border-radius: 4px;">0</span>
+              </div>
+              <div id="quadrant-eliminate" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: DAILY SCHEDULE & TIMEBLOCKS -->
+        <div id="goals-tab-schedule" class="hud-tab-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label style="font-size: 0.8rem; color: #94a3b8;">Calendar Date:</label>
+              <input id="schedule-date-picker" type="date" style="padding: 4px 8px; background: #020617; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            </div>
+            <button id="schedule-suggest-btn" class="btn btn-secondary" style="font-size: 0.8rem; padding: 4px 12px; color: var(--hud-cyan); border-color: var(--hud-cyan);">
+              ⚡ Suggest Peak Focus Window
+            </button>
+          </div>
+
+          <!-- Focus Suggestion Alert Box -->
+          <div id="schedule-suggest-alert" style="display: none; background: rgba(6, 182, 212, 0.1); border: 1px solid var(--hud-cyan); border-radius: 6px; padding: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; color: #e2e8f0;"></div>
+
+          <!-- Add Timeblock Form -->
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <input id="tb-input-title" type="text" placeholder="Block title (e.g. Deep Work: Math Practice)..." style="flex: 2; min-width: 200px; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            <select id="tb-input-type" style="padding: 6px 8px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.8rem;">
+              <option value="deep_work">Deep Work</option>
+              <option value="study">Study</option>
+              <option value="coding">Coding</option>
+              <option value="review">Review</option>
+              <option value="break">Break</option>
+            </select>
+            <input id="tb-input-start" type="time" value="14:00" style="padding: 6px 8px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            <input id="tb-input-end" type="time" value="15:30" style="padding: 6px 8px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+            <button id="schedule-add-block-btn" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 12px;">+ Add Block</button>
+          </div>
+
+          <!-- Scheduled Timeline Blocks Container -->
+          <div id="schedule-blocks-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- TAB 4: STUDY PLANNER & SPACED REPETITION -->
+        <div id="goals-tab-study" class="hud-tab-content">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Left: Curriculum Study Plans -->
+            <div>
+              <h3 style="margin-top: 0; color: #e2e8f0; font-size: 0.95rem;">Active Curriculum Study Plans</h3>
+              <div id="study-plans-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Right: Due For Review Spaced Repetition Queue -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0; color: #e2e8f0; font-size: 0.95rem;">Ebbinghaus Review Queue</h3>
+                <span id="study-due-count" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 6px; border-radius: 4px;">0 Due</span>
+              </div>
+              <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0; margin-bottom: 0.75rem;">
+                Topics scheduled for review based on exponential retention decay (1d → 3d → 7d → 14d → 30d).
+              </p>
+              <div id="study-due-queue" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Study Drill Modal Panel -->
+          <div id="study-review-panel" style="display: none; background: #020617; border: 1px solid var(--hud-cyan); border-radius: 8px; padding: 1rem; margin-top: 1.25rem;">
+            <h4 id="review-topic-title" style="margin-top: 0; color: var(--hud-cyan); font-size: 0.9rem;">Record Study Session</h4>
+            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+              <div style="flex: 1;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Minutes Spent</label>
+                <input id="study-minutes-input" type="number" value="45" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" />
+              </div>
+              <div style="flex: 2;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Recall / Quiz Score: <strong id="study-score-val" style="color: #10b981;">85%</strong></label>
+                <input id="study-score-slider" type="range" min="0" max="100" value="85" style="width: 100%; cursor: pointer;" />
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <button id="study-record-session-btn" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 16px;">
+                Record Session & Advance Interval
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: IDEA-TO-PROGRESS PIPELINE -->
+        <div id="goals-tab-decomposer" class="hud-tab-content">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+            <h3 style="margin-top: 0; color: #f59e0b; font-size: 1rem;">Autonomous Idea-to-Progress Decomposer</h3>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+              Input any unstructured aspiration, project vision, or learning goal. JARVIS decomposes it across the master sequence:
+              <br/>
+              <strong style="color: #e2e8f0;">IDEA &rarr; SMART GOAL &rarr; MILESTONES &rarr; EISENHOWER TASKS &rarr; ACTION &rarr; PROGRESS</strong>
+            </p>
+            <div style="margin-bottom: 0.75rem;">
+              <textarea id="idea-input" rows="3" placeholder="Describe your idea or goal in natural language (e.g. 'Build an automated regression test suite for robotics hardware and microcontrollers')..." style="width: 100%; padding: 8px 12px; background: #0b1329; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.85rem; font-family: monospace;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 1rem; align-items: center;">
+                <select id="idea-category-select" style="padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;">
+                  <option value="education">Education</option>
+                  <option value="coding" selected>Coding & Software</option>
+                  <option value="research">Scientific Research</option>
+                  <option value="finance">Financial Quantitative</option>
+                  <option value="personal">Personal Development</option>
+                </select>
+                <label style="font-size: 0.8rem; color: #e2e8f0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <input id="idea-autocreate-check" type="checkbox" checked /> Automatically enroll into active Roadmap & Tasks
+                </label>
+              </div>
+              <button id="idea-decompose-btn" class="btn btn-primary" style="background: #f59e0b; color: #000; font-weight: 600; padding: 6px 18px;">
+                ⚡ Decompose & Generate Plan
+              </button>
+            </div>
+          </div>
+
+          <!-- Pipeline Visual Result Card -->
+          <div id="idea-pipeline-result" style="display: none; background: #0b0f19; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <!-- Populated via JavaScript -->
           </div>
         </div>
 

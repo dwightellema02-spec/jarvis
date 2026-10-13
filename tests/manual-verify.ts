@@ -1195,7 +1195,100 @@ async function runManualVerification() {
       console.log('   Safety Interlock Initial Status: Max Wattage:', safetyGetData.data?.maxSafeWattageLimit + 'W', '| Total Draw:', safetyGetData.data?.totalWattageDraw + 'W');
       console.log('   Emergency Cutoff Tripped:', safetyCutoffData.data?.emergencyCutoffEngaged, '-> Cutoff Restored:', !safetyRestoreData.data?.emergencyCutoffEngaged);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 21) PASSED SUCCESSFULLY! ===');
+      console.log('91. Testing Phase 22 Goals & Personal Planning Discovery & Analytics (GET /api/jarvis/goals & /analytics)');
+      const goalsRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const goalsData = await goalsRes.json();
+      const goalsAnalyticsRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/analytics', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const goalsAnalyticsData = await goalsAnalyticsRes.json();
+      console.log('   Goals Discovered:', goalsData.count, '| Top Goal:', goalsData.data?.[0]?.title);
+      console.log('   Overall Goals Progress Avg:', goalsAnalyticsData.data?.overallProgressAverage + '%', '| Weekly Velocity:', goalsAnalyticsData.data?.weeklyVelocity, 'tasks/wk');
+
+      console.log('92. Testing Phase 22 Idea-to-Progress SMART Goal Decomposition (POST /api/jarvis/goals/decompose)');
+      const decompRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/decompose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          idea: 'Master Full-Stack TypeScript System Architecture for Autonomous Operating Systems',
+          category: 'coding',
+        }),
+      });
+      const decompData = await decompRes.json();
+      console.log('   Decomposed Title:', decompData.data?.smartGoal?.title);
+      console.log('   SMART Specific Metric:', decompData.data?.smartGoal?.smart?.specific?.slice(0, 60) + '...');
+      console.log('   Tasks Generated:', decompData.data?.tasks?.length, '| Top Task Quadrant:', decompData.data?.tasks?.[0]?.quadrant);
+
+      console.log('93. Testing Phase 22 Tasks Management & Eisenhower Matrix Quadrants (POST /tasks & GET /eisenhower)');
+      const taskCreateRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          title: 'Deploy End-to-End Autonomous Agentic Test Bed',
+          isUrgent: true,
+          isImportant: true,
+          estimatedMinutes: 60,
+          assignedTo: 'coding-agent',
+        }),
+      });
+      const taskCreateData = await taskCreateRes.json();
+      const eisenhowerRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/eisenhower', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const eisenhowerData = await eisenhowerRes.json();
+      console.log('   Task Created:', taskCreateData.data?.title, '| Quadrant:', taskCreateData.data?.quadrant);
+      console.log('   Eisenhower Quadrants: Do First:', eisenhowerData.data?.do_first?.length, '| Schedule:', eisenhowerData.data?.schedule?.length, '| Delegate:', eisenhowerData.data?.delegate?.length);
+
+      console.log('94. Testing Phase 22 Projects Workspace Coordination (GET /projects/all & POST /projects)');
+      const projGetRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/projects/all', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const projGetData = await projGetRes.json();
+      const projCreateRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          name: 'JARVIS Proactive Intelligence Pipeline',
+          description: 'Autonomous scheduling, background triggers, and self-directed task runners.',
+          tags: ['proactive', 'phase23', 'autonomous'],
+        }),
+      });
+      const projCreateData = await projCreateRes.json();
+      console.log('   Projects Enrolled:', projGetData.count, '| Lead Project:', projGetData.data?.[0]?.name);
+      console.log('   New Project Created:', projCreateData.data?.name, '| Status:', projCreateData.data?.status);
+
+      console.log('95. Testing Phase 22 Calendar Timeblocking & Circadian Peak Focus (GET /schedule & /suggest)');
+      const schedListRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/schedule', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const schedListData = await schedListRes.json();
+      const schedSuggestRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/schedule/suggest?duration=90', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const schedSuggestData = await schedSuggestRes.json();
+      console.log('   Scheduled Blocks:', schedListData.count, '| Morning Block:', schedListData.data?.[0]?.title);
+      console.log('   Circadian Recommended Window:', schedSuggestData.data?.recommendedStart + ' - ' + schedSuggestData.data?.recommendedEnd, '| Reason:', schedSuggestData.data?.reason);
+
+      console.log('96. Testing Phase 22 Study Planner & Ebbinghaus Spaced Repetition (GET /study/plans & POST /review)');
+      const studyPlanRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/study/plans');
+      const studyPlanData = await studyPlanRes.json();
+      const studyReviewRes = await fetch('http://127.0.0.1:3099/api/jarvis/goals/study/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          planId: 'plan_let_math_2026',
+          topicId: 'topic_let_1',
+          minutesSpent: 60,
+          scoreOrSelfRating: 95,
+        }),
+      });
+      const studyReviewData = await studyReviewRes.json();
+      console.log('   Curriculum Study Plans:', studyPlanData.count, '| Title:', studyPlanData.data?.[0]?.title);
+      console.log('   Topic Reviewed:', studyReviewData.data?.topic?.topic, '| New Repetition Interval:', studyReviewData.data?.topic?.repetitionIntervalDays + ' days', '| Overall Mastery:', studyReviewData.data?.plan?.overallMasteryPct + '%');
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 22) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

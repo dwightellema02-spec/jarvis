@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 21 — Hardware, Device & IoT Integration Active**
+> **Current Status**: **Phase 22 — Goals, Personal Planning & Study Studio Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -928,14 +928,62 @@ Phase 21 establishes JARVIS as a physical and hardware computing orchestrator, i
 
 ---
 
+## 🎯 Phase 22: Goals, Personal Planning & Study Studio
+
+Phase 22 implements JARVIS's personal executive operating system, transforming freeform human ambitions and long-term visions into structured, quantifiable, and automated execution plans:
+
+$$\text{IDEA} \longrightarrow \text{GOAL} \longrightarrow \text{PLAN} \longrightarrow \text{TASKS} \longrightarrow \text{ACTION} \longrightarrow \text{PROGRESS}$$
+
+### 1. Autonomous Idea-to-Progress Decomposer
+* **SMART Criteria Formalization**: Decomposes natural language prompts into SMART goals ($Specific$, $Measurable$, $Achievable$, $Relevant$, $TimeBound$).
+* **Milestone Sequences**: Constructs directed acyclic milestone graphs with target metrics, due dates, and quantifiable deliverables.
+* **Auto-Enrollment**: Automatically commits decomposed deliverables into active project repositories and task backlogs upon operator approval.
+
+### 2. Hierarchical Tasks & Eisenhower Priority Matrix
+* **4-Quadrant Eisenhower Categorization**:
+  * $\text{Quadrant 1 (Do First)}$: High Urgency & High Importance (immediate focus blockers).
+  * $\text{Quadrant 2 (Schedule)}$: Low Urgency & High Importance (deep work, curriculum mastery, architectural synthesis).
+  * $\text{Quadrant 3 (Delegate)}$: High Urgency & Low Importance (administrative chores, routine maintenance).
+  * $\text{Quadrant 4 (Eliminate)}$: Low Urgency & Low Importance (distractions, low-yield context switching).
+* **Execution Profiling**: Tracks estimated vs actual minutes spent, dependency chains, and agent assignment delegations (`dwight`, `coding-agent`, `research-agent`, `study-agent`).
+
+### 3. Circadian Calendar Timeblocking & Conflict Detection
+* **Cognitive Peak Window Alignment**: Allocates deep work sessions during circadian morning cognitive peaks (08:30–11:30) and reflective synthesis in late afternoon/evening.
+* **Overlapping Conflict Diagnostics**: Evaluates candidate schedule intervals against active calendar commitments, identifying conflict duration in minutes.
+* **Dynamic Focus Window Recommender**: Queries available timeblocks and suggests clear, uninterrupted slots tailored to desired work duration.
+
+### 4. Curriculum Study Planner & Spaced Repetition (Ebbinghaus Curve)
+* **Exponential Retention Modeling**: Implements the Ebbinghaus forgetting curve with advancing review intervals ($1\text{d} \longrightarrow 3\text{d} \longrightarrow 7\text{d} \longrightarrow 14\text{d} \longrightarrow 30\text{d}$).
+* **Retention Feedback Loops**: Scoring $\ge 75\%$ advances the topic to the next interval; low recall scores ($< 75\%$) immediately reset the topic to a 1-day interval.
+* **DepEd & BLEPT Alignment**: Built-in curriculum study plans for the PRC Board Licensure Examination for Professional Teachers (LET) - Mathematics Specialization.
+
+### 5. Multi-Project Workspaces & Velocity Analytics
+* **Integrated Workspaces**: Manages active deliverables across `JARVIS Master Autonomous OS`, `Tuklas EdTech Platform`, and `Academic Research Synthesis`.
+* **Productivity Velocity Engine**: Calculates average goal completion rates, weekly task completion velocity ($14\text{ tasks/wk}$), and cumulative focus time.
+
+### 6. Security Gating, Agents & Tools
+* Gated by `ResourceType.PROJECTS` (`READ` for goals/task inspection, schedule queries, study plans; `WRITE` for creation, decomposition, updates; `ADMIN` for deletions and project reconfigurations).
+* Coordinated by `GoalsManager`, `GoalAgent` (`id: 'goal-agent'`), and `ProjectAgent` (`id: 'project-agent'`).
+* 8 Registered Tools:
+  1. `goals.create_goal`
+  2. `goals.decompose_idea`
+  3. `goals.manage_tasks`
+  4. `goals.track_progress`
+  5. `goals.create_study_plan`
+  6. `goals.schedule_timeblock`
+  7. `goals.manage_project`
+  8. `goals.eisenhower_matrix`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (548 automated tests across 64 test files covering all phases, plus 90 end-to-end manual verification steps):
+Run the full Vitest suite (590 automated tests across 66 test files covering all phases, plus 96 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 21
+# Run manual end-to-end verification across Phases 1 to 22
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check
