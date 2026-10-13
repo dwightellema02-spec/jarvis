@@ -5325,6 +5325,450 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 19: VISION & CAMERA INTELLIGENCE CONTROLLER ====================
+  const visionModal = document.getElementById('vision-modal');
+  const closeVisionModalBtn = document.getElementById('close-vision-modal-btn');
+  const cmdVisionBtn = document.getElementById('cmd-vision-btn');
+  const navVisionBtn = document.getElementById('nav-vision');
+  const chipVisionAgent = document.getElementById('chip-vision-agent');
+
+  function openVisionModal() {
+    if (visionModal) {
+      visionModal.classList.remove('hidden');
+      loadCameraStatus();
+      loadCameraDevices();
+    }
+  }
+
+  function closeVisionModal() {
+    if (visionModal) {
+      visionModal.classList.add('hidden');
+    }
+  }
+
+  if (cmdVisionBtn) cmdVisionBtn.addEventListener('click', openVisionModal);
+  if (navVisionBtn) navVisionBtn.addEventListener('click', (e) => { e.preventDefault(); openVisionModal(); });
+  if (chipVisionAgent) chipVisionAgent.addEventListener('click', openVisionModal);
+  if (closeVisionModalBtn) closeVisionModalBtn.addEventListener('click', closeVisionModal);
+  if (visionModal) {
+    visionModal.addEventListener('click', (e) => {
+      if (e.target === visionModal) closeVisionModal();
+    });
+  }
+
+  // Vision Modal Tab Switching
+  const visionTabs = [
+    { btn: 'vision-tab-btn-camera', panel: 'vision-panel-camera' },
+    { btn: 'vision-tab-btn-screen', panel: 'vision-panel-screen' },
+    { btn: 'vision-tab-btn-ocr', panel: 'vision-panel-ocr' },
+    { btn: 'vision-tab-btn-document', panel: 'vision-panel-document' },
+    { btn: 'vision-tab-btn-redact', panel: 'vision-panel-redact' },
+  ];
+
+  visionTabs.forEach(({ btn, panel }) => {
+    const btnEl = document.getElementById(btn);
+    if (btnEl) {
+      btnEl.addEventListener('click', () => {
+        visionTabs.forEach((t) => {
+          const b = document.getElementById(t.btn);
+          const p = document.getElementById(t.panel);
+          if (b) {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-ghost');
+            b.style.background = 'transparent';
+            b.style.color = '#94a3b8';
+          }
+          if (p) p.classList.add('hidden');
+        });
+        btnEl.classList.remove('btn-ghost');
+        btnEl.classList.add('btn-primary');
+        btnEl.style.background = 'var(--hud-cyan)';
+        btnEl.style.color = '#000';
+        const activePanel = document.getElementById(panel);
+        if (activePanel) activePanel.classList.remove('hidden');
+      });
+    }
+  });
+
+  // 1. Camera Devices & Status
+  let capturedFramesCount = 0;
+  async function loadCameraDevices() {
+    try {
+      const res = await fetch('/api/jarvis/vision/camera/devices', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const data = await res.json();
+      const select = document.getElementById('vision-device-select');
+      if (data.success && select && data.data) {
+        select.innerHTML = data.data
+          .map((d) => `<option value="${d.id}">${d.name} (${d.capabilities.maxWidth}x${d.capabilities.maxHeight} @ ${d.capabilities.maxFps}fps)</option>`)
+          .join('');
+      }
+    } catch (e) {
+      // keep fallback options
+    }
+  }
+
+  async function loadCameraStatus() {
+    try {
+      const res = await fetch('/api/jarvis/vision/camera/status', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        updateHardwareLed(data.data.indicatorActive);
+        const statusEl = document.getElementById('vision-sensor-status');
+        if (statusEl) statusEl.textContent = data.data.status.toUpperCase();
+      }
+    } catch (e) {}
+  }
+
+  function updateHardwareLed(active) {
+    const led = document.getElementById('vision-hardware-led');
+    const label = document.getElementById('vision-hardware-led-label');
+    const sensorIndicator = document.getElementById('vision-sensor-indicator');
+    if (active) {
+      if (led) {
+        led.style.background = '#10b981';
+        led.style.boxShadow = '0 0 14px #10b981';
+      }
+      if (label) {
+        label.textContent = 'PRIVACY LED: ACTIVE (TRANSMITTING)';
+        label.style.color = '#10b981';
+      }
+      if (sensorIndicator) sensorIndicator.textContent = 'TRANSMITTING';
+    } else {
+      if (led) {
+        led.style.background = '#64748b';
+        led.style.boxShadow = '0 0 6px #64748b';
+      }
+      if (label) {
+        label.textContent = 'PRIVACY LED: STANDBY (INACTIVE)';
+        label.style.color = '#94a3b8';
+      }
+      if (sensorIndicator) sensorIndicator.textContent = 'ARMED (INACTIVE)';
+    }
+  }
+
+  // Camera Frame Capture
+  const captureFrameBtn = document.getElementById('vision-capture-frame-btn');
+  const burstFrameBtn = document.getElementById('vision-stream-burst-btn');
+  const frameRender = document.getElementById('vision-frame-render');
+  const streamTime = document.getElementById('vision-stream-time');
+  const framesCountEl = document.getElementById('vision-sensor-frames');
+
+  async function executeCameraCapture() {
+    const select = document.getElementById('vision-device-select');
+    const deviceId = select ? select.value : 'cam_integrated_01';
+    updateHardwareLed(true);
+
+    try {
+      const res = await fetch('/api/jarvis/vision/camera/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ deviceId }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        capturedFramesCount++;
+        if (framesCountEl) framesCountEl.textContent = `${capturedFramesCount} captured`;
+        if (streamTime) streamTime.textContent = new Date(data.data.timestamp).toLocaleTimeString();
+
+        // Render decoded SVG
+        if (frameRender && data.data.dataBase64) {
+          const svgContent = atob(data.data.dataBase64);
+          frameRender.innerHTML = svgContent;
+          const svgEl = frameRender.querySelector('svg');
+          if (svgEl) {
+            svgEl.style.width = '100%';
+            svgEl.style.height = '100%';
+            svgEl.style.maxHeight = '280px';
+          }
+        }
+      }
+    } catch (err) {
+      if (frameRender) frameRender.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+    } finally {
+      setTimeout(() => updateHardwareLed(false), 1200);
+    }
+  }
+
+  if (captureFrameBtn) captureFrameBtn.addEventListener('click', executeCameraCapture);
+  if (burstFrameBtn) {
+    burstFrameBtn.addEventListener('click', async () => {
+      for (let i = 0; i < 3; i++) {
+        await executeCameraCapture();
+        await new Promise((r) => setTimeout(r, 200));
+      }
+    });
+  }
+
+  // 2. Desktop Screen Grabber
+  const screenCaptureBtn = document.getElementById('vision-screen-capture-btn');
+  const screenTestBlockBtn = document.getElementById('vision-screen-test-block-btn');
+  const screenPreview = document.getElementById('vision-screen-preview');
+  const screenMeta = document.getElementById('vision-screen-meta');
+
+  if (screenCaptureBtn) {
+    screenCaptureBtn.addEventListener('click', async () => {
+      const targetSelect = document.getElementById('vision-screen-target-select');
+      const winTitleInput = document.getElementById('vision-screen-window-title');
+      const target = targetSelect ? targetSelect.value : 'fullscreen';
+      const windowTitle = winTitleInput ? winTitleInput.value.trim() : undefined;
+
+      if (screenPreview) screenPreview.innerHTML = '<span style="color: var(--hud-cyan);">Grabbing desktop frame...</span>';
+      try {
+        const res = await fetch('/api/jarvis/vision/screen/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ target, windowTitle }),
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          if (screenMeta) screenMeta.textContent = `${data.data.width}x${data.data.height} | ${data.data.sizeBytes} bytes | Target: ${data.data.target}`;
+          if (screenPreview && data.data.dataBase64) {
+            const svgContent = atob(data.data.dataBase64);
+            screenPreview.innerHTML = svgContent;
+            const svgEl = screenPreview.querySelector('svg');
+            if (svgEl) {
+              svgEl.style.width = '100%';
+              svgEl.style.height = '100%';
+              svgEl.style.maxHeight = '230px';
+            }
+          }
+        } else {
+          if (screenPreview) screenPreview.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+        }
+      } catch (err) {
+        if (screenPreview) screenPreview.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  if (screenTestBlockBtn) {
+    screenTestBlockBtn.addEventListener('click', async () => {
+      if (screenPreview) screenPreview.innerHTML = '<span style="color: #ef4444;">Testing Sensitive Window Shield against 1Password...</span>';
+      try {
+        const res = await fetch('/api/jarvis/vision/screen/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ target: 'window', windowTitle: '1Password Master Vault - Credentials' }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          if (screenMeta) screenMeta.textContent = 'SHIELD ENGAGED: 403 Forbidden';
+          if (screenPreview) {
+            screenPreview.innerHTML = `
+              <div style="padding: 1rem; color: #ef4444; font-family: monospace; font-size: 0.8rem; text-align: center;">
+                <div style="font-weight: 700; font-size: 1rem; margin-bottom: 6px;">[SECURITY GUARDIAN SHIELD ENGAGED]</div>
+                <div>${data.error}</div>
+                <div style="color: #94a3b8; margin-top: 8px;">Master Plan Invariant: Screen capture is strictly prohibited against password managers, security prompts, and credential vaults.</div>
+              </div>
+            `;
+          }
+        }
+      } catch (err) {
+        if (screenPreview) screenPreview.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 3. OCR Engine Presets & Runner
+  const ocrInputText = document.getElementById('vision-ocr-input-text');
+  const ocrResults = document.getElementById('vision-ocr-results');
+  const ocrExecuteBtn = document.getElementById('vision-ocr-execute-btn');
+
+  const ocrPresetDashboard = document.getElementById('vision-ocr-preset-dashboard');
+  const ocrPresetTable = document.getElementById('vision-ocr-preset-table');
+  const ocrPresetMath = document.getElementById('vision-ocr-preset-math');
+
+  if (ocrPresetDashboard && ocrInputText) {
+    ocrPresetDashboard.addEventListener('click', () => {
+      ocrInputText.value = 'JARVIS Autonomous Operations Cockpit\nCore Status: Online\nNeural Latency: 42ms\nActive Agents: 19';
+    });
+  }
+  if (ocrPresetTable && ocrInputText) {
+    ocrPresetTable.addEventListener('click', () => {
+      ocrInputText.value = 'Metric | Q1 | Q2 | Q3 | Q4\nThroughput | 1200 | 1450 | 1800 | 2100\nAccuracy | 99.4% | 99.7% | 99.8% | 99.9%';
+    });
+  }
+  if (ocrPresetMath && ocrInputText) {
+    ocrPresetMath.addEventListener('click', () => {
+      ocrInputText.value = 'Quadratic Equation Solution:\nf(x) = ax^2 + bx + c\nDiscriminant: D = b^2 - 4ac\nx = (-b ± sqrt(D)) / (2a)';
+    });
+  }
+
+  if (ocrExecuteBtn && ocrInputText && ocrResults) {
+    ocrExecuteBtn.addEventListener('click', async () => {
+      const rawText = ocrInputText.value.trim() || 'JARVIS OCR Scanner Ready';
+      ocrResults.innerHTML = '<span style="color: var(--hud-cyan);">Running OCR recognition & bounding box extractor...</span>';
+
+      const svg = `<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#020617"/><text x="20" y="40" fill="#00f0ff" font-family="monospace" font-size="14">${rawText.replace(/\n/g, ' ')}</text></svg>`;
+      const imageBase64 = btoa(svg);
+
+      try {
+        const res = await fetch('/api/jarvis/vision/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ imageBase64, languageHint: 'en' }),
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const o = data.data;
+          let tableHtml = '';
+          if (o.tablesDetected && o.tablesDetected.length > 0) {
+            tableHtml = o.tablesDetected.map((t) => `
+              <div style="margin-top: 8px; border: 1px solid #1e293b; border-radius: 4px; overflow: hidden;">
+                <div style="background: #0f172a; padding: 4px 8px; font-weight: bold; color: var(--hud-green);">Detected Table:</div>
+                <div style="padding: 4px 8px; color: #38bdf8;">Headers: ${t.headers.join(' | ')}</div>
+                ${t.rows.map((r) => `<div style="padding: 2px 8px; color: #cbd5e1;">Row: ${r.join(' | ')}</div>`).join('')}
+              </div>
+            `).join('');
+          }
+
+          let mathHtml = '';
+          if (o.mathExpressions && o.mathExpressions.length > 0) {
+            mathHtml = `
+              <div style="margin-top: 8px; padding: 6px 8px; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 4px;">
+                <div style="color: var(--hud-purple); font-weight: bold;">Detected Mathematical Expressions:</div>
+                ${o.mathExpressions.map((m) => `<div style="font-family: monospace; color: #fff;">$ ${m} $</div>`).join('')}
+              </div>
+            `;
+          }
+
+          ocrResults.innerHTML = `
+            <div style="color: var(--hud-cyan); font-weight: bold; margin-bottom: 6px;">[OCR EXTRACTION COMPLETE] (${o.durationMs}ms)</div>
+            <div style="color: #94a3b8; margin-bottom: 6px;">Lines: ${o.lines.length} | Language: ${o.detectedLanguage}</div>
+            <div style="background: #060b17; padding: 8px; border-radius: 4px; border: 1px solid #1e293b; color: #f8fafc; white-space: pre-wrap; font-size: 0.8rem;">${o.fullText}</div>
+            ${tableHtml}
+            ${mathHtml}
+          `;
+        } else {
+          ocrResults.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+        }
+      } catch (err) {
+        ocrResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 4. Document & Whiteboard Scanning
+  const docInputText = document.getElementById('vision-doc-input-text');
+  const docResults = document.getElementById('vision-doc-results');
+  const docScanBtn = document.getElementById('vision-doc-scan-btn');
+  const docPresetReceipt = document.getElementById('vision-doc-preset-receipt');
+  const docPresetWhiteboard = document.getElementById('vision-doc-preset-whiteboard');
+
+  if (docPresetReceipt && docInputText) {
+    docPresetReceipt.addEventListener('click', () => {
+      docInputText.value = 'RECEIPT / TAX INVOICE\nMerchant: Cyberdyne AI Solutions\nDate: 2026-10-13\nTotal: $42,500.00\nTax: $3,400.00\nPayment Method: Corporate Account';
+    });
+  }
+  if (docPresetWhiteboard && docInputText) {
+    docPresetWhiteboard.addEventListener('click', () => {
+      docInputText.value = 'ARCHITECTURE WHITEBOARD DIAGRAM\nArchitecture: Microservices + Autonomous Event Stream\nComponent 1: Ingestion API Gateway\nComponent 2: Neural Reasoning Core\nComponent 3: Security Guardian Filter';
+    });
+  }
+
+  if (docScanBtn && docInputText && docResults) {
+    docScanBtn.addEventListener('click', async () => {
+      const rawText = docInputText.value.trim() || 'DOCUMENT SAMPLE - SCAN RECOGNITION';
+      docResults.innerHTML = '<span style="color: var(--hud-cyan);">Analyzing document structure, classification, and key-values...</span>';
+
+      const svg = `<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#020617"/><text x="20" y="40" fill="#fff" font-family="monospace" font-size="14">${rawText.replace(/\n/g, ' ')}</text></svg>`;
+      const imageBase64 = btoa(svg);
+
+      try {
+        const res = await fetch('/api/jarvis/vision/document', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ imageBase64 }),
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const doc = data.data;
+          const kvRows = Object.entries(doc.keyValues || {}).map(([k, v]) => `
+            <tr>
+              <td style="padding: 4px 8px; color: #94a3b8; font-weight: bold; border-bottom: 1px solid #1e293b;">${k}</td>
+              <td style="padding: 4px 8px; color: #f8fafc; border-bottom: 1px solid #1e293b;">${v}</td>
+            </tr>
+          `).join('');
+
+          docResults.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="color: var(--hud-cyan); font-weight: bold;">[DOCUMENT CLASSIFIED]</span>
+              <span class="badge" style="background: rgba(0, 240, 255, 0.15); color: var(--hud-cyan); text-transform: uppercase;">${doc.documentType} (${Math.round(doc.confidence * 100)}% conf)</span>
+            </div>
+            <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 4px; margin-bottom: 8px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: #0f172a; color: #cbd5e1; text-align: left;">
+                    <th style="padding: 4px 8px;">Field</th>
+                    <th style="padding: 4px 8px;">Extracted Value</th>
+                  </tr>
+                </thead>
+                <tbody>${kvRows || '<tr><td colspan="2" style="padding: 4px 8px; color: #64748b;">No key-values detected</td></tr>'}</tbody>
+              </table>
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; max-height: 80px; overflow-y: auto;">
+              Raw OCR: ${doc.extractedText}
+            </div>
+          `;
+        } else {
+          docResults.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+        }
+      } catch (err) {
+        docResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 5. Privacy Redactor
+  const redactInputText = document.getElementById('vision-redact-input-text');
+  const redactResults = document.getElementById('vision-redact-results');
+  const redactCountEl = document.getElementById('vision-redact-count');
+  const redactBtn = document.getElementById('vision-redact-btn');
+
+  if (redactBtn && redactInputText && redactResults) {
+    redactBtn.addEventListener('click', async () => {
+      const text = redactInputText.value.trim();
+      redactResults.innerHTML = '<span style="color: #10b981;">Scanning for credit cards, tokens, emails, and phone numbers...</span>';
+
+      try {
+        const res = await fetch('/api/jarvis/vision/redact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ text }),
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const r = data.data;
+          if (redactCountEl) redactCountEl.textContent = `${r.itemsRedactedCount} tokens masked`;
+
+          const itemsHtml = r.redactions.map((item) => `
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
+              <span style="color: #10b981; font-weight: bold; text-transform: uppercase;">[${item.type}]</span>
+              <span style="color: #cbd5e1;"><code>${item.redactedText}</code></span>
+            </div>
+          `).join('');
+
+          redactResults.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 6px;">[PRIVACY SHIELD APPLIED] (${r.itemsRedactedCount} items redacted)</div>
+            <div style="background: #060b17; padding: 8px; border-radius: 4px; border: 1px solid #1e293b; color: #f8fafc; white-space: pre-wrap; font-size: 0.8rem; margin-bottom: 8px;">${r.sanitizedText}</div>
+            <div style="background: #0f172a; padding: 6px; border-radius: 4px; border: 1px solid #1e293b;">
+              <div style="font-weight: bold; color: #94a3b8; font-size: 0.75rem; margin-bottom: 4px;">Redaction Breakdown:</div>
+              ${itemsHtml}
+            </div>
+          `;
+        } else {
+          redactResults.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+        }
+      } catch (err) {
+        redactResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
   // Start
   initSession();
 });

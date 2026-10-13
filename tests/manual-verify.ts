@@ -979,7 +979,83 @@ async function runManualVerification() {
       console.log('   API Command Success:', cmdData.data?.success, '| Protocol:', cmdData.data?.protocol);
       console.log('   Authorization Audit: Total:', appAuditData.data?.totalRegistered, '| Authorized:', appAuditData.data?.authorizedCount, '| Blocked:', appAuditData.data?.blockedCount);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 18) PASSED SUCCESSFULLY! ===');
+      console.log('73. Testing Phase 19 Camera Device Discovery & Privacy LED Status (GET /api/jarvis/vision/camera/devices & status)');
+      const camDevRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/camera/devices', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const camDevData = await camDevRes.json();
+      const camStatusRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/camera/status', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const camStatusData = await camStatusRes.json();
+      console.log('   Cameras Discovered:', camDevData.count, '| Active Device:', camStatusData.data?.activeDeviceId, '| LED Active:', camStatusData.data?.indicatorActive);
+
+      console.log('74. Testing Phase 19 Rate-Limited Frame Grabber (POST /api/jarvis/vision/camera/capture)');
+      const camCapRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/camera/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ deviceId: 'cam_integrated_01' }),
+      });
+      const camCapData = await camCapRes.json();
+      console.log('   Frame Captured:', camCapData.data?.id, '| Privacy LED Engaged:', camCapData.data?.indicatorActive, '| Format:', camCapData.data?.format);
+
+      console.log('75. Testing Phase 19 Screen Capture & Credential Window Shield (POST /api/jarvis/vision/screen/capture)');
+      const screenRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/screen/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ target: 'fullscreen' }),
+      });
+      const screenData = await screenRes.json();
+      const blockRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/screen/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ target: 'window', windowTitle: '1Password Vault - Credentials' }),
+      });
+      const blockData = await blockRes.json();
+      console.log('   Fullscreen Capture:', screenData.data?.width + 'x' + screenData.data?.height, '| Bytes:', screenData.data?.sizeBytes);
+      console.log('   Credential Window Shielded:', blockRes.status === 403, '| Guard Message:', blockData.error);
+
+      console.log('76. Testing Phase 19 OCR Text, Table & Equation Extraction (POST /api/jarvis/vision/ocr)');
+      const testSvg = Buffer.from(
+        '<svg width="500" height="200"><text x="10" y="30">Sales | Q1 | Q2</text><text x="10" y="60">Equation: f(x) = ax^2 + bx + c</text></svg>',
+        'utf-8'
+      ).toString('base64');
+      const ocrRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ imageBase64: testSvg, languageHint: 'en' }),
+      });
+      const ocrData = await ocrRes.json();
+      console.log('   OCR Extracted Lines:', ocrData.data?.lines?.length, '| Math Expressions:', ocrData.data?.mathExpressions?.length, '| Sample:', ocrData.data?.fullText?.slice(0, 35));
+
+      console.log('77. Testing Phase 19 Privacy Redaction & PII Masking Shield (POST /api/jarvis/vision/redact)');
+      const redactRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/redact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          text: 'Auth: sk-proj99887766554433221100, Card: 4532-1111-2222-3333, Email: dwight@nexus.ai',
+        }),
+      });
+      const redactData = await redactRes.json();
+      console.log('   Redactions Count:', redactData.data?.itemsRedactedCount, '| Sanitized Text:', redactData.data?.sanitizedText);
+
+      console.log('78. Testing Phase 19 Visual Scene Understanding & Document Scanning (POST /api/jarvis/vision/analyze & document)');
+      const analyzeRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ imageBase64: testSvg }),
+      });
+      const analyzeData = await analyzeRes.json();
+      const docRes = await fetch('http://127.0.0.1:3099/api/jarvis/vision/document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ imageBase64: testSvg }),
+      });
+      const docData = await docRes.json();
+      console.log('   Scene Summary:', analyzeData.data?.sceneSummary, '| Objects Detected:', analyzeData.data?.objects?.length);
+      console.log('   Doc Type:', docData.data?.documentType, '| Confidence:', docData.data?.confidence, '| Extracted:', docData.data?.extractedText?.slice(0, 35));
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 19) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

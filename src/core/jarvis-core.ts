@@ -126,6 +126,11 @@ import {
   ApplicationControlAgent,
   createAppTools,
 } from '../apps/index.js';
+import {
+  VisionManager,
+  VisionAgent,
+  createVisionTools,
+} from '../vision/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -153,6 +158,7 @@ export interface JarvisCoreConfig {
   financeManager?: FinanceManager;
   browserManager?: BrowserManager;
   applicationManager?: ApplicationManager;
+  visionManager?: VisionManager;
 }
 
 export interface JarvisChatRequest {
@@ -202,6 +208,7 @@ export class JarvisCore {
   private financeManager: FinanceManager;
   private browserManager: BrowserManager;
   private applicationManager: ApplicationManager;
+  private visionManager: VisionManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -446,7 +453,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Vision & Camera Intelligence Engine, Agent, and Tools
+    this.visionManager =
+      config.visionManager ||
+      new VisionManager({
+        permissionManager: this.permissionManager,
+        guardian: this.guardian,
+        auditLogger: this.auditLogger,
+      });
+    const visionAgent = new VisionAgent(this.visionManager);
+    this.agentRegistry.registerImplementation(visionAgent);
+
+    for (const tool of createVisionTools(this.visionManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -828,6 +850,10 @@ export class JarvisCore {
 
   public getApplicationManager(): ApplicationManager {
     return this.applicationManager;
+  }
+
+  public getVisionManager(): VisionManager {
+    return this.visionManager;
   }
 
   public async orchestrate(

@@ -136,6 +136,13 @@
               </div>
               <span class="hud-nav-badge">P18</span>
             </a>
+            <a href="#" id="nav-vision" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Vision Studio</span>
+              </div>
+              <span class="hud-nav-badge">P19</span>
+            </a>
           </nav>
         </div>
 
@@ -343,6 +350,14 @@
                 <canvas class="agent-sparkline-canvas" data-color="#38bdf8"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
+              <div class="agent-chip" id="chip-vision-agent" title="Open Vision & Camera Intelligence Studio">
+                <div class="agent-chip-header">
+                  <span>Vision Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#06b6d4"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
             </div>
           </div>
 
@@ -412,6 +427,10 @@
               <button id="cmd-apps-btn" class="quick-cmd-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                 <span>App Control & Integration</span>
+              </button>
+              <button id="cmd-vision-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Vision & Camera Studio</span>
               </button>
             </div>
           </div>
@@ -2029,6 +2048,225 @@
           </div>
           <div id="apps-audit-list" style="font-size: 0.8rem; color: #94a3b8;">
             <!-- Populated audit list -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  <!-- Phase 19 Vision & Camera Intelligence Studio Modal -->
+  <div id="vision-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-container" style="background: #090e1a; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; width: 92%; max-width: 1050px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.03);">
+        <div>
+          <h2 style="margin: 0; color: var(--hud-cyan); font-size: 1.15rem; font-family: monospace; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            VISION & CAMERA INTELLIGENCE STUDIO [PHASE 19]
+          </h2>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+            Autonomous webcam ingestion, desktop screen grabber, OCR engine with math tables, document scanning, and privacy redaction shield.
+          </div>
+        </div>
+        <button id="close-vision-modal-btn" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 4px 8px;">&times;</button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div style="display: flex; gap: 4px; padding: 0.5rem 1.5rem; background: #060b17; border-bottom: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto;">
+        <button id="vision-tab-btn-camera" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">Live Camera Feed</button>
+        <button id="vision-tab-btn-screen" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Screen Grabber</button>
+        <button id="vision-tab-btn-ocr" class="btn btn-sm btn-ghost" style="color: #94a3b8;">OCR Scanner</button>
+        <button id="vision-tab-btn-document" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Document & Whiteboard</button>
+        <button id="vision-tab-btn-redact" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Privacy Redactor</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
+
+        <!-- Tab 1: Live Camera Feed -->
+        <div id="vision-panel-camera">
+          <!-- Invariant Banner -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="vision-hardware-led" style="width: 12px; height: 12px; border-radius: 50%; background: #64748b; box-shadow: 0 0 6px #64748b; display: inline-block;"></span>
+              <span id="vision-hardware-led-label" style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; font-family: monospace;">PRIVACY LED: STANDBY (INACTIVE)</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #cbd5e1;">Rate Limit Throttling: <strong>10 FPS Max</strong> (Non-Stealth Guaranteed)</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <!-- Viewport -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; height: 320px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+              <div id="vision-camera-viewport" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at center, transparent 40%, rgba(0, 240, 255, 0.05) 100%);"></div>
+                <div style="position: absolute; top: 12px; left: 12px; font-family: monospace; font-size: 0.7rem; color: var(--hud-cyan);">REC ● LIVE SENSOR READY</div>
+                <div style="position: absolute; bottom: 12px; right: 12px; font-family: monospace; font-size: 0.7rem; color: #64748b;" id="vision-stream-time">STANDBY</div>
+                <div id="vision-frame-render" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #64748b; font-family: monospace; font-size: 0.85rem;">[CAMERA FEED INITIALIZED - CLICK SNAPSHOT TO CAPTURE]</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls & Telemetry -->
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px;">Select Camera Device</label>
+                <select id="vision-device-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; margin-bottom: 1rem;">
+                  <option value="cam_integrated_01">Integrated HD Webcam (1080p)</option>
+                  <option value="cam_external_4k">Ultra Vision 4K Studio Camera</option>
+                </select>
+
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; margin-bottom: 1rem; font-family: monospace; font-size: 0.75rem; line-height: 1.6;">
+                  <div style="color: #94a3b8;">Sensor: <span id="vision-sensor-status" style="color: var(--hud-green);">READY</span></div>
+                  <div style="color: #94a3b8;">Stream Res: <span id="vision-sensor-res" style="color: #fff;">1920x1080</span></div>
+                  <div style="color: #94a3b8;">Indicator: <span id="vision-sensor-indicator" style="color: #94a3b8;">ARMED</span></div>
+                  <div style="color: #94a3b8;">Frames: <span id="vision-sensor-frames" style="color: #fff;">0 captured</span></div>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button id="vision-capture-frame-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                  Capture Single Frame
+                </button>
+                <button id="vision-stream-burst-btn" class="btn btn-outline" style="border-color: #38bdf8; color: #38bdf8; width: 100%;">
+                  Burst Capture (Throttled)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Screen Grabber -->
+        <div id="vision-panel-screen" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Desktop Screen Grabber</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Autonomous region or fullscreen desktop capture with strict Sensitive Credential Window Shield.
+              </p>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Capture Target</label>
+              <select id="vision-screen-target-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; margin-bottom: 0.75rem;">
+                <option value="fullscreen">Fullscreen Desktop (1920x1080)</option>
+                <option value="window">Target Specific Application Window</option>
+                <option value="region">Specified Region (400x300 Bounding Box)</option>
+              </select>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Target Window Title</label>
+              <input type="text" id="vision-screen-window-title" value="Visual Studio Code - Master HUD" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; margin-bottom: 1rem; font-family: monospace;">
+
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button id="vision-screen-capture-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">
+                  Capture Screen
+                </button>
+                <button id="vision-screen-test-block-btn" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">
+                  Test Shield: Target 1Password / Bitwarden
+                </button>
+              </div>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Captured Screen Preview</span>
+                <span id="vision-screen-meta" style="font-size: 0.75rem; color: #64748b; font-family: monospace;">No capture recorded</span>
+              </div>
+              <div id="vision-screen-preview" style="flex: 1; min-height: 250px; background: #060b17; border: 1px dashed #334155; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <span style="color: #64748b; font-family: monospace; font-size: 0.85rem;">[SCREEN PREVIEW VIEWPORT]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: OCR Scanner -->
+        <div id="vision-panel-ocr" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Optical Character Recognition (OCR) Engine</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Extracts text, words, coordinates, markdown tables, and mathematical formulas from visual documents.
+              </p>
+
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <button id="vision-ocr-preset-dashboard" class="btn btn-sm btn-ghost" style="color: var(--hud-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">Preset: Dashboard</button>
+                <button id="vision-ocr-preset-table" class="btn btn-sm btn-ghost" style="color: var(--hud-green); border: 1px solid rgba(16, 185, 129, 0.3);">Preset: Table Data</button>
+                <button id="vision-ocr-preset-math" class="btn btn-sm btn-ghost" style="color: var(--hud-purple); border: 1px solid rgba(168, 85, 247, 0.3);">Preset: Equation</button>
+              </div>
+
+              <textarea id="vision-ocr-input-text" rows="6" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;" placeholder="Text content to render as visual document for OCR..."></textarea>
+
+              <button id="vision-ocr-execute-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                Execute OCR Extraction
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem;">OCR Analysis Results</div>
+              <div id="vision-ocr-results" style="flex: 1; min-height: 250px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">
+                Awaiting OCR execution.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Document & Whiteboard -->
+        <div id="vision-panel-document" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Document & Whiteboard Intelligence</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Classifies receipts, whiteboards, paper pages, and structural diagrams, converting them into structured key-values and tables.
+              </p>
+
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <button id="vision-doc-preset-receipt" class="btn btn-sm btn-ghost" style="color: var(--hud-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">Receipt / Invoice</button>
+                <button id="vision-doc-preset-whiteboard" class="btn btn-sm btn-ghost" style="color: var(--hud-amber); border: 1px solid rgba(245, 158, 11, 0.3);">Whiteboard Architecture</button>
+              </div>
+
+              <textarea id="vision-doc-input-text" rows="6" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;" placeholder="Visual document payload..."></textarea>
+
+              <button id="vision-doc-scan-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                Scan & Extract Document
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem;">Structured Document Data</div>
+              <div id="vision-doc-results" style="flex: 1; min-height: 250px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">
+                Awaiting document scan.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Privacy Redactor -->
+        <div id="vision-panel-redact" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">PII & Credential Redaction Shield</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Automatically masks credit card numbers (Luhn compliant), API keys (sk-, ghp-), cleartext passwords, emails, and phone numbers before visual transmission.
+              </p>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Unsanitized Text Input</label>
+              <textarea id="vision-redact-input-text" rows="6" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;">Auth Token: ghp_99887766554433221100aabbccddeeff0011
+Billing Card: 4532-8877-6655-4321
+Admin Contact: security@nexus-defense.corp
+Direct Phone: 555-883-9102</textarea>
+
+              <button id="vision-redact-btn" class="btn btn-primary" style="background: #10b981; color: #000; font-weight: 600; width: 100%;">
+                Apply Privacy Redaction Shield
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Redacted & Sanitized Output</span>
+                <span id="vision-redact-count" style="font-size: 0.75rem; color: #10b981; font-family: monospace;">0 tokens masked</span>
+              </div>
+              <div id="vision-redact-results" style="flex: 1; min-height: 250px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">
+                Awaiting redaction scan.
+              </div>
+            </div>
           </div>
         </div>
 

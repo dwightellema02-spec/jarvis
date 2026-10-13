@@ -788,12 +788,61 @@ JARVIS features a controlled, security-gated interface with authorized host appl
 
 ---
 
+## 👁️ Phase 19 Architecture: Vision & Camera Intelligence
+
+JARVIS incorporates real visual sensory capabilities, camera device ingestion, desktop screen capture, OCR recognition with mathematical formula extraction, document scanning, and privacy redaction shielding:
+
+### 1. Camera Device Discovery & LED Indicator Invariant
+* **Hardware Ingestion**: Discovers available hardware webcam devices (`cam_integrated_01`, `cam_external_4k`) and inspects resolutions and FPS ceilings.
+* **Privacy LED Invariant**: Camera access is NEVER stealthy or background-only. Visual sensors explicitly activate physical/simulated hardware recording LEDs (`indicatorActive: true`) and signal telemetry whenever frames are acquired.
+* **Rate-Limit Throttling**: Throttles rapid bursts exceeding `maxFps` (10 FPS limit) to prevent covert visual surveillance.
+
+### 2. Desktop Screen Capture & Sensitive Window Shield
+* **Desktop Grabber**: Supports fullscreen (1920x1080), specified window title, and coordinate bounding-box captures (`x, y, width, height`).
+* **Sensitive Window Shield**: Strictly blocks screen capture on windows matching sensitive password managers and system credential dialogs (`1Password`, `Bitwarden`, `KeePass`, `Credential Manager`, `Windows Security`), throwing an immediate Security Guardian block.
+
+### 3. Privacy Redaction & PII Masking Shield
+* **Pre-Transmission Sanitization**: Automatically scans cleartext strings and visual text before transmission or external AI ingestion.
+* **Redaction Patterns**:
+  * Credit card numbers (Luhn compliant with formatting preserve: `••••-••••-••••-9012`).
+  * API keys and secrets (`sk-`, `ghp_`, `AIzaSy`).
+  * Cleartext passwords (`••••••••`).
+  * Email addresses (`u•••@example.com`) and phone numbers (`•••-•••-4567`).
+  * Coordinates blackout overlays for SVG images (`<rect fill="#000000">`).
+
+### 4. Optical Character Recognition (OCR) Engine
+* **Multimodal Text Extraction**: Parses visual document layouts into lines, words, confidences, and bounding boxes.
+* **Structured Table Extractor**: Detects delimited cell patterns, parses column headers, and constructs structured row arrays.
+* **Mathematical Formula Detection**: Detects mathematical expressions and equations ($f(x) = ax^2 + bx + c$, $D = b^2 - 4ac$) for KaTeX rendering.
+
+### 5. Document & Whiteboard Scanning
+* **Classification Pipeline**: Identifies document types (`receipt`, `id_card`, `whiteboard`, `document_page`, `diagram`) with confidence scoring.
+* **Key-Value Extraction**: Extracts structured fields from invoices and forms (Total, Tax, Merchant, Date, Architecture components).
+
+### 6. Security Gating, Agent & Tools
+* Gated by `ResourceType.CAMERA` (`READ` for frame grabber, OCR, analysis, document scans; `WRITE` for redactions; `EXECUTE` for stream captures; `ADMIN` for hardware device administration).
+* Coordinated by `VisionManager` and autonomous `VisionAgent` (`id: 'vision-agent'`).
+* 8 Registered Tools:
+  1. `vision.camera_status`
+  2. `vision.capture_frame`
+  3. `vision.capture_screen`
+  4. `vision.analyze_image`
+  5. `vision.ocr_extract`
+  6. `vision.detect_objects`
+  7. `vision.redact_sensitive`
+  8. `vision.scan_document`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (450 automated tests across 58 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, Broker Sandbox Gating, Web Search Ranking, Anti-SSRF Protection, Sanitized Page Extraction, Form Automation, Sandbox Downloads, Multi-Step Browser Workflows, Application Catalog, Process Discovery, Safe CLI Launching, Argument Sanitization, URI Scheme Dispatching, Localhost API Connector, and UI Automation Safeguards):
+Run the full Vitest suite (482 automated tests across 60 test files covering all phases, plus 78 end-to-end manual verification steps):
 ```bash
-# Run all tests
+# Run all automated tests
 npm test
+
+# Run manual end-to-end verification across Phases 1 to 19
+npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check
 npm run typecheck
