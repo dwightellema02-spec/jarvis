@@ -143,6 +143,13 @@
               </div>
               <span class="hud-nav-badge">P19</span>
             </a>
+            <a href="#" id="nav-voice" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                <span>Voice Studio</span>
+              </div>
+              <span class="hud-nav-badge">P20</span>
+            </a>
           </nav>
         </div>
 
@@ -356,6 +363,14 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#06b6d4"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-voice-agent" title="Open Voice & Audio Intelligence Studio">
+                <div class="agent-chip-header">
+                  <span>Voice Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#a855f7"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -2267,6 +2282,263 @@ Direct Phone: 555-883-9102</textarea>
                 Awaiting redaction scan.
               </div>
             </div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 20 Voice & Audio Intelligence Studio Modal -->
+  <div id="voice-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-container" style="background: #090e1a; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; width: 92%; max-width: 1050px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.03);">
+        <div>
+          <h2 style="margin: 0; color: var(--hud-cyan); font-size: 1.15rem; font-family: monospace; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            VOICE & AUDIO INTELLIGENCE STUDIO [PHASE 20]
+          </h2>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+            Hardware microphone ingestion, wake word detection, STT transcription, TTS synthesis with binary RIFF WAV playback, acoustic classification & persona modulation.
+          </div>
+        </div>
+        <button id="close-voice-modal-btn" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 4px 8px;">&times;</button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div style="display: flex; gap: 4px; padding: 0.5rem 1.5rem; background: #060b17; border-bottom: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto;">
+        <button id="voice-tab-btn-stream" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">Live Audio & VAD</button>
+        <button id="voice-tab-btn-stt" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Speech-to-Text (STT)</button>
+        <button id="voice-tab-btn-tts" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Speech Synthesis (TTS)</button>
+        <button id="voice-tab-btn-acoustic" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Acoustic Classifier</button>
+        <button id="voice-tab-btn-personas" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Voice Personas</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
+
+        <!-- Tab 1: Live Audio & VAD -->
+        <div id="voice-panel-stream">
+          <!-- Invariant Banner -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span id="voice-hardware-led" style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; display: inline-block;"></span>
+              <span id="voice-hardware-led-label" style="font-size: 0.8rem; font-weight: 600; color: #10b981; font-family: monospace;">PRIVACY RECORDING INDICATOR: ARMED</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 0.75rem; color: #cbd5e1;">Hardware Invariant: <strong>Strict Non-Stealth Audio</strong></span>
+              <button id="voice-toggle-mute-btn" class="btn btn-sm btn-outline" style="border-color: #ef4444; color: #ef4444; font-size: 0.75rem;">
+                Toggle Hardware Mute
+              </button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <!-- Oscilloscope Viewport -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; height: 320px; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+              <div style="padding: 8px 12px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-family: monospace; font-size: 0.75rem; color: var(--hud-cyan);">OSCILLOSCOPE & VAD SPECTROGRAM</span>
+                <span id="voice-stream-state-badge" style="font-family: monospace; font-size: 0.7rem; color: #10b981;">STREAM: ACTIVE</span>
+              </div>
+              <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, rgba(0, 240, 255, 0.03) 0%, transparent 70%);">
+                <canvas id="voice-modal-wave-canvas" width="600" height="220" style="width: 100%; height: 100%; display: block;"></canvas>
+              </div>
+              <div style="padding: 6px 12px; background: #060b17; border-top: 1px solid #1e293b; display: flex; justify-content: space-between; font-size: 0.75rem; font-family: monospace;">
+                <div>SPL: <span id="voice-live-spl" style="color: var(--hud-cyan); font-weight: 600;">42.5 dB</span></div>
+                <div>SNR: <span id="voice-live-snr" style="color: #10b981; font-weight: 600;">28.4 dB</span></div>
+                <div>VAD State: <span id="voice-vad-state" style="color: #a855f7; font-weight: 600;">SPEECH_DETECTED</span></div>
+              </div>
+            </div>
+
+            <!-- Controls & Wake Word Testing -->
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px;">Audio Input Device</label>
+                <select id="voice-device-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; margin-bottom: 1rem; font-size: 0.8rem;">
+                  <option value="mic_integrated_array">Dual Array Digital Microphone (Built-in)</option>
+                  <option value="mic_studio_cardioid">Studio Cardioid USB Mic (XLR Bridge)</option>
+                </select>
+
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; margin-bottom: 1rem; font-family: monospace; font-size: 0.75rem; line-height: 1.6;">
+                  <div style="color: #94a3b8;">Format: <span style="color: #fff;">16-bit PCM @ 48,000 Hz</span></div>
+                  <div style="color: #94a3b8;">Channels: <span style="color: #fff;">Stereo (Array Beamforming)</span></div>
+                  <div style="color: #94a3b8;">Muted: <span id="voice-telemetry-muted" style="color: #10b981;">NO (ACTIVE)</span></div>
+                  <div style="color: #94a3b8;">Indicator LED: <span id="voice-telemetry-led" style="color: #10b981;">ON (RECORDING)</span></div>
+                </div>
+
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Wake Word Detector ("Hey Jarvis")</label>
+                <input type="text" id="voice-wakeword-input" value="Hey Jarvis, run full system diagnostics" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.8rem;">
+                <button id="voice-wakeword-btn" class="btn btn-sm btn-outline" style="border-color: var(--hud-cyan); color: var(--hud-cyan); width: 100%; margin-bottom: 0.5rem;">
+                  Test Wake Word Engine
+                </button>
+                <div id="voice-wakeword-result" style="font-size: 0.75rem; font-family: monospace; padding: 4px 8px; border-radius: 4px; background: #060b17; color: #64748b; text-align: center;">
+                  Awaiting Wake Word check...
+                </div>
+              </div>
+
+              <div style="margin-top: 1rem;">
+                <button id="voice-poll-status-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                  Refresh Microphone Telemetry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Speech-to-Text (STT) -->
+        <div id="voice-panel-stt" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Speech-to-Text (STT) Transcription Engine</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Multi-lingual natural language acoustic transcriber with word-level timestamps, confidences, and punctuation alignment.
+              </p>
+
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Language Hint</label>
+                <select id="voice-stt-lang-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.8rem;">
+                  <option value="en">English (en-US / en-GB)</option>
+                  <option value="fil">Filipino / Tagalog (fil-PH)</option>
+                  <option value="es">Spanish (es-ES)</option>
+                </select>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <button id="voice-stt-preset-diag" class="btn btn-sm btn-ghost" style="color: var(--hud-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">Preset: Command</button>
+                <button id="voice-stt-preset-tagalog" class="btn btn-sm btn-ghost" style="color: var(--hud-green); border: 1px solid rgba(16, 185, 129, 0.3);">Preset: Filipino</button>
+                <button id="voice-stt-preset-spanish" class="btn btn-sm btn-ghost" style="color: var(--hud-purple); border: 1px solid rgba(168, 85, 247, 0.3);">Preset: Spanish</button>
+              </div>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Audio Payload / Speech Buffer</label>
+              <textarea id="voice-stt-input-payload" rows="5" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;" placeholder="Enter audio transcript or raw acoustic buffer..."></textarea>
+
+              <button id="voice-stt-transcribe-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                Transcribe Audio Stream
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem;">Transcription & Timing Output</div>
+              <div id="voice-stt-results" style="flex: 1; min-height: 250px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">
+                Awaiting STT transcription execution.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Speech Synthesis (TTS) -->
+        <div id="voice-panel-tts" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Natural Speech Synthesis (TTS)</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Neural vocal synthesizer producing 16-bit PCM RIFF WAV audio binaries with emotion prosody and phoneme timing cues.
+              </p>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Voice Persona</label>
+                  <select id="voice-tts-persona-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.8rem;">
+                    <option value="jarvis-classic">JARVIS Classic (Paul Bettany cadence)</option>
+                    <option value="friday-us">F.R.I.D.A.Y. (Irish/Tactical cadence)</option>
+                    <option value="nexus-neutral">NEXUS Neutral (Clear assistant)</option>
+                    <option value="let-mentor">LET Mentor (Filipino educator)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Emotion / Cadence</label>
+                  <select id="voice-tts-emotion-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.8rem;">
+                    <option value="confident">Confident & Crisp</option>
+                    <option value="calm">Calm & Soothing</option>
+                    <option value="urgent">Urgent Tactical</option>
+                    <option value="neutral">Neutral Balanced</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Pitch: <span id="voice-pitch-val">1.0</span></label>
+                  <input type="range" id="voice-tts-pitch" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%;">
+                </div>
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Speech Rate: <span id="voice-rate-val">1.0</span></label>
+                  <input type="range" id="voice-tts-rate" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%;">
+                </div>
+              </div>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Synthesis Script</label>
+              <textarea id="voice-tts-text-input" rows="4" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;">All autonomous systems are operational and performing at peak efficiency, Dwight.</textarea>
+
+              <button id="voice-tts-synthesize-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                Synthesize Speech & Generate WAV
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem;">Audio Output & Waveform Player</div>
+              
+              <!-- HTML5 Audio Player for WAV playback -->
+              <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; text-align: center;">
+                <audio id="voice-tts-audio-player" controls style="width: 100%; margin-bottom: 8px; display: none;"></audio>
+                <div id="voice-tts-audio-placeholder" style="color: #64748b; font-size: 0.8rem; font-family: monospace;">
+                  [NO AUDIO GENERATED YET - CLICK SYNTHESIZE TO PLAY]
+                </div>
+              </div>
+
+              <div id="voice-tts-results" style="flex: 1; min-height: 180px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #cbd5e1;">
+                Awaiting speech synthesis.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Acoustic Classifier -->
+        <div id="voice-panel-acoustic" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Environmental Acoustic Analyzer</h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                Classifies environmental sound events (SED: speech, typing, alarm, quiet), measures decibel SPL, SNR, and alerts on acoustic hazards (>85 dB).
+              </p>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                <button id="voice-acoustic-preset-speech" class="btn btn-sm btn-ghost" style="color: var(--hud-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">Preset: Speech Dialogue</button>
+                <button id="voice-acoustic-preset-typing" class="btn btn-sm btn-ghost" style="color: var(--hud-green); border: 1px solid rgba(16, 185, 129, 0.3);">Preset: Mechanical Typing</button>
+                <button id="voice-acoustic-preset-alarm" class="btn btn-sm btn-ghost" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Preset: Siren Alarm (90dB Hazard)</button>
+                <button id="voice-acoustic-preset-quiet" class="btn btn-sm btn-ghost" style="color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3);">Preset: Silent Ambient</button>
+              </div>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Sample Audio Waveform (Normalized Floats)</label>
+              <textarea id="voice-acoustic-samples-input" rows="4" style="width: 100%; box-sizing: border-box; padding: 0.75rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;">[0.05, 0.12, 0.45, 0.65, 0.78, 0.42, 0.18, 0.04, -0.15, -0.55, -0.72, -0.38, 0.02]</textarea>
+
+              <button id="voice-acoustic-analyze-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">
+                Run Acoustic Environmental Analysis
+              </button>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem;">Acoustic Analysis Telemetry</div>
+              <div id="voice-acoustic-results" style="flex: 1; min-height: 250px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">
+                Awaiting acoustic analysis execution.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Voice Personas -->
+        <div id="voice-panel-personas" class="hidden">
+          <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; background: #0d1527; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #1e293b;">
+            <div>
+              <span style="font-size: 0.85rem; color: #94a3b8;">Current Active Persona:</span>
+              <strong id="voice-active-persona-name" style="color: var(--hud-cyan); margin-left: 8px; font-family: monospace;">JARVIS Classic</strong>
+            </div>
+            <span id="voice-persona-count" style="font-size: 0.75rem; color: #64748b; font-family: monospace;">4 Personas Available</span>
+          </div>
+
+          <div id="voice-personas-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+            <!-- Populated via API -->
           </div>
         </div>
 

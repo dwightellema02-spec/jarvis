@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 17 — Web & Browser Agent Active**
+> **Current Status**: **Phase 20 — Voice & Audio Intelligence Studio Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -76,9 +76,7 @@ The web interface is only one possible interface to the underlying JARVIS Core e
 
 ### 🚫 Strictly Not Implemented Yet (Honest System Boundaries):
 - Permanent Second Brain knowledge graph across sessions (Phase 4/5/27)
-- Physical camera or microphone recording (Phase 19/20)
 - Laptop, phone, or Bluetooth peripheral control (Phase 21)
-- Live autonomous web browsing via tools (Phase 17)
 - Autonomous file modification without user permission (Phase 10)
 - OS-level antivirus / kernel-level malware scanning (Phase 29)
 - Tuklas direct integration (Phase 12)
@@ -834,14 +832,64 @@ JARVIS incorporates real visual sensory capabilities, camera device ingestion, d
 
 ---
 
+## 🎙️ Phase 20: Voice & Audio Intelligence Studio
+
+Phase 20 equips JARVIS with full audio intelligence, real-time voice processing, speech synthesis, and acoustic awareness, strictly governed by physical privacy invariants.
+
+### 1. Hardware Microphone Ingestion & Non-Stealth Privacy Guarantee
+* **Hardware Device Discovery**: Enumerates connected audio hardware (`mic_integrated_array`, `mic_studio_cardioid`), querying channel count, sample rates (48,000 Hz 16-bit PCM), and capabilities.
+* **Non-Stealth Invariant**: All audio acquisition explicitly verifies that `indicatorActive: true`. Capturing audio with recording indicators disabled is strictly blocked.
+* **Hardware Mute Switch**: Real hardware mute toggle. When muted, all audio acquisition throws `Microphone is hardware-muted`, and wake-word listeners return `detected: false`.
+* **Voice Activity Detection (VAD)**: Energy thresholding audio stream detector classifying continuous frames into speech segments, background noise, and silence boundaries.
+
+### 2. Wake Word Detection Engine
+* **Keyword Matching**: Scans continuous acoustic buffers and text streams for wake triggers (`"hey jarvis"`, `"jarvis"`).
+* **Confidence & Utterance Extraction**: Strips the wake trigger keyword and computes detection confidence (0.95–0.98), returning the remaining user command utterance for immediate downstream orchestration.
+
+### 3. Speech-to-Text (STT) Transcription Engine
+* **Multi-Lingual Transcription**: Supports English (`en`), Filipino/Tagalog (`fil`), and Spanish (`es`).
+* **Timestamped Word Breakdown**: Generates word-level timestamps (`startTimeMs`, `endTimeMs`) and per-word confidence ratings.
+* **Flexible Payload Ingestion**: Supports both base64-encoded audio chunks and live streaming acoustic representations.
+
+### 4. Natural Speech Synthesis (TTS) Engine
+* **Four Voice Personas**:
+  * `jarvis-classic`: Paul Bettany cadence, measured British English timbre.
+  * `friday-us`: Irish/tactical military assistant persona.
+  * `nexus-neutral`: Balanced, crisp technical AI assistant.
+  * `let-mentor`: Filipino educator and instructional coach persona.
+* **Prosody & Cadence Modulation**: Emotion tags (`neutral`, `confident`, `calm`, `urgent`, `enthusiastic`), pitch scaling ($0.5\times$ to $2.0\times$), and speech rate controls.
+* **Phoneme Timing Map**: Generates viseme phonemes and timing cues for frontend lip-sync and visualizer alignment.
+* **64-Point Waveform Envelope**: Normalized audio amplitude envelope for oscilloscope rendering.
+* **Native 16-bit PCM RIFF WAV Binary Generator**: Assembles valid 44-byte RIFF/WAV headers and binary PCM sample data formatted as Base64, enabling immediate in-browser playback via HTML5 `<audio>` elements.
+
+### 5. Environmental Acoustic Analyzer & Sound Event Detection (SED)
+* **Spectral Analysis**: Computes ambient sound pressure level in decibels SPL ($20 \log_{10}(\text{RMS}) + 94$), signal-to-noise ratio (SNR), and dominant frequency peak in Hertz.
+* **Acoustic Hazard Alerting**: Automatically triggers alerts when sound pressure exceeds 85 dB SPL (`hazardWarning: true`).
+* **Sound Event Classifier**: Classifies environmental sounds into discrete event categories (`speech`, `keyboard_typing`, `alert_alarm`, `ambient_silence`) with confidence ratings.
+
+### 6. Security Gating, Agent & Tools
+* Gated by `ResourceType.MICROPHONE` (`READ` for microphone streams, STT, wake word, acoustic analysis; `WRITE` for mute control, persona configuration; `EXECUTE` for speech synthesis; `ADMIN` for hardware device administration).
+* Coordinated by `VoiceManager` and autonomous `VoiceAgent` (`id: 'voice-agent'`).
+* 8 Registered Tools:
+  1. `voice.wake_word_listen`
+  2. `voice.transcribe_audio`
+  3. `voice.synthesize_speech`
+  4. `voice.analyze_acoustics`
+  5. `voice.set_voice_persona`
+  6. `voice.detect_sound_events`
+  7. `voice.mute_microphone`
+  8. `voice.audio_stream_status`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (482 automated tests across 60 test files covering all phases, plus 78 end-to-end manual verification steps):
+Run the full Vitest suite (518 automated tests across 62 test files covering all phases, plus 84 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 19
+# Run manual end-to-end verification across Phases 1 to 20
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

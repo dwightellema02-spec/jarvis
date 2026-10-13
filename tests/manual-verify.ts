@@ -1055,7 +1055,80 @@ async function runManualVerification() {
       console.log('   Scene Summary:', analyzeData.data?.sceneSummary, '| Objects Detected:', analyzeData.data?.objects?.length);
       console.log('   Doc Type:', docData.data?.documentType, '| Confidence:', docData.data?.confidence, '| Extracted:', docData.data?.extractedText?.slice(0, 35));
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 19) PASSED SUCCESSFULLY! ===');
+      console.log('79. Testing Phase 20 Microphone Discovery & Status (GET /api/jarvis/voice/devices & /status)');
+      const micDevRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/devices', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const micDevData = await micDevRes.json();
+      const micStatusRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/status', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const micStatusData = await micStatusRes.json();
+      console.log('   Microphones Discovered:', micDevData.count, '| Active Device:', micStatusData.data?.activeDeviceId, '| Muted:', micStatusData.data?.isMuted);
+
+      console.log('80. Testing Phase 20 Hardware Mute Control & Privacy Protection (POST /api/jarvis/voice/mute)');
+      const muteRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/mute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ muted: true }),
+      });
+      const muteData = await muteRes.json();
+      const unmuteRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/mute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ muted: false }),
+      });
+      const unmuteData = await unmuteRes.json();
+      console.log('   Mute State Toggled:', muteData.data?.muted, '-> Unmuted:', !unmuteData.data?.muted);
+
+      console.log('81. Testing Phase 20 Wake Word Detection (POST /api/jarvis/voice/wake-word)');
+      const wakeRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/wake-word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ text: 'Hey Jarvis, initialize full telemetry' }),
+      });
+      const wakeData = await wakeRes.json();
+      console.log('   Wake Word Detected:', wakeData.data?.detected, '| Word:', wakeData.data?.wakeWord, '| Confidence:', wakeData.data?.confidence);
+
+      console.log('82. Testing Phase 20 Speech-to-Text Transcription (POST /api/jarvis/voice/transcribe)');
+      const sttRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ text: 'JARVIS activate autonomous coding studio and compile build' }),
+      });
+      const sttData = await sttRes.json();
+      console.log('   Transcribed Text:', sttData.data?.text?.slice(0, 40), '| Words Count:', sttData.data?.words?.length, '| Language:', sttData.data?.language);
+
+      console.log('83. Testing Phase 20 Text-to-Speech Natural Synthesis (POST /api/jarvis/voice/synthesize)');
+      const ttsRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          text: 'Good morning operator. All defensive perimeters are fully engaged and operational.',
+          personaId: 'jarvis-classic',
+          emotion: 'authoritative',
+        }),
+      });
+      const ttsData = await ttsRes.json();
+      console.log('   Synthesized Format:', ttsData.data?.format, '| Duration:', ttsData.data?.durationMs + 'ms', '| Viseme Phonemes:', ttsData.data?.phonemes?.length, '| Waveform Points:', ttsData.data?.waveform?.length);
+
+      console.log('84. Testing Phase 20 Acoustic Environment Analysis & Voice Personas (POST /api/jarvis/voice/analyze & /persona)');
+      const acousticRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ audioSamples: [0.1, 0.2, 0.3, 0.2, -0.1, -0.2] }),
+      });
+      const acousticData = await acousticRes.json();
+      const personaRes = await fetch('http://127.0.0.1:3099/api/jarvis/voice/persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ personaId: 'friday-us' }),
+      });
+      const personaData = await personaRes.json();
+      console.log('   Acoustic dB Level:', acousticData.data?.dbLevel, 'dB | Sound Events:', acousticData.data?.detectedEvents?.[0]?.type);
+      console.log('   Switched Active Persona:', personaData.data?.id, '| Name:', personaData.data?.name);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 20) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

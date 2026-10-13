@@ -40,6 +40,7 @@ import { createFinanceRouter } from './routes/finance.js';
 import { createBrowserRouter } from './routes/browser.js';
 import { createAppRoutes } from './routes/apps.js';
 import { createVisionRoutes } from './routes/vision.js';
+import { createVoiceRoutes } from './routes/voice.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -218,6 +219,20 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     allowedActions: ['read', 'write', 'execute', 'admin'],
     grantedBy: 'system',
   });
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.MICROPHONE,
+    level: PermissionLevel.EXECUTE,
+    allowedActions: ['read', 'write', 'execute'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.MICROPHONE,
+    level: PermissionLevel.ADMIN,
+    allowedActions: ['read', 'write', 'execute', 'admin'],
+    grantedBy: 'system',
+  });
 
   const core =
     deps.jarvisCore ||
@@ -282,7 +297,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.19.0-phase19';
+  const version = '0.20.0-phase20';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -302,6 +317,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis', createBrowserRouter(core.getBrowserManager()));
   app.use('/api/jarvis', createAppRoutes(core.getApplicationManager()));
   app.use('/api/jarvis', createVisionRoutes(core.getVisionManager()));
+  app.use('/api/jarvis', createVoiceRoutes(core.getVoiceManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

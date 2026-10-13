@@ -5769,6 +5769,564 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==================== PHASE 20: VOICE & AUDIO INTELLIGENCE CONTROLLER ====================
+  const voiceModal = document.getElementById('voice-modal');
+  const closeVoiceModalBtn = document.getElementById('close-voice-modal-btn');
+  const cmdVoiceBtn = document.getElementById('cmd-voice-btn');
+  const navVoiceBtn = document.getElementById('nav-voice');
+  const chipVoiceAgent = document.getElementById('chip-voice-agent');
+  const hudMicBtn = document.getElementById('hud-mic-btn');
+
+  function openVoiceModal() {
+    if (voiceModal) {
+      voiceModal.classList.remove('hidden');
+      refreshVoiceStatus();
+      loadVoicePersonas();
+    }
+  }
+
+  function closeVoiceModal() {
+    if (voiceModal) {
+      voiceModal.classList.add('hidden');
+    }
+  }
+
+  if (cmdVoiceBtn) cmdVoiceBtn.addEventListener('click', openVoiceModal);
+  if (navVoiceBtn) navVoiceBtn.addEventListener('click', (e) => { e.preventDefault(); openVoiceModal(); });
+  if (chipVoiceAgent) chipVoiceAgent.addEventListener('click', openVoiceModal);
+  if (hudMicBtn) hudMicBtn.addEventListener('click', openVoiceModal);
+  if (closeVoiceModalBtn) closeVoiceModalBtn.addEventListener('click', closeVoiceModal);
+  if (voiceModal) {
+    voiceModal.addEventListener('click', (e) => {
+      if (e.target === voiceModal) closeVoiceModal();
+    });
+  }
+
+  // Voice Modal Tab Switching
+  const voiceTabs = [
+    { btn: 'voice-tab-btn-stream', panel: 'voice-panel-stream' },
+    { btn: 'voice-tab-btn-stt', panel: 'voice-panel-stt' },
+    { btn: 'voice-tab-btn-tts', panel: 'voice-panel-tts' },
+    { btn: 'voice-tab-btn-acoustic', panel: 'voice-panel-acoustic' },
+    { btn: 'voice-tab-btn-personas', panel: 'voice-panel-personas' },
+  ];
+
+  voiceTabs.forEach((tab) => {
+    const btnEl = document.getElementById(tab.btn);
+    if (btnEl) {
+      btnEl.addEventListener('click', () => {
+        voiceTabs.forEach((t) => {
+          const b = document.getElementById(t.btn);
+          const p = document.getElementById(t.panel);
+          if (b) {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-ghost');
+            b.style.background = 'transparent';
+            b.style.color = '#94a3b8';
+          }
+          if (p) p.classList.add('hidden');
+        });
+        btnEl.classList.remove('btn-ghost');
+        btnEl.classList.add('btn-primary');
+        btnEl.style.background = 'var(--hud-cyan)';
+        btnEl.style.color = '#000';
+        const activePanel = document.getElementById(tab.panel);
+        if (activePanel) activePanel.classList.remove('hidden');
+      });
+    }
+  });
+
+  // Animated Waveform Oscilloscope for Sidebar & Modal
+  const sidebarWaveCanvas = document.getElementById('voice-wave-canvas');
+  const modalWaveCanvas = document.getElementById('voice-modal-wave-canvas');
+  let wavePhase = 0;
+
+  function renderWaveform(canvas, color = '#00f0ff', speed = 0.05, amplitude = 20) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = canvas.width || canvas.clientWidth || 300;
+    const h = canvas.height || canvas.clientHeight || 80;
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw baseline grid
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+
+    // Draw animated sine wave
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    for (let x = 0; x < w; x++) {
+      const y = h / 2 + Math.sin(x * 0.03 + wavePhase) * amplitude * Math.sin(x / w * Math.PI);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Draw second harmonic wave
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x++) {
+      const y = h / 2 + Math.cos(x * 0.05 - wavePhase * 1.5) * (amplitude * 0.6) * Math.sin(x / w * Math.PI);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  function animateWaveforms() {
+    wavePhase += 0.06;
+    renderWaveform(sidebarWaveCanvas, '#00f0ff', 0.06, 14);
+    if (voiceModal && !voiceModal.classList.contains('hidden')) {
+      renderWaveform(modalWaveCanvas, '#00f0ff', 0.06, 35);
+    }
+    requestAnimationFrame(animateWaveforms);
+  }
+  requestAnimationFrame(animateWaveforms);
+
+  // Tab 1: Live Audio & VAD Controller
+  let isHardwareMuted = false;
+  const voiceHwLed = document.getElementById('voice-hardware-led');
+  const voiceHwLedLabel = document.getElementById('voice-hardware-led-label');
+  const voiceToggleMuteBtn = document.getElementById('voice-toggle-mute-btn');
+  const voiceStreamStateBadge = document.getElementById('voice-stream-state-badge');
+  const voiceLiveSpl = document.getElementById('voice-live-spl');
+  const voiceLiveSnr = document.getElementById('voice-live-snr');
+  const voiceVadState = document.getElementById('voice-vad-state');
+  const voiceTelemMuted = document.getElementById('voice-telemetry-muted');
+  const voiceTelemLed = document.getElementById('voice-telemetry-led');
+  const voicePollBtn = document.getElementById('voice-poll-status-btn');
+  const voiceWakewordInput = document.getElementById('voice-wakeword-input');
+  const voiceWakewordBtn = document.getElementById('voice-wakeword-btn');
+  const voiceWakewordResult = document.getElementById('voice-wakeword-result');
+
+  async function refreshVoiceStatus() {
+    try {
+      const res = await fetch('/api/jarvis/voice/status', {
+        headers: { 'x-user-id': 'dwight' }
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const s = data.data;
+        isHardwareMuted = s.isMuted;
+
+        if (voiceHwLed) {
+          voiceHwLed.style.background = s.isMuted ? '#ef4444' : '#10b981';
+          voiceHwLed.style.boxShadow = s.isMuted ? '0 0 8px #ef4444' : '0 0 8px #10b981';
+        }
+        if (voiceHwLedLabel) {
+          voiceHwLedLabel.textContent = s.isMuted
+            ? 'PRIVACY RECORDING INDICATOR: MUTED (HARDWARE DISCONNECTED)'
+            : 'PRIVACY RECORDING INDICATOR: ARMED (RECORDING ACTIVE)';
+          voiceHwLedLabel.style.color = s.isMuted ? '#ef4444' : '#10b981';
+        }
+        if (voiceStreamStateBadge) {
+          voiceStreamStateBadge.textContent = s.isMuted ? 'STREAM: HARDWARE MUTED' : 'STREAM: ACTIVE';
+          voiceStreamStateBadge.style.color = s.isMuted ? '#ef4444' : '#10b981';
+        }
+        if (voiceTelemMuted) {
+          voiceTelemMuted.textContent = s.isMuted ? 'YES (MUTED)' : 'NO (ACTIVE)';
+          voiceTelemMuted.style.color = s.isMuted ? '#ef4444' : '#10b981';
+        }
+        if (voiceTelemLed) {
+          voiceTelemLed.textContent = s.indicatorActive ? 'ON (ACTIVE)' : 'OFF (STANDBY)';
+          voiceTelemLed.style.color = s.indicatorActive ? '#10b981' : '#64748b';
+        }
+        if (voiceToggleMuteBtn) {
+          voiceToggleMuteBtn.textContent = s.isMuted ? 'Unmute Hardware' : 'Toggle Hardware Mute';
+          voiceToggleMuteBtn.style.borderColor = s.isMuted ? '#10b981' : '#ef4444';
+          voiceToggleMuteBtn.style.color = s.isMuted ? '#10b981' : '#ef4444';
+        }
+      }
+    } catch (err) {
+      console.warn('Voice status refresh error:', err);
+    }
+  }
+
+  if (voiceToggleMuteBtn) {
+    voiceToggleMuteBtn.addEventListener('click', async () => {
+      try {
+        const nextMuteState = !isHardwareMuted;
+        const res = await fetch('/api/jarvis/voice/mute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ muted: nextMuteState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          await refreshVoiceStatus();
+        }
+      } catch (err) {
+        console.error('Toggle mute failed:', err);
+      }
+    });
+  }
+
+  if (voicePollBtn) {
+    voicePollBtn.addEventListener('click', refreshVoiceStatus);
+  }
+
+  if (voiceWakewordBtn && voiceWakewordInput && voiceWakewordResult) {
+    voiceWakewordBtn.addEventListener('click', async () => {
+      const text = voiceWakewordInput.value.trim();
+      voiceWakewordResult.innerHTML = '<span style="color: var(--hud-cyan);">Listening for wake trigger...</span>';
+      try {
+        const res = await fetch('/api/jarvis/voice/wake-word', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ inputAudioOrText: text })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const w = data.data;
+          if (w.detected) {
+            voiceWakewordResult.innerHTML = `
+              <span style="color: #10b981; font-weight: bold;">[WAKE WORD DETECTED: "${w.keyword}"]</span>
+              <span style="color: #cbd5e1; margin-left: 8px;">Confidence: ${(w.confidence * 100).toFixed(1)}% | Utterance: "${w.utterance || 'none'}"</span>
+            `;
+          } else {
+            voiceWakewordResult.innerHTML = `
+              <span style="color: #94a3b8;">[NO WAKE WORD DETECTED]</span>
+            `;
+          }
+        } else {
+          voiceWakewordResult.innerHTML = `<span style="color: #ef4444;">${data.error || 'Check failed'}</span>`;
+        }
+      } catch (err) {
+        voiceWakewordResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // Tab 2: Speech-to-Text (STT) Controller
+  const voiceSttLangSelect = document.getElementById('voice-stt-lang-select');
+  const voiceSttPayload = document.getElementById('voice-stt-input-payload');
+  const voiceSttBtn = document.getElementById('voice-stt-transcribe-btn');
+  const voiceSttResults = document.getElementById('voice-stt-results');
+
+  const presetSttDiag = document.getElementById('voice-stt-preset-diag');
+  const presetSttTagalog = document.getElementById('voice-stt-preset-tagalog');
+  const presetSttSpanish = document.getElementById('voice-stt-preset-spanish');
+
+  if (presetSttDiag && voiceSttPayload && voiceSttLangSelect) {
+    presetSttDiag.addEventListener('click', () => {
+      voiceSttLangSelect.value = 'en';
+      voiceSttPayload.value = 'jarvis, initialize system self check and report diagnostics';
+    });
+  }
+  if (presetSttTagalog && voiceSttPayload && voiceSttLangSelect) {
+    presetSttTagalog.addEventListener('click', () => {
+      voiceSttLangSelect.value = 'fil';
+      voiceSttPayload.value = 'kumusta jarvis, ano ang lagay ng system ngayon';
+    });
+  }
+  if (presetSttSpanish && voiceSttPayload && voiceSttLangSelect) {
+    presetSttSpanish.addEventListener('click', () => {
+      voiceSttLangSelect.value = 'es';
+      voiceSttPayload.value = 'hola jarvis, cual es el estado del sistema en este momento';
+    });
+  }
+
+  if (voiceSttBtn && voiceSttPayload && voiceSttResults) {
+    voiceSttBtn.addEventListener('click', async () => {
+      const audioPayload = voiceSttPayload.value.trim();
+      const languageHint = voiceSttLangSelect ? voiceSttLangSelect.value : 'en';
+
+      voiceSttResults.innerHTML = '<span style="color: var(--hud-cyan);">Transcribing acoustic stream...</span>';
+      try {
+        const res = await fetch('/api/jarvis/voice/transcribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ audioPayload, languageHint })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const t = data.data;
+          const wordsHtml = t.words.map((w) => `
+            <tr>
+              <td style="padding: 4px 8px; color: #fff; font-weight: 500;">${w.word}</td>
+              <td style="padding: 4px 8px; color: #94a3b8;">${w.startTimeMs} - ${w.endTimeMs} ms</td>
+              <td style="padding: 4px 8px; color: #10b981;">${(w.confidence * 100).toFixed(0)}%</td>
+            </tr>
+          `).join('');
+
+          voiceSttResults.innerHTML = `
+            <div style="margin-bottom: 10px;">
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Transcribed Output:</div>
+              <div style="font-size: 0.95rem; font-weight: bold; color: #fff; background: #060b17; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+                "${t.transcript}"
+              </div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-bottom: 10px; font-size: 0.75rem;">
+              <span class="badge" style="background: rgba(0, 240, 255, 0.15); color: var(--hud-cyan);">Lang: ${t.detectedLanguage.toUpperCase()}</span>
+              <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Confidence: ${(t.confidence * 100).toFixed(1)}%</span>
+              <span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">Duration: ${t.durationMs}ms</span>
+            </div>
+            <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                <thead>
+                  <tr style="background: #0f172a; color: #94a3b8; text-align: left;">
+                    <th style="padding: 4px 8px;">Word</th>
+                    <th style="padding: 4px 8px;">Time Range</th>
+                    <th style="padding: 4px 8px;">Confidence</th>
+                  </tr>
+                </thead>
+                <tbody>${wordsHtml}</tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          voiceSttResults.innerHTML = `<span style="color: #ef4444;">${data.error || 'Transcription failed'}</span>`;
+        }
+      } catch (err) {
+        voiceSttResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // Tab 3: Speech Synthesis (TTS) Controller
+  const voiceTtsPersonaSelect = document.getElementById('voice-tts-persona-select');
+  const voiceTtsEmotionSelect = document.getElementById('voice-tts-emotion-select');
+  const voiceTtsPitch = document.getElementById('voice-tts-pitch');
+  const voicePitchVal = document.getElementById('voice-pitch-val');
+  const voiceTtsRate = document.getElementById('voice-tts-rate');
+  const voiceRateVal = document.getElementById('voice-rate-val');
+  const voiceTtsTextInput = document.getElementById('voice-tts-text-input');
+  const voiceTtsSynthesizeBtn = document.getElementById('voice-tts-synthesize-btn');
+  const voiceTtsAudioPlayer = document.getElementById('voice-tts-audio-player');
+  const voiceTtsAudioPlaceholder = document.getElementById('voice-tts-audio-placeholder');
+  const voiceTtsResults = document.getElementById('voice-tts-results');
+
+  if (voiceTtsPitch && voicePitchVal) {
+    voiceTtsPitch.addEventListener('input', () => {
+      voicePitchVal.textContent = voiceTtsPitch.value;
+    });
+  }
+  if (voiceTtsRate && voiceRateVal) {
+    voiceTtsRate.addEventListener('input', () => {
+      voiceRateVal.textContent = voiceTtsRate.value;
+    });
+  }
+
+  if (voiceTtsSynthesizeBtn && voiceTtsTextInput && voiceTtsResults) {
+    voiceTtsSynthesizeBtn.addEventListener('click', async () => {
+      const text = voiceTtsTextInput.value.trim();
+      const personaId = voiceTtsPersonaSelect ? voiceTtsPersonaSelect.value : 'jarvis-classic';
+      const emotion = voiceTtsEmotionSelect ? voiceTtsEmotionSelect.value : 'neutral';
+      const pitch = voiceTtsPitch ? parseFloat(voiceTtsPitch.value) : 1.0;
+      const rate = voiceTtsRate ? parseFloat(voiceTtsRate.value) : 1.0;
+
+      voiceTtsResults.innerHTML = '<span style="color: var(--hud-cyan);">Synthesizing speech with neural prosody...</span>';
+      try {
+        const res = await fetch('/api/jarvis/voice/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ text, personaId, emotion, pitch, rate, format: 'wav' })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const s = data.data;
+          // Set audio player src with Base64 RIFF WAV
+          if (voiceTtsAudioPlayer && s.audioBase64) {
+            voiceTtsAudioPlayer.src = `data:audio/wav;base64,${s.audioBase64}`;
+            voiceTtsAudioPlayer.style.display = 'block';
+            if (voiceTtsAudioPlaceholder) voiceTtsAudioPlaceholder.style.display = 'none';
+            voiceTtsAudioPlayer.play().catch(() => {});
+          }
+
+          // Build phonemes list & waveform preview
+          const phonemesHtml = s.phonemes.slice(0, 10).map((p) =>
+            `<span style="background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3); padding: 2px 6px; border-radius: 4px; color: var(--hud-cyan); font-size: 0.7rem;">${p.phoneme} (${p.durationMs}ms)</span>`
+          ).join(' ');
+
+          const waveformBars = s.waveform.slice(0, 32).map((val) => {
+            const heightPercent = Math.max(10, Math.min(100, Math.round(val * 100)));
+            return `<div style="flex: 1; height: ${heightPercent}%; background: var(--hud-cyan); border-radius: 2px; opacity: 0.85;"></div>`;
+          }).join('');
+
+          voiceTtsResults.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--hud-cyan); font-weight: bold;">[SYNTHESIS COMPLETE]</span>
+              <span style="color: #94a3b8;">${s.sampleRate}Hz | 16-bit PCM WAV | ${s.durationMs}ms</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 8px;">
+              Persona: <strong style="color: #fff;">${s.personaId}</strong> | Emotion: <strong style="color: #a855f7;">${s.emotion}</strong>
+            </div>
+            <!-- Waveform Envelope Preview -->
+            <div style="height: 48px; background: #060b17; border: 1px solid #1e293b; border-radius: 4px; padding: 4px 8px; display: flex; align-items: flex-end; gap: 2px; margin-bottom: 8px;">
+              ${waveformBars}
+            </div>
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 4px;">Phoneme Timing Map:</div>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+              ${phonemesHtml}
+            </div>
+          `;
+        } else {
+          voiceTtsResults.innerHTML = `<span style="color: #ef4444;">${data.error || 'Synthesis failed'}</span>`;
+        }
+      } catch (err) {
+        voiceTtsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // Tab 4: Acoustic Classifier Controller
+  const voiceAcousticInput = document.getElementById('voice-acoustic-samples-input');
+  const voiceAcousticBtn = document.getElementById('voice-acoustic-analyze-btn');
+  const voiceAcousticResults = document.getElementById('voice-acoustic-results');
+
+  const presetSpeech = document.getElementById('voice-acoustic-preset-speech');
+  const presetTyping = document.getElementById('voice-acoustic-preset-typing');
+  const presetAlarm = document.getElementById('voice-acoustic-preset-alarm');
+  const presetQuiet = document.getElementById('voice-acoustic-preset-quiet');
+
+  if (presetSpeech && voiceAcousticInput) {
+    presetSpeech.addEventListener('click', () => {
+      voiceAcousticInput.value = '[0.05, 0.12, 0.45, 0.65, 0.78, 0.42, 0.18, 0.04, -0.15, -0.55, -0.72, -0.38, 0.02]';
+    });
+  }
+  if (presetTyping && voiceAcousticInput) {
+    presetTyping.addEventListener('click', () => {
+      voiceAcousticInput.value = '[0.01, 0.02, 0.82, 0.03, 0.01, 0.79, 0.02, 0.01, 0.85, 0.02]';
+    });
+  }
+  if (presetAlarm && voiceAcousticInput) {
+    presetAlarm.addEventListener('click', () => {
+      voiceAcousticInput.value = '[0.92, 0.95, 0.98, 0.96, 0.91, 0.94, 0.97, 0.93, 0.95, 0.99]';
+    });
+  }
+  if (presetQuiet && voiceAcousticInput) {
+    presetQuiet.addEventListener('click', () => {
+      voiceAcousticInput.value = '[0.001, 0.002, -0.001, 0.003, -0.002, 0.001, 0.002]';
+    });
+  }
+
+  if (voiceAcousticBtn && voiceAcousticInput && voiceAcousticResults) {
+    voiceAcousticBtn.addEventListener('click', async () => {
+      let audioSamples = [];
+      try {
+        audioSamples = JSON.parse(voiceAcousticInput.value.trim());
+      } catch {
+        voiceAcousticResults.innerHTML = '<span style="color: #ef4444;">Invalid JSON float array. Format: [0.1, 0.2, ...]</span>';
+        return;
+      }
+
+      voiceAcousticResults.innerHTML = '<span style="color: var(--hud-cyan);">Running spectral acoustic classifier...</span>';
+      try {
+        const res = await fetch('/api/jarvis/voice/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ audioSamples })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const a = data.data;
+          const isHazard = a.hazardWarning;
+          const eventsHtml = a.soundEvents.map((e) => `
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
+              <span style="color: var(--hud-cyan); font-weight: bold; text-transform: uppercase;">[${e.type}]</span>
+              <span style="color: #cbd5e1;">Confidence: ${(e.confidence * 100).toFixed(0)}%</span>
+            </div>
+          `).join('');
+
+          voiceAcousticResults.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;">
+              <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Decibel SPL</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: ${isHazard ? '#ef4444' : 'var(--hud-cyan)'};">${a.decibelSPL} dB</div>
+              </div>
+              <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Signal-to-Noise</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #10b981;">${a.snrRatio} dB</div>
+              </div>
+              <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px; text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8;">Dominant Peak</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #a855f7;">${a.dominantFrequency} Hz</div>
+              </div>
+            </div>
+            ${isHazard ? `
+              <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 6px; padding: 8px; color: #ef4444; font-weight: bold; margin-bottom: 10px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                ACOUSTIC HAZARD ALERT: Sound pressure exceeds safe limit (>85 dB SPL)!
+              </div>
+            ` : ''}
+            <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px;">
+              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: bold; margin-bottom: 6px;">Detected Sound Events (SED):</div>
+              ${eventsHtml}
+            </div>
+          `;
+        } else {
+          voiceAcousticResults.innerHTML = `<span style="color: #ef4444;">${data.error || 'Acoustic analysis failed'}</span>`;
+        }
+      } catch (err) {
+        voiceAcousticResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // Tab 5: Voice Personas Controller
+  const voicePersonasGrid = document.getElementById('voice-personas-grid');
+  const voiceActivePersonaName = document.getElementById('voice-active-persona-name');
+
+  async function loadVoicePersonas() {
+    if (!voicePersonasGrid) return;
+    try {
+      const res = await fetch('/api/jarvis/voice/personas');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        const personas = data.data;
+        voicePersonasGrid.innerHTML = personas.map((p) => `
+          <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="color: #fff; font-size: 0.9rem;">${p.name}</strong>
+                <span style="font-size: 0.7rem; color: var(--hud-cyan); font-family: monospace;">${p.language}</span>
+              </div>
+              <p style="font-size: 0.75rem; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">
+                ${p.description}
+              </p>
+              <div style="display: flex; gap: 8px; font-size: 0.7rem; color: #cbd5e1; font-family: monospace; margin-bottom: 12px;">
+                <span>Pitch: ${p.defaultPitch}</span>
+                <span>Rate: ${p.defaultRate}x</span>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline select-persona-btn" data-persona-id="${p.id}" style="border-color: var(--hud-cyan); color: var(--hud-cyan); width: 100%;">
+              Activate Persona
+            </button>
+          </div>
+        `).join('');
+
+        voicePersonasGrid.querySelectorAll('.select-persona-btn').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            const personaId = e.currentTarget.getAttribute('data-persona-id');
+            try {
+              const postRes = await fetch('/api/jarvis/voice/persona', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+                body: JSON.stringify({ personaId })
+              });
+              const postData = await postRes.json();
+              if (postData.success && postData.data) {
+                if (voiceActivePersonaName) voiceActivePersonaName.textContent = postData.data.name;
+                if (voiceTtsPersonaSelect) voiceTtsPersonaSelect.value = personaId;
+              }
+            } catch (err) {
+              console.error('Failed to set persona:', err);
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to load personas:', err);
+    }
+  }
+
   // Start
   initSession();
 });
