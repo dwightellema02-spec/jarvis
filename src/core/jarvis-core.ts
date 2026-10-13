@@ -154,6 +154,11 @@ import {
   ManageProjectTool,
   EisenhowerMatrixTool,
 } from '../goals/index.js';
+import {
+  ProactiveManager,
+  ProactiveAgent,
+  createProactiveTools,
+} from '../proactive/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -185,6 +190,7 @@ export interface JarvisCoreConfig {
   voiceManager?: VoiceManager;
   deviceManager?: DeviceManager;
   goalsManager?: GoalsManager;
+  proactiveManager?: ProactiveManager;
 }
 
 export interface JarvisChatRequest {
@@ -238,6 +244,7 @@ export class JarvisCore {
   private voiceManager: VoiceManager;
   private deviceManager: DeviceManager;
   private goalsManager: GoalsManager;
+  private proactiveManager: ProactiveManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -545,7 +552,22 @@ export class JarvisCore {
     this.toolRegistry.registerImplementation(new ManageProjectTool(this.goalsManager));
     this.toolRegistry.registerImplementation(new EisenhowerMatrixTool(this.goalsManager));
 
-    logger.info('JARVIS Core initialized with Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Proactive Intelligence Engine, Agent, and Tools
+    this.proactiveManager =
+      config.proactiveManager ||
+      new ProactiveManager(this.goalsManager, {
+        permissionManager: this.permissionManager,
+        guardian: this.guardian,
+        auditLogger: this.auditLogger,
+      });
+    const proactiveAgent = new ProactiveAgent(this.proactiveManager);
+    this.agentRegistry.registerImplementation(proactiveAgent);
+
+    for (const tool of createProactiveTools(this.proactiveManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -943,6 +965,10 @@ export class JarvisCore {
 
   public getGoalsManager(): GoalsManager {
     return this.goalsManager;
+  }
+
+  public getProactiveManager(): ProactiveManager {
+    return this.proactiveManager;
   }
 
   public async orchestrate(

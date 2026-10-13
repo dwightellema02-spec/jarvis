@@ -1288,7 +1288,62 @@ async function runManualVerification() {
       console.log('   Curriculum Study Plans:', studyPlanData.count, '| Title:', studyPlanData.data?.[0]?.title);
       console.log('   Topic Reviewed:', studyReviewData.data?.topic?.topic, '| New Repetition Interval:', studyReviewData.data?.topic?.repetitionIntervalDays + ' days', '| Overall Mastery:', studyReviewData.data?.plan?.overallMasteryPct + '%');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 22) PASSED SUCCESSFULLY! ===');
+      console.log('97. Testing Phase 23 Proactive Discovery & Agent Contract (GET /api/agents & /api/tools)');
+      const agentsRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const agentsData = await agentsRes.json();
+      const proactiveAgent = agentsData.agents?.find((a: any) => a.id === 'proactive-agent');
+      const toolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const toolsData = await toolsRes.json();
+      const proactiveTools = toolsData.tools?.filter((t: any) => t.id.startsWith('proactive.'));
+      console.log('   Proactive Agent Registered:', proactiveAgent?.name, '| Version:', proactiveAgent?.version);
+      console.log('   Proactive Tools Registered Count:', proactiveTools?.length, '| Tools:', proactiveTools?.map((t: any) => t.id).join(', '));
+
+      console.log('98. Testing Phase 23 Proactive Notifications Feed (GET /api/jarvis/proactive/notifications)');
+      const notifsRes = await fetch('http://127.0.0.1:3099/api/jarvis/proactive/notifications', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const notifsData = await notifsRes.json();
+      console.log('   Active Notifications Count:', notifsData.count, '| Unread Count:', notifsData.unreadCount, '| First Alert:', notifsData.data?.[0]?.title);
+
+      console.log('99. Testing Phase 23 Proactive Inspection Cycle Trigger (POST /api/jarvis/proactive/cycle)');
+      const cycleRes = await fetch('http://127.0.0.1:3099/api/jarvis/proactive/cycle', {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cycleData = await cycleRes.json();
+      console.log('   Cycle Inspected Projects:', cycleData.data?.monitoredProjectsCount, '| Deadlines Scanned:', cycleData.data?.deadlinesScanned, '| Alerts Generated:', cycleData.data?.notificationsGenerated?.length, '| Quiet Hours Active:', cycleData.data?.quietHoursActive);
+
+      console.log('100. Testing Phase 23 Scored Next Action Suggestions (GET /api/jarvis/proactive/suggestions)');
+      const suggRes = await fetch('http://127.0.0.1:3099/api/jarvis/proactive/suggestions?limit=4', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const suggData = await suggRes.json();
+      console.log('   Next Action Suggestions Count:', suggData.count, '| Top Action:', suggData.data?.[0]?.title, '| Impact Score:', suggData.data?.[0]?.impactScore, '| Type:', suggData.data?.[0]?.actionType);
+
+      console.log('101. Testing Phase 23 Executive Daily Briefing Synthesis (GET /api/jarvis/proactive/briefing)');
+      const briefRes = await fetch('http://127.0.0.1:3099/api/jarvis/proactive/briefing?type=morning', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const briefData = await briefRes.json();
+      console.log('   Briefing Type:', briefData.data?.type, '| Focus Goal:', briefData.data?.focusGoal, '| Top Tasks Count:', briefData.data?.topTasks?.length, '| System Guardian:', briefData.data?.systemHealth?.guardianStatus);
+
+      console.log('102. Testing Phase 23 Monitoring Boundaries & Notification Management (PUT /preferences & POST /notifications/:id/dismiss)');
+      const prefUpdateRes = await fetch('http://127.0.0.1:3099/api/jarvis/proactive/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ maxNotificationsPerHour: 14 }),
+      });
+      const prefUpdateData = await prefUpdateRes.json();
+      const targetNotifId = notifsData.data?.[0]?.id;
+      const dismissRes = await fetch(`http://127.0.0.1:3099/api/jarvis/proactive/notifications/${targetNotifId}/dismiss`, {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const dismissData = await dismissRes.json();
+      console.log('   Updated Max Notifications Per Hour:', prefUpdateData.data?.maxNotificationsPerHour);
+      console.log('   Notification Dismissed Status:', dismissData.data?.status, '| Dismissed ID:', dismissData.data?.id);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 23) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -976,14 +976,51 @@ $$\text{IDEA} \longrightarrow \text{GOAL} \longrightarrow \text{PLAN} \longright
 
 ---
 
+## ⏰ Phase 23 Architecture: Proactive JARVIS Intelligence Studio
+
+JARVIS operates as a true autonomous assistant with background deadline monitoring, priority task unblocking, executive daily briefings, and strict operator monitoring boundaries:
+
+### 1. The Proactive Invariant ("Proactive Does NOT Mean Unrestricted")
+* **Explicit Project Whitelisting**: JARVIS is strictly restricted to inspecting projects authorized by the operator in `preferences.monitoredProjectIds` (seeded with `['proj_jarvis', 'proj_tuklas']`). Unapproved projects are never scanned.
+* **Quiet Hours Suppression**: Non-critical notifications are automatically silenced during configured quiet hours (default: `22:30` to `07:00`). Critical milestone and overdue alerts safely bypass quiet hours.
+* **Anti-Fatigue Rate Limiting**: Notifications are strictly capped per hour (default: `10/hr`) to prevent operator alert overload.
+
+### 2. Proactive Daemon & Inspection Engine
+* **Deadline Radar**: Inspects goals and milestones across approved projects, calculating hours remaining and generating imminent deliverable warnings.
+* **Task Stall & Blocker Detection**: Identifies pending tasks waiting on unfinished prerequisites or exceeding estimated minutes, suggesting decomposition and sub-task unblocking.
+* **Ebbinghaus Spaced Repetition Due Queue**: Inspects curriculum study plans from Phase 22, generating retention drill reminders when topics reach their spaced interval.
+* **Continuous Next Action Scoring**: Continuously scores pending tasks using Eisenhower quadrant weights, dependency status, in-progress momentum, and circadian focus alignment ($0\text{ to }100$ impact score).
+* **Executive Daily Briefings**: Synthesizes structured morning briefings (greeting, primary strategic objective, top mission tasks, upcoming milestones, system health telemetry, and inspirational note) and evening mission syntheses.
+
+### 3. Security Gating, Agent & 8 Proactive Tools
+* Gated by `ResourceType.PROJECTS` (`READ` for notification feed, suggestions, briefings, preferences; `WRITE` for read/dismiss/snooze actions, boundary updates; `EXECUTE` for background inspection cycle trigger).
+* Powered by `ProactiveManager`, `PreferencesManager`, `NotificationManager`, `ProactiveDaemon`, and `ProactiveAgent` (`id: 'proactive-agent'`, `version: '0.23.0-phase23'`).
+* 8 Registered Tools:
+  1. `proactive.run_cycle` — Triggers a comprehensive background inspection cycle across approved projects.
+  2. `proactive.list_notifications` — Retrieves active notifications filtered by status, severity, or type.
+  3. `proactive.dismiss_notification` — Dismisses or snoozes notifications by ID.
+  4. `proactive.suggest_next_action` — Returns scored and ranked actionable next steps.
+  5. `proactive.scan_deadlines` — Inspects imminent milestones and due dates.
+  6. `proactive.generate_briefing` — Synthesizes morning or evening executive briefings.
+  7. `proactive.get_preferences` — Retrieves operator monitoring boundaries and rate limit settings.
+  8. `proactive.update_preferences` — Modifies monitored projects, quiet hours, and notification channels.
+
+### 4. Interactive HUD Proactive Studio
+* **Notifications Feed Tab**: Real-time alert list with unread counter, severity color pills, snooze options, and instant dismiss controls.
+* **Action Recommendations Tab**: Scored action cards with estimated time, delegate, action type pill, and impact score progress bars.
+* **Executive Daily Briefing Tab**: Morning and evening briefing viewer with strategic focus goal, priority tasks, deadlines radar, and host telemetry.
+* **Monitoring Boundaries Tab**: Interactive project authorization tag manager, quiet hours scheduler, rate limiting slider, and dispatch channel toggles.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (590 automated tests across 66 test files covering all phases, plus 96 end-to-end manual verification steps):
+Run the full Vitest suite (631 automated tests across 68 test files covering all phases, plus 102 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 22
+# Run manual end-to-end verification across Phases 1 to 23
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

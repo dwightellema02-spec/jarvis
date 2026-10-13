@@ -7481,7 +7481,490 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshStudyPlans();
   }
 
+  // ==============================================================
+  // PHASE 23: PROACTIVE INTELLIGENCE HUD CONTROLLER
+  // ==============================================================
+  function initProactiveStudio() {
+    const navBtn = document.getElementById('nav-proactive');
+    const chipBtn = document.getElementById('chip-proactive-agent');
+    const modal = document.getElementById('proactive-modal');
+    const backdrop = document.getElementById('proactive-modal-backdrop');
+    const closeBtn = document.getElementById('proactive-modal-close');
+    const runCycleBtn = document.getElementById('proactive-run-cycle-btn');
+
+    if (!modal) return;
+
+    function openModal() {
+      modal.style.display = 'flex';
+      refreshProactiveAll();
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    if (navBtn) navBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipBtn) chipBtn.addEventListener('click', () => openModal());
+    if (closeBtn) closeBtn.addEventListener('click', () => closeModal());
+    if (backdrop) backdrop.addEventListener('click', () => closeModal());
+
+    // Tab switching
+    const tabBtns = modal.querySelectorAll('.hud-tab-btn');
+    const tabContents = modal.querySelectorAll('.hud-tab-content');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => {
+          b.classList.remove('active');
+          b.style.color = '#94a3b8';
+          b.style.borderBottom = 'none';
+        });
+        tabContents.forEach((c) => {
+          c.classList.remove('active');
+          c.style.display = 'none';
+        });
+
+        btn.classList.add('active');
+        btn.style.color = 'var(--hud-cyan)';
+        btn.style.borderBottom = '2px solid var(--hud-cyan)';
+
+        const activeContent = document.getElementById(targetTab);
+        if (activeContent) {
+          activeContent.classList.add('active');
+          activeContent.style.display = 'block';
+        }
+      });
+    });
+
+    // Run Cycle trigger
+    if (runCycleBtn) {
+      runCycleBtn.addEventListener('click', async () => {
+        const origText = runCycleBtn.innerHTML;
+        try {
+          runCycleBtn.innerHTML = '⚡ Scanning...';
+          runCycleBtn.disabled = true;
+          const res = await fetch('/api/jarvis/proactive/cycle', {
+            method: 'POST',
+            headers: { 'x-user-id': 'dwight' },
+          });
+          const data = await res.json();
+          if (data.success) {
+            refreshNotifications();
+            refreshSuggestions();
+            alert(`Proactive scan completed: ${data.data.deadlinesScanned} deadlines inspected, ${data.data.notificationsGenerated.length} alerts generated across ${data.data.monitoredProjectsCount} monitored projects.`);
+          }
+        } catch (err) {
+          alert(`Error executing proactive cycle: ${err.message}`);
+        } finally {
+          runCycleBtn.innerHTML = origText;
+          runCycleBtn.disabled = false;
+        }
+      });
+    }
+
+    // Filter controls in Tab 1
+    let currentNotifFilter = 'all';
+    const filterBtns = document.querySelectorAll('#notif-filter-group button');
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach((b) => {
+          b.classList.remove('active');
+          b.style.background = '#0b1329';
+          b.style.color = '#94a3b8';
+          b.style.border = '1px solid #334155';
+        });
+        btn.classList.add('active');
+        btn.style.background = 'rgba(0, 240, 255, 0.2)';
+        btn.style.color = 'var(--hud-cyan)';
+        btn.style.border = '1px solid var(--hud-cyan)';
+        currentNotifFilter = btn.getAttribute('data-filter') || 'all';
+        refreshNotifications();
+      });
+    });
+
+    async function refreshNotifications() {
+      const listEl = document.getElementById('proactive-notifications-list');
+      const countLabel = document.getElementById('notif-count-label');
+      const badge = document.getElementById('proactive-unread-badge');
+      if (!listEl) return;
+
+      try {
+        let queryUrl = '/api/jarvis/proactive/notifications';
+        if (currentNotifFilter === 'unread') queryUrl += '?status=unread';
+        else if (currentNotifFilter === 'snoozed') queryUrl += '?status=snoozed';
+        else if (currentNotifFilter === 'critical') queryUrl += '?severity=critical';
+
+        const res = await fetch(queryUrl, { headers: { 'x-user-id': 'dwight' } });
+        const data = await res.json();
+        if (!data.success) return;
+
+        if (badge) badge.textContent = data.unreadCount || 0;
+        if (countLabel) countLabel.textContent = `${data.count} alerts active (${data.unreadCount} unread)`;
+
+        if (!data.data || data.data.length === 0) {
+          listEl.innerHTML = `
+            <div style="background: #020617; border: 1px dashed #334155; border-radius: 6px; padding: 1.5rem; text-align: center; color: #94a3b8; font-size: 0.85rem;">
+              No notifications matching current filter "${currentNotifFilter}". All monitoring boundaries optimal.
+            </div>
+          `;
+          return;
+        }
+
+        const sevColors = {
+          critical: '#ef4444',
+          high: '#f97316',
+          medium: '#eab308',
+          low: '#38bdf8',
+          info: '#06b6d4',
+        };
+
+        listEl.innerHTML = data.data.map((n) => `
+          <div style="background: #020617; border: 1px solid ${n.status === 'unread' ? 'rgba(0, 240, 255, 0.4)' : '#1e293b'}; border-left: 4px solid ${sevColors[n.severity] || '#38bdf8'}; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: ${sevColors[n.severity] || '#38bdf8'};">
+                  ${n.severity}
+                </span>
+                <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">${n.type}</span>
+                ${n.status === 'snoozed' ? '<span style="font-size: 0.7rem; color: #a855f7;">[Snoozed]</span>' : ''}
+              </div>
+              <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 0.9rem;">${n.title}</h4>
+              <p style="margin: 0; color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">${n.message}</p>
+              ${n.context && n.context.projectId ? `<div style="margin-top: 6px; font-size: 0.72rem; color: #38bdf8;">Project: <code>${n.context.projectId}</code></div>` : ''}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+              ${n.status === 'unread' ? `
+                <button class="btn btn-sm btn-mark-read" data-id="${n.id}" style="font-size: 0.7rem; padding: 3px 8px; background: #0b1329; border: 1px solid #334155; color: #38bdf8; border-radius: 4px; cursor: pointer;">
+                  Mark Read
+                </button>
+              ` : ''}
+              <button class="btn btn-sm btn-snooze" data-id="${n.id}" style="font-size: 0.7rem; padding: 3px 8px; background: #0b1329; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px; cursor: pointer;">
+                Snooze 30m
+              </button>
+              <button class="btn btn-sm btn-dismiss" data-id="${n.id}" style="font-size: 0.7rem; padding: 3px 8px; background: #0b1329; border: 1px solid #334155; color: #f87171; border-radius: 4px; cursor: pointer;">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        // Wire action buttons
+        listEl.querySelectorAll('.btn-mark-read').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            await fetch(`/api/jarvis/proactive/notifications/${id}/read`, {
+              method: 'POST',
+              headers: { 'x-user-id': 'dwight' },
+            });
+            refreshNotifications();
+          });
+        });
+
+        listEl.querySelectorAll('.btn-snooze').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            await fetch(`/api/jarvis/proactive/notifications/${id}/snooze`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+              body: JSON.stringify({ minutes: 30 }),
+            });
+            refreshNotifications();
+          });
+        });
+
+        listEl.querySelectorAll('.btn-dismiss').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            await fetch(`/api/jarvis/proactive/notifications/${id}/dismiss`, {
+              method: 'POST',
+              headers: { 'x-user-id': 'dwight' },
+            });
+            refreshNotifications();
+          });
+        });
+      } catch (err) {
+        if (listEl) listEl.innerHTML = `<div style="color: #ef4444; font-size: 0.8rem;">Error loading notifications: ${err.message}</div>`;
+      }
+    }
+
+    // Refresh Suggestions in Tab 2
+    const refreshSuggsBtn = document.getElementById('refresh-suggestions-btn');
+    if (refreshSuggsBtn) refreshSuggsBtn.addEventListener('click', () => refreshSuggestions());
+
+    async function refreshSuggestions() {
+      const listEl = document.getElementById('proactive-suggestions-list');
+      if (!listEl) return;
+
+      try {
+        const res = await fetch('/api/jarvis/proactive/suggestions?limit=6', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success || !data.data) return;
+
+        listEl.innerHTML = data.data.map((s) => `
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: rgba(0, 240, 255, 0.1); color: var(--hud-cyan); font-weight: 600; text-transform: uppercase;">
+                  ${s.actionType}
+                </span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: #10b981;">Score: ${s.impactScore}/100</span>
+              </div>
+              <h4 style="margin: 0 0 6px 0; color: #fff; font-size: 0.95rem;">${s.title}</h4>
+              <p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">${s.rationale}</p>
+            </div>
+            <div style="border-top: 1px solid #1e293b; padding-top: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b;">
+              <span>⏱️ ${s.estimatedMinutes}m • ${s.urgency.toUpperCase()}</span>
+              <span>👤 ${s.suggestedDelegate}</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        if (listEl) listEl.innerHTML = `<div style="color: #ef4444;">Error loading suggestions: ${err.message}</div>`;
+      }
+    }
+
+    // Daily Briefing in Tab 3
+    let currentBriefingType = 'morning';
+    const morningBtn = document.getElementById('briefing-type-morning-btn');
+    const eveningBtn = document.getElementById('briefing-type-evening-btn');
+
+    if (morningBtn && eveningBtn) {
+      morningBtn.addEventListener('click', () => {
+        currentBriefingType = 'morning';
+        morningBtn.classList.add('active');
+        morningBtn.style.background = 'rgba(0, 240, 255, 0.2)';
+        morningBtn.style.color = 'var(--hud-cyan)';
+        eveningBtn.classList.remove('active');
+        eveningBtn.style.background = '#0b1329';
+        eveningBtn.style.color = '#94a3b8';
+        refreshBriefing();
+      });
+
+      eveningBtn.addEventListener('click', () => {
+        currentBriefingType = 'evening';
+        eveningBtn.classList.add('active');
+        eveningBtn.style.background = 'rgba(0, 240, 255, 0.2)';
+        eveningBtn.style.color = 'var(--hud-cyan)';
+        morningBtn.classList.remove('active');
+        morningBtn.style.background = '#0b1329';
+        morningBtn.style.color = '#94a3b8';
+        refreshBriefing();
+      });
+    }
+
+    async function refreshBriefing() {
+      const container = document.getElementById('proactive-briefing-container');
+      const dateBadge = document.getElementById('briefing-date-badge');
+      if (!container) return;
+
+      try {
+        const res = await fetch(`/api/jarvis/proactive/briefing?type=${currentBriefingType}`, {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success || !data.data) return;
+
+        const b = data.data;
+        if (dateBadge) dateBadge.textContent = b.date || 'Today';
+
+        const tasksHtml = (b.topTasks || []).map((t) => `
+          <div style="font-size: 0.8rem; color: #cbd5e1; padding: 4px 8px; background: #0b1329; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+            <span>${t.title}</span>
+            <span style="color: var(--hud-cyan); font-weight: 600;">${t.priority.toUpperCase()}</span>
+          </div>
+        `).join('') || '<div style="font-size: 0.8rem; color: #64748b;">No high-priority tasks pending</div>';
+
+        const deadlinesHtml = (b.imminentDeadlines || []).map((d) => `
+          <div style="font-size: 0.8rem; color: #cbd5e1; padding: 4px 8px; background: #0b1329; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+            <span>${d.title}</span>
+            <span style="color: #f59e0b; font-weight: 600;">${d.dueDate} (${d.hoursRemaining}h left)</span>
+          </div>
+        `).join('') || '<div style="font-size: 0.8rem; color: #64748b;">No imminent deadlines detected</div>';
+
+        container.innerHTML = `
+          <div style="border-bottom: 1px solid #1e293b; padding-bottom: 1rem; margin-bottom: 1rem;">
+            <h3 style="margin: 0 0 6px 0; color: #fff; font-size: 1.05rem;">${b.greeting}</h3>
+            <div style="font-size: 0.85rem; color: var(--hud-cyan);">
+              🎯 <strong>Primary Strategic Objective:</strong> ${b.focusGoal}
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <!-- Top Tasks -->
+            <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin: 0 0 8px 0; color: #38bdf8; font-size: 0.85rem;">Priority Mission Tasks</h5>
+              ${tasksHtml}
+            </div>
+
+            <!-- Imminent Deadlines -->
+            <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;">
+              <h5 style="margin: 0 0 8px 0; color: #f59e0b; font-size: 0.85rem;">Upcoming Milestone Targets</h5>
+              ${deadlinesHtml}
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+            <!-- System Health & Study Queue -->
+            <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #94a3b8;">
+              <div style="margin-bottom: 6px;">📚 <strong>Spaced Review Queue:</strong> <span style="color: #10b981;">${b.studyQueueCount} topics due</span></div>
+              <div style="margin-bottom: 6px;">🛡️ <strong>Security Guardian:</strong> <span style="color: #38bdf8;">${b.systemHealth?.guardianStatus}</span></div>
+              <div>⚡ <strong>Host Telemetry:</strong> CPU ${b.systemHealth?.cpuPercent}% | RAM ${b.systemHealth?.ramPercent}%</div>
+            </div>
+
+            <!-- Inspirational Note -->
+            <div style="background: rgba(0, 240, 255, 0.04); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 6px; padding: 10px; display: flex; align-items: center;">
+              <p style="margin: 0; font-size: 0.82rem; color: #cbd5e1; font-style: italic;">
+                "${b.inspirationalNote}"
+              </p>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        if (container) container.innerHTML = `<div style="color: #ef4444;">Error generating briefing: ${err.message}</div>`;
+      }
+    }
+
+    // Monitoring Boundaries & Preferences in Tab 4
+    const addProjBtn = document.getElementById('add-monitored-proj-btn');
+    const newProjInput = document.getElementById('new-monitored-proj-input');
+    const savePrefBtn = document.getElementById('save-preferences-btn');
+    const maxNotifsSlider = document.getElementById('pref-max-notifs-slider');
+    const maxNotifsLabel = document.getElementById('pref-max-notifs-label');
+
+    if (maxNotifsSlider && maxNotifsLabel) {
+      maxNotifsSlider.addEventListener('input', () => {
+        maxNotifsLabel.textContent = `${maxNotifsSlider.value} / hr`;
+      });
+    }
+
+    if (addProjBtn && newProjInput) {
+      addProjBtn.addEventListener('click', async () => {
+        const pId = newProjInput.value.trim();
+        if (!pId) return;
+        try {
+          const res = await fetch('/api/jarvis/proactive/monitored-projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ projectId: pId }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            newProjInput.value = '';
+            refreshPreferences();
+          } else {
+            alert(`Error: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    if (savePrefBtn) {
+      savePrefBtn.addEventListener('click', async () => {
+        try {
+          const quietEnabled = document.getElementById('pref-quiet-enabled')?.checked ?? true;
+          const quietStart = document.getElementById('pref-quiet-start')?.value || '22:30';
+          const quietEnd = document.getElementById('pref-quiet-end')?.value || '07:00';
+          const maxPerHour = Number(maxNotifsSlider?.value) || 10;
+          const chHud = document.getElementById('pref-channel-hud')?.checked ?? true;
+          const chSpeech = document.getElementById('pref-channel-speech')?.checked ?? false;
+          const chLog = document.getElementById('pref-channel-log')?.checked ?? true;
+
+          const res = await fetch('/api/jarvis/proactive/preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              quietHours: { enabled: quietEnabled, start: quietStart, end: quietEnd },
+              maxNotificationsPerHour: maxPerHour,
+              channels: { hud: chHud, audioSpeech: chSpeech, systemLog: chLog },
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert('Proactive monitoring preferences saved successfully!');
+            refreshPreferences();
+          } else {
+            alert(`Error saving preferences: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    async function refreshPreferences() {
+      const tagsContainer = document.getElementById('monitored-projects-tags');
+      if (!tagsContainer) return;
+
+      try {
+        const res = await fetch('/api/jarvis/proactive/preferences', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success || !data.data) return;
+
+        const p = data.data;
+
+        // Tags
+        tagsContainer.innerHTML = (p.monitoredProjectIds || []).map((id) => `
+          <span style="background: #0b1329; border: 1px solid #334155; color: var(--hud-cyan); font-size: 0.78rem; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px;">
+            <code>${id}</code>
+            <span class="btn-revoke-proj" data-id="${id}" style="cursor: pointer; color: #94a3b8; font-weight: bold;">&times;</span>
+          </span>
+        `).join('') || '<span style="color: #64748b; font-size: 0.75rem;">No monitored projects authorized.</span>';
+
+        tagsContainer.querySelectorAll('.btn-revoke-proj').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            await fetch(`/api/jarvis/proactive/monitored-projects/${id}`, {
+              method: 'DELETE',
+              headers: { 'x-user-id': 'dwight' },
+            });
+            refreshPreferences();
+          });
+        });
+
+        // Form fields
+        if (p.quietHours) {
+          const qCheck = document.getElementById('pref-quiet-enabled');
+          const qStart = document.getElementById('pref-quiet-start');
+          const qEnd = document.getElementById('pref-quiet-end');
+          if (qCheck) qCheck.checked = p.quietHours.enabled;
+          if (qStart) qStart.value = p.quietHours.start;
+          if (qEnd) qEnd.value = p.quietHours.end;
+        }
+
+        if (p.maxNotificationsPerHour && maxNotifsSlider) {
+          maxNotifsSlider.value = p.maxNotificationsPerHour;
+          if (maxNotifsLabel) maxNotifsLabel.textContent = `${p.maxNotificationsPerHour} / hr`;
+        }
+
+        if (p.channels) {
+          const chHud = document.getElementById('pref-channel-hud');
+          const chSpeech = document.getElementById('pref-channel-speech');
+          const chLog = document.getElementById('pref-channel-log');
+          if (chHud) chHud.checked = p.channels.hud;
+          if (chSpeech) chSpeech.checked = p.channels.audioSpeech;
+          if (chLog) chLog.checked = p.channels.systemLog;
+        }
+      } catch (err) {
+        if (tagsContainer) tagsContainer.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    }
+
+    function refreshProactiveAll() {
+      refreshNotifications();
+      refreshSuggestions();
+      refreshBriefing();
+      refreshPreferences();
+    }
+  }
+
   // Start
+  initProactiveStudio();
   initSession();
 });
 

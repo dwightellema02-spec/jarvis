@@ -43,6 +43,7 @@ import { createVisionRoutes } from './routes/vision.js';
 import { createVoiceRoutes } from './routes/voice.js';
 import { createDeviceRoutes } from './routes/devices.js';
 import { createGoalsRouter } from './routes/goals.js';
+import { createProactiveRouter } from './routes/proactive.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -260,7 +261,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     userId: 'dwight',
     resource: ResourceType.PROJECTS,
     level: PermissionLevel.ADMIN,
-    allowedActions: ['read', 'write', 'modify', 'delete', 'admin'],
+    allowedActions: ['read', 'write', 'execute', 'modify', 'delete', 'admin'],
     grantedBy: 'system',
   });
 
@@ -327,7 +328,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.22.0-phase22';
+  const version = '0.23.0-phase23';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -350,6 +351,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis', createVoiceRoutes(core.getVoiceManager()));
   app.use('/api/jarvis', createDeviceRoutes(core.getDeviceManager()));
   app.use('/api/jarvis/goals', createGoalsRouter(core.getGoalsManager()));
+  app.use('/api/jarvis/proactive', createProactiveRouter(core.getProactiveManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));
