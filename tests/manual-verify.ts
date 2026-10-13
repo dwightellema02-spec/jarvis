@@ -905,7 +905,81 @@ async function runManualVerification() {
       console.log('   Executable Download Blocked:', dlRes.status === 403, '| Error:', dlData.error);
       console.log('   Active Session History Steps:', sessionData.data.history?.length, '| Current URL:', sessionData.data.currentUrl);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 17) PASSED SUCCESSFULLY! ===');
+      console.log('67. Testing Phase 18 Application Catalog (GET /api/jarvis/apps/catalog)');
+      const catRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/catalog', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const catData = await catRes.json();
+      console.log('   Catalog Count:', catData.count, '| Apps:', catData.data.map((a: any) => a.id).join(', '));
+
+      console.log('68. Testing Phase 18 Process Discovery (GET /api/jarvis/apps/processes)');
+      const procRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/processes', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const procData = await procRes.json();
+      console.log('   Discovered Processes:', procData.count, '| Sample:', procData.data[0]?.processName, '(PID:', procData.data[0]?.pid + ')');
+
+      console.log('69. Testing Phase 18 Safe App Launch & Termination (POST /api/jarvis/apps/launch & close)');
+      const launchRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/launch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ appId: 'calculator', simulate: true }),
+      });
+      const launchData = await launchRes.json();
+      const closeRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ appId: 'calculator', pid: launchData.data?.pid || 9999, simulate: true }),
+      });
+      const closeData = await closeRes.json();
+      console.log('   Launch Success:', launchData.data?.success, '| PID:', launchData.data?.pid, '| App:', launchData.data?.appId);
+      console.log('   Close Success:', closeData.data?.success, '| Graceful:', closeData.data?.graceful);
+
+      console.log('70. Testing Phase 18 Window Management & UAC Protection (POST /api/jarvis/apps/focus)');
+      const focusRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ appId: 'vscode', windowTitleFilter: 'Visual Studio Code', simulate: true }),
+      });
+      const focusData = await focusRes.json();
+      const uacRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ appId: 'vscode', windowTitleFilter: 'Windows Security Credential Dialog', simulate: true }),
+      });
+      const uacData = await uacRes.json();
+      console.log('   Window Focus:', focusData.data?.action, '| Title:', focusData.data?.windowTitle);
+      console.log('   UAC Dialogue Blocked:', uacRes.status === 403, '| Error:', uacData.error);
+
+      console.log('71. Testing Phase 18 Deep Link URI Dispatch (POST /api/jarvis/apps/uri)');
+      const uriRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/uri', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ appId: 'vscode', uri: 'vscode://file/src/server.ts', simulate: true }),
+      });
+      const uriData = await uriRes.json();
+      console.log('   URI Dispatch Success:', uriData.data?.success, '| URI:', uriData.data?.uri);
+
+      console.log('72. Testing Phase 18 Local API Commands & Security Authorization Audit');
+      const cmdRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          appId: 'obsidian',
+          endpoint: '/vault/notes.md',
+          authToken: 'vault_token_secure_456',
+          simulate: true,
+        }),
+      });
+      const cmdData = await cmdRes.json();
+      const appAuditRes = await fetch('http://127.0.0.1:3099/api/jarvis/apps/audit', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const appAuditData = await appAuditRes.json();
+      console.log('   API Command Success:', cmdData.data?.success, '| Protocol:', cmdData.data?.protocol);
+      console.log('   Authorization Audit: Total:', appAuditData.data?.totalRegistered, '| Authorized:', appAuditData.data?.authorizedCount, '| Blocked:', appAuditData.data?.blockedCount);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 18) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

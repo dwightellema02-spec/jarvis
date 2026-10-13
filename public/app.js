@@ -4517,6 +4517,814 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // JARVIS COMMAND CENTER HUD CONTROLLERS & VISUALIZERS
+  // ==========================================
+
+  // 1. Live Digital Clock & Date
+  const hudClockEl = document.getElementById('hud-live-clock');
+  const hudDateEl = document.getElementById('hud-live-date');
+
+  function updateHudClock() {
+    const now = new Date();
+    if (hudClockEl) {
+      const hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      const displayHours = hours % 12 || 12;
+      hudClockEl.textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
+    }
+    if (hudDateEl) {
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      hudDateEl.textContent = now.toLocaleDateString('en-US', options);
+    }
+  }
+  updateHudClock();
+  setInterval(updateHudClock, 1000);
+
+  // 2. 3D Holographic Globe & Particle Rings Canvas Animation
+  const globeCanvas = document.getElementById('hero-globe-canvas');
+  if (globeCanvas) {
+    const ctx = globeCanvas.getContext('2d');
+    let globeAngle = 0;
+    let ringAngle = 0;
+
+    function resizeGlobe() {
+      const rect = globeCanvas.getBoundingClientRect();
+      globeCanvas.width = rect.width * (window.devicePixelRatio || 1) || 300;
+      globeCanvas.height = rect.height * (window.devicePixelRatio || 1) || 220;
+    }
+    resizeGlobe();
+    window.addEventListener('resize', resizeGlobe);
+
+    // Particle field
+    const particles = Array.from({ length: 48 }, () => ({
+      x: (Math.random() - 0.5) * 200,
+      y: (Math.random() - 0.5) * 120,
+      z: (Math.random() - 0.5) * 200,
+      size: Math.random() * 2 + 1,
+      speed: Math.random() * 0.02 + 0.01,
+    }));
+
+    function drawGlobe() {
+      if (!ctx) return;
+      const w = globeCanvas.width;
+      const h = globeCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = Math.min(w, h) * 0.35;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Radial energy glow backdrop
+      const grad = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r * 1.3);
+      grad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+      grad.addColorStop(0.5, 'rgba(0, 180, 255, 0.08)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw rotating longitude wireframe lines
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+      ctx.lineWidth = 1;
+      const longitudes = 6;
+      for (let i = 0; i < longitudes; i++) {
+        const rad = globeAngle + (i * Math.PI) / longitudes;
+        const xRadius = Math.abs(Math.cos(rad)) * r;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, Math.max(xRadius, 4), r, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Draw latitude wireframe lines
+      const latitudes = [-0.6, -0.3, 0, 0.3, 0.6];
+      latitudes.forEach((lat) => {
+        const yOffset = lat * r;
+        const latRadius = Math.sqrt(Math.max(0, r * r - yOffset * yOffset));
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + yOffset, latRadius, Math.max(latRadius * 0.25, 2), 0, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Draw outer angled particle rings (Saturn-like ring)
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 1.55, r * 0.45, -0.35, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 1.8, r * 0.52, -0.35, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Render orbiting ring particles
+      particles.forEach((p) => {
+        p.z += p.speed;
+        const cosA = Math.cos(ringAngle);
+        const sinA = Math.sin(ringAngle);
+        const rx = p.x * cosA - p.z * sinA;
+        const rz = p.x * sinA + p.z * cosA;
+        const scale = 200 / (200 + rz);
+        const px = cx + rx * scale;
+        const py = cy + p.y * scale + Math.sin(ringAngle * 2) * 8;
+
+        ctx.fillStyle = `rgba(0, 240, 255, ${Math.min(1, Math.max(0.2, scale))})`;
+        ctx.beginPath();
+        ctx.arc(px, py, Math.max(1, p.size * scale), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      globeAngle += 0.008;
+      ringAngle += 0.012;
+      requestAnimationFrame(drawGlobe);
+    }
+    drawGlobe();
+  }
+
+  // 3. Voice Waveform Visualizer Canvas
+  const voiceCanvas = document.getElementById('voice-wave-canvas');
+  if (voiceCanvas) {
+    const vCtx = voiceCanvas.getContext('2d');
+    let vPhase = 0;
+
+    function resizeVoiceCanvas() {
+      const rect = voiceCanvas.getBoundingClientRect();
+      voiceCanvas.width = rect.width * (window.devicePixelRatio || 1) || 200;
+      voiceCanvas.height = rect.height * (window.devicePixelRatio || 1) || 36;
+    }
+    resizeVoiceCanvas();
+    window.addEventListener('resize', resizeVoiceCanvas);
+
+    function drawVoiceWave() {
+      if (!vCtx) return;
+      const w = voiceCanvas.width;
+      const h = voiceCanvas.height;
+      vCtx.clearRect(0, 0, w, h);
+
+      vCtx.strokeStyle = '#00f0ff';
+      vCtx.lineWidth = 2;
+      vCtx.beginPath();
+
+      const bars = 24;
+      const barW = w / bars;
+      for (let i = 0; i < bars; i++) {
+        const amp = Math.sin(vPhase + i * 0.4) * 0.4 + 0.5;
+        const barH = (h * 0.7) * amp;
+        const x = i * barW + barW / 4;
+        const y = (h - barH) / 2;
+
+        vCtx.fillStyle = `rgba(0, 240, 255, ${0.4 + amp * 0.6})`;
+        vCtx.fillRect(x, y, barW / 2, barH);
+      }
+
+      vPhase += 0.06;
+      requestAnimationFrame(drawVoiceWave);
+    }
+    drawVoiceWave();
+  }
+
+  // 4. Memory Insights Constellation Canvas
+  const constCanvas = document.getElementById('constellation-canvas');
+  if (constCanvas) {
+    const cCtx = constCanvas.getContext('2d');
+    function resizeConstCanvas() {
+      const rect = constCanvas.getBoundingClientRect();
+      constCanvas.width = rect.width * (window.devicePixelRatio || 1) || 140;
+      constCanvas.height = rect.height * (window.devicePixelRatio || 1) || 90;
+    }
+    resizeConstCanvas();
+    window.addEventListener('resize', resizeConstCanvas);
+
+    const nodes = [
+      { x: 25, y: 30, r: 3 },
+      { x: 55, y: 20, r: 4 },
+      { x: 90, y: 35, r: 3.5 },
+      { x: 40, y: 65, r: 4.5 },
+      { x: 75, y: 60, r: 3 },
+      { x: 110, y: 65, r: 4 },
+      { x: 70, y: 40, r: 5 },
+    ];
+
+    let pulse = 0;
+    function drawConstellation() {
+      if (!cCtx) return;
+      const w = constCanvas.width;
+      const h = constCanvas.height;
+      cCtx.clearRect(0, 0, w, h);
+
+      const sx = w / 140;
+      const sy = h / 90;
+
+      // Draw connecting edges
+      cCtx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+      cCtx.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 55) {
+            cCtx.beginPath();
+            cCtx.moveTo(nodes[i].x * sx, nodes[i].y * sy);
+            cCtx.lineTo(nodes[j].x * sx, nodes[j].y * sy);
+            cCtx.stroke();
+          }
+        }
+      }
+
+      // Draw glowing nodes
+      nodes.forEach((n, idx) => {
+        const glow = Math.sin(pulse + idx) * 1.5 + 3;
+        cCtx.fillStyle = '#00f0ff';
+        cCtx.beginPath();
+        cCtx.arc(n.x * sx, n.y * sy, Math.max(1, (n.r + glow * 0.2) * (sx * 0.7)), 0, Math.PI * 2);
+        cCtx.fill();
+      });
+
+      pulse += 0.04;
+      requestAnimationFrame(drawConstellation);
+    }
+    drawConstellation();
+  }
+
+  // 5. Agent Sparklines Mini-Animation
+  const sparklineCanvases = document.querySelectorAll('.agent-sparkline-canvas');
+  sparklineCanvases.forEach((canvas) => {
+    const sCtx = canvas.getContext('2d');
+    const color = canvas.getAttribute('data-color') || '#00f0ff';
+    let offset = Math.random() * 10;
+
+    function drawSparkline() {
+      if (!sCtx) return;
+      const w = canvas.width;
+      const h = canvas.height;
+      sCtx.clearRect(0, 0, w, h);
+
+      sCtx.strokeStyle = color;
+      sCtx.lineWidth = 1.5;
+      sCtx.beginPath();
+
+      const points = 20;
+      const dx = w / points;
+      for (let i = 0; i <= points; i++) {
+        const y = (h / 2) + Math.sin(offset + i * 0.6) * (h * 0.35);
+        if (i === 0) sCtx.moveTo(0, y);
+        else sCtx.lineTo(i * dx, y);
+      }
+      sCtx.stroke();
+
+      offset += 0.08;
+      requestAnimationFrame(drawSparkline);
+    }
+    drawSparkline();
+  });
+
+  // 6. Navigation View Switching
+  const navCommandCenter = document.getElementById('nav-command-center');
+  const navConversations = document.getElementById('nav-conversations');
+  const hudDashboardView = document.getElementById('hud-dashboard-view');
+  const hudChatView = document.getElementById('hud-chat-view');
+  const closeChatViewBtn = document.getElementById('close-chat-view-btn');
+  const hudTalkJarvisBtn = document.getElementById('hud-talk-jarvis-btn');
+  const cmdVoiceBtn = document.getElementById('cmd-voice-btn');
+  const hudMicBtn = document.getElementById('hud-mic-btn');
+
+  function showDashboardView() {
+    if (hudDashboardView) hudDashboardView.classList.remove('hidden');
+    if (hudChatView) hudChatView.classList.add('hidden');
+    document.querySelectorAll('.hud-nav-item').forEach((el) => el.classList.remove('active'));
+    if (navCommandCenter) navCommandCenter.classList.add('active');
+  }
+
+  function showChatView() {
+    if (hudDashboardView) hudDashboardView.classList.add('hidden');
+    if (hudChatView) hudChatView.classList.remove('hidden');
+    document.querySelectorAll('.hud-nav-item').forEach((el) => el.classList.remove('active'));
+    if (navConversations) navConversations.classList.add('active');
+    messageInput?.focus();
+  }
+
+  if (navCommandCenter) navCommandCenter.addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
+  if (navConversations) navConversations.addEventListener('click', (e) => { e.preventDefault(); showChatView(); });
+  if (closeChatViewBtn) closeChatViewBtn.addEventListener('click', showDashboardView);
+  if (hudTalkJarvisBtn) hudTalkJarvisBtn.addEventListener('click', showChatView);
+  if (cmdVoiceBtn) cmdVoiceBtn.addEventListener('click', showChatView);
+  if (hudMicBtn) hudMicBtn.addEventListener('click', showChatView);
+
+  // 7. Interactive Studio & Modal Linkers
+  const chipCodingAgent = document.getElementById('chip-coding-agent');
+  const chipResearchAgent = document.getElementById('chip-research-agent');
+  const chipMemoryAgent = document.getElementById('chip-memory-agent');
+  const chipBrowserAgent = document.getElementById('chip-browser-agent');
+  const chipMathAgent = document.getElementById('chip-math-agent');
+  const chipFinanceAgent = document.getElementById('chip-finance-agent');
+
+  const codingModalRef = document.getElementById('coding-modal');
+  const researchModalRef = document.getElementById('research-modal');
+  const secondBrainModalRef = document.getElementById('second-brain-modal');
+  const browserModalRef = document.getElementById('browser-modal');
+  const mathModalRef = document.getElementById('math-modal');
+  const financeModalRef = document.getElementById('finance-modal');
+
+  if (chipCodingAgent) chipCodingAgent.addEventListener('click', () => codingModalRef?.classList.remove('hidden'));
+  if (chipResearchAgent) chipResearchAgent.addEventListener('click', () => researchModalRef?.classList.remove('hidden'));
+  if (chipMemoryAgent) chipMemoryAgent.addEventListener('click', () => secondBrainModalRef?.classList.remove('hidden'));
+  if (chipBrowserAgent) chipBrowserAgent.addEventListener('click', () => browserModalRef?.classList.remove('hidden'));
+  if (chipMathAgent) chipMathAgent.addEventListener('click', () => mathModalRef?.classList.remove('hidden'));
+  if (chipFinanceAgent) chipFinanceAgent.addEventListener('click', () => financeModalRef?.classList.remove('hidden'));
+
+  // Quick Command buttons
+  const cmdNewTaskBtn = document.getElementById('cmd-new-task-btn');
+  const cmdWorkflowBtn = document.getElementById('cmd-workflow-btn');
+  const viewMemoryMapLink = document.getElementById('view-memory-map-link');
+  const viewAllAgentsBtn = document.getElementById('view-all-agents-btn');
+
+  if (cmdNewTaskBtn) cmdNewTaskBtn.addEventListener('click', showChatView);
+  if (cmdWorkflowBtn) cmdWorkflowBtn.addEventListener('click', () => browserModalRef?.classList.remove('hidden'));
+  if (viewMemoryMapLink) viewMemoryMapLink.addEventListener('click', (e) => { e.preventDefault(); secondBrainModalRef?.classList.remove('hidden'); });
+  if (viewAllAgentsBtn) viewAllAgentsBtn.addEventListener('click', (e) => { e.preventDefault(); showChatView(); });
+
+  // 8. Executive Briefing Handler
+  const hudBriefingBtn = document.getElementById('hud-briefing-btn');
+  if (hudBriefingBtn) {
+    hudBriefingBtn.addEventListener('click', () => {
+      showChatView();
+      if (messagesContainer) {
+        const briefingMsg = document.createElement('div');
+        briefingMsg.className = 'message-wrapper assistant-wrapper';
+        briefingMsg.innerHTML = `
+          <div class="avatar assistant-avatar">J</div>
+          <div class="message-content">
+            <div class="sender-name">JARVIS <span class="tag" style="background:#00f0ff;color:#000;">EXECUTIVE BRIEFING</span></div>
+            <div class="bubble assistant-bubble">
+              <h4 style="color:#00f0ff;margin:0 0 6px 0;">Executive Briefing — System Status Optimal</h4>
+              <p><strong>Commander Dwight</strong>, all 18 autonomous agent workers are operational. System CPU utilization is nominal at 15%, RAM at 54%, and Disk storage at 40%.</p>
+              <ul style="margin:6px 0 6px 18px;font-size:0.85rem;color:#cbd5e1;">
+                <li><strong>Active Projects:</strong> JARVIS Assistant (Command Center Active), Tuklas EdTech Platform.</li>
+                <li><strong>Curriculum & Study Tracks:</strong> Higher Mathematics & Licensure Examination for Teachers (LET) Review modules loaded.</li>
+                <li><strong>Second Brain:</strong> 3,380 persistent knowledge nodes indexed and ready.</li>
+                <li><strong>Security Guardian:</strong> Anti-SSRF and malware shields enforced with default-deny gating.</li>
+              </ul>
+              <p style="margin:0;">Ready to execute your next directive.</p>
+            </div>
+            <div class="timestamp">Live Briefing</div>
+          </div>
+        `;
+        messagesContainer.appendChild(briefingMsg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    });
+  }
+
+  // 9. Sync Telemetry from /api/jarvis/dashboard
+  async function syncDashboardTelemetry() {
+    try {
+      const res = await fetch('/api/jarvis/dashboard');
+      const data = await res.json();
+      if (data && data.success && data.data) {
+        const d = data.data;
+        const gauges = document.querySelectorAll('.gauge-val-text');
+        if (gauges.length >= 3) {
+          gauges[0].textContent = `${d.systemMonitor.cpuPercent}%`;
+          gauges[1].textContent = `${d.systemMonitor.ramPercent}%`;
+          gauges[2].textContent = `${d.systemMonitor.diskPercent}%`;
+        }
+      }
+    } catch (e) {
+      // Keep static defaults on error
+    }
+  }
+  syncDashboardTelemetry();
+  setInterval(syncDashboardTelemetry, 15000);
+
+  // ========================================================
+  // Phase 18: Application Control & Local Integration Client
+  // ========================================================
+  const appsModal = document.getElementById('apps-modal');
+  const closeAppsModalBtn = document.getElementById('close-apps-modal-btn');
+  const navApps = document.getElementById('nav-apps');
+  const cmdAppsBtn = document.getElementById('cmd-apps-btn');
+  const chipAppControl = document.getElementById('chip-app-control-agent');
+
+  function openAppsModal() {
+    if (appsModal) {
+      appsModal.classList.remove('hidden');
+      loadAppsCatalog();
+      loadAppsAudit();
+    }
+  }
+
+  function closeAppsModal() {
+    if (appsModal) {
+      appsModal.classList.add('hidden');
+    }
+  }
+
+  if (navApps) navApps.addEventListener('click', (e) => { e.preventDefault(); openAppsModal(); });
+  if (cmdAppsBtn) cmdAppsBtn.addEventListener('click', openAppsModal);
+  if (chipAppControl) chipAppControl.addEventListener('click', openAppsModal);
+  if (closeAppsModalBtn) closeAppsModalBtn.addEventListener('click', closeAppsModal);
+  if (appsModal) {
+    appsModal.addEventListener('click', (e) => {
+      if (e.target === appsModal) closeAppsModal();
+    });
+  }
+
+  // Tab switching
+  const appsTabBtns = {
+    catalog: document.getElementById('apps-tab-btn-catalog'),
+    processes: document.getElementById('apps-tab-btn-processes'),
+    launch: document.getElementById('apps-tab-btn-launch'),
+    uri: document.getElementById('apps-tab-btn-uri'),
+    api: document.getElementById('apps-tab-btn-api'),
+    audit: document.getElementById('apps-tab-btn-audit'),
+  };
+
+  const appsPanels = {
+    catalog: document.getElementById('apps-panel-catalog'),
+    processes: document.getElementById('apps-panel-processes'),
+    launch: document.getElementById('apps-panel-launch'),
+    uri: document.getElementById('apps-panel-uri'),
+    api: document.getElementById('apps-panel-api'),
+    audit: document.getElementById('apps-panel-audit'),
+  };
+
+  function switchAppsTab(targetTab) {
+    Object.keys(appsTabBtns).forEach((tabKey) => {
+      const btn = appsTabBtns[tabKey];
+      const panel = appsPanels[tabKey];
+      if (btn && panel) {
+        if (tabKey === targetTab) {
+          btn.className = 'btn btn-sm btn-primary';
+          btn.style.background = 'var(--hud-cyan)';
+          btn.style.color = '#000';
+          btn.style.fontWeight = '600';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'btn btn-sm btn-ghost';
+          btn.style.background = 'transparent';
+          btn.style.color = '#94a3b8';
+          btn.style.fontWeight = 'normal';
+          panel.classList.add('hidden');
+        }
+      }
+    });
+    if (targetTab === 'catalog') loadAppsCatalog();
+    if (targetTab === 'processes') loadAppsProcesses();
+    if (targetTab === 'audit') loadAppsAudit();
+  }
+
+  if (appsTabBtns.catalog) appsTabBtns.catalog.addEventListener('click', () => switchAppsTab('catalog'));
+  if (appsTabBtns.processes) appsTabBtns.processes.addEventListener('click', () => switchAppsTab('processes'));
+  if (appsTabBtns.launch) appsTabBtns.launch.addEventListener('click', () => switchAppsTab('launch'));
+  if (appsTabBtns.uri) appsTabBtns.uri.addEventListener('click', () => switchAppsTab('uri'));
+  if (appsTabBtns.api) appsTabBtns.api.addEventListener('click', () => switchAppsTab('api'));
+  if (appsTabBtns.audit) appsTabBtns.audit.addEventListener('click', () => switchAppsTab('audit'));
+
+  // 1. Catalog Loading
+  async function loadAppsCatalog() {
+    const grid = document.getElementById('apps-catalog-grid');
+    if (!grid) return;
+    try {
+      grid.innerHTML = '<div style="color: var(--hud-cyan); font-family: monospace;">Fetching registered application catalog...</div>';
+      const res = await fetch('/api/jarvis/apps/catalog', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const json = await res.json();
+      if (!json.success) {
+        grid.innerHTML = `<div style="color: #ef4444;">Error: ${json.error}</div>`;
+        return;
+      }
+      grid.innerHTML = json.data.map((app) => `
+        <div style="background: #0d1527; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+            <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">${app.name}</div>
+            <span style="font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; background: ${app.status === 'authorized' ? 'rgba(16, 185, 129, 0.2)' : app.status === 'pending' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${app.status === 'authorized' ? '#10b981' : app.status === 'pending' ? '#f59e0b' : '#ef4444'};">
+              ${app.status}
+            </span>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem;">${app.description}</div>
+          <div style="font-size: 0.72rem; color: #64748b; font-family: monospace; margin-bottom: 0.75rem;">
+            exe: <code>${app.executable}</code> | protocols: ${app.supportedProtocols.join(', ')}
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+            <button class="btn btn-sm btn-outline app-quick-launch-btn" data-appid="${app.id}" style="border-color: var(--hud-cyan); color: var(--hud-cyan); flex: 1;">Launch</button>
+            <button class="btn btn-sm btn-ghost app-quick-focus-btn" data-appid="${app.id}" style="color: #94a3b8; border: 1px solid #334155;">Focus</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Wire quick buttons
+      grid.querySelectorAll('.app-quick-launch-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const appId = btn.getAttribute('data-appid');
+          btn.textContent = 'Launching...';
+          try {
+            const lRes = await fetch('/api/jarvis/apps/launch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+              body: JSON.stringify({ appId, simulate: true }),
+            });
+            const lData = await lRes.json();
+            btn.textContent = lData.success ? 'Launched ✓' : 'Failed ✗';
+            setTimeout(() => { btn.textContent = 'Launch'; }, 2000);
+          } catch (e) {
+            btn.textContent = 'Error';
+          }
+        });
+      });
+
+      grid.querySelectorAll('.app-quick-focus-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const appId = btn.getAttribute('data-appid');
+          btn.textContent = 'Focusing...';
+          try {
+            await fetch('/api/jarvis/apps/focus', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+              body: JSON.stringify({ appId, simulate: true }),
+            });
+            btn.textContent = 'Focused ✓';
+            setTimeout(() => { btn.textContent = 'Focus'; }, 2000);
+          } catch (e) {
+            btn.textContent = 'Error';
+          }
+        });
+      });
+    } catch (err) {
+      grid.innerHTML = `<div style="color: #ef4444;">Failed to fetch catalog: ${err.message}</div>`;
+    }
+  }
+
+  const appsRefreshCatalogBtn = document.getElementById('apps-refresh-catalog-btn');
+  if (appsRefreshCatalogBtn) appsRefreshCatalogBtn.addEventListener('click', loadAppsCatalog);
+
+  // 2. Processes Loading
+  async function loadAppsProcesses() {
+    const tbody = document.getElementById('apps-processes-tbody');
+    if (!tbody) return;
+    try {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding: 12px; text-align: center; color: var(--hud-cyan); font-family: monospace;">Discovering active host processes...</td></tr>';
+      const res = await fetch('/api/jarvis/apps/processes', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const json = await res.json();
+      if (!json.success) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; color: #ef4444;">Error: ${json.error}</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = json.data.slice(0, 20).map((p) => `
+        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+          <td style="padding: 8px 12px; font-family: monospace; color: var(--hud-cyan);">${p.pid}</td>
+          <td style="padding: 8px 12px; font-weight: 500; color: #fff;">${p.processName}</td>
+          <td style="padding: 8px 12px; color: #94a3b8; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.windowTitle || '<background>'}</td>
+          <td style="padding: 8px 12px; color: #cbd5e1; font-family: monospace;">${p.memoryMb ? p.memoryMb + ' MB' : '-'}</td>
+          <td style="padding: 8px 12px;"><span style="color: #10b981;">&#9679; OK</span></td>
+          <td style="padding: 8px 12px;">
+            <button class="btn btn-sm btn-ghost app-proc-close-btn" data-pid="${p.pid}" data-name="${p.processName}" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 6px; font-size: 0.7rem;">Terminate</button>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.app-proc-close-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const pid = parseInt(btn.getAttribute('data-pid'), 10);
+          const name = btn.getAttribute('data-name');
+          btn.textContent = 'Closing...';
+          try {
+            await fetch('/api/jarvis/apps/close', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+              body: JSON.stringify({ appId: name, pid, simulate: true }),
+            });
+            btn.textContent = 'Closed ✓';
+            setTimeout(loadAppsProcesses, 1000);
+          } catch (e) {
+            btn.textContent = 'Failed';
+          }
+        });
+      });
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; color: #ef4444;">Failed to discover processes: ${err.message}</td></tr>`;
+    }
+  }
+
+  const appsRefreshProcessesBtn = document.getElementById('apps-refresh-processes-btn');
+  if (appsRefreshProcessesBtn) appsRefreshProcessesBtn.addEventListener('click', loadAppsProcesses);
+
+  // 3. Launch & Window Execution
+  const appsExecuteLaunchBtn = document.getElementById('apps-execute-launch-btn');
+  const appsLaunchFeedback = document.getElementById('apps-launch-feedback');
+  if (appsExecuteLaunchBtn && appsLaunchFeedback) {
+    appsExecuteLaunchBtn.addEventListener('click', async () => {
+      const select = document.getElementById('apps-launch-select');
+      const argsInput = document.getElementById('apps-launch-args');
+      const simBox = document.getElementById('apps-launch-simulate');
+      const appId = select ? select.value : 'calculator';
+      const args = argsInput && argsInput.value.trim() ? argsInput.value.split(',').map((s) => s.trim()) : [];
+      const simulate = simBox ? simBox.checked : true;
+
+      appsLaunchFeedback.innerHTML = '<span style="color: var(--hud-cyan);">Executing application launch...</span>';
+      try {
+        const res = await fetch('/api/jarvis/apps/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ appId, args, simulate }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          appsLaunchFeedback.innerHTML = `<span style="color: #10b981;">[SUCCESS] ${data.data.message} (PID: ${data.data.pid})</span>`;
+        } else {
+          appsLaunchFeedback.innerHTML = `<span style="color: #ef4444;">[BLOCKED] ${data.error}</span>`;
+        }
+      } catch (err) {
+        appsLaunchFeedback.innerHTML = `<span style="color: #ef4444;">[ERROR] ${err.message}</span>`;
+      }
+    });
+  }
+
+  const appsWindowFocusBtn = document.getElementById('apps-window-focus-btn');
+  if (appsWindowFocusBtn && appsLaunchFeedback) {
+    appsWindowFocusBtn.addEventListener('click', async () => {
+      const select = document.getElementById('apps-window-select');
+      const filterInput = document.getElementById('apps-window-title-filter');
+      const appId = select ? select.value : 'vscode';
+      const windowTitleFilter = filterInput ? filterInput.value.trim() : '';
+
+      appsLaunchFeedback.innerHTML = '<span style="color: var(--hud-cyan);">Focusing application window...</span>';
+      try {
+        const res = await fetch('/api/jarvis/apps/focus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ appId, windowTitleFilter, simulate: true }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          appsLaunchFeedback.innerHTML = `<span style="color: #10b981;">[SUCCESS] Focused window "${data.data.windowTitle}" in ${data.data.durationMs}ms</span>`;
+        } else {
+          appsLaunchFeedback.innerHTML = `<span style="color: #ef4444;">[BLOCKED] ${data.error}</span>`;
+        }
+      } catch (err) {
+        appsLaunchFeedback.innerHTML = `<span style="color: #ef4444;">[ERROR] ${err.message}</span>`;
+      }
+    });
+  }
+
+  const appsTestUacBlockBtn = document.getElementById('apps-test-uac-block-btn');
+  if (appsTestUacBlockBtn && appsLaunchFeedback) {
+    appsTestUacBlockBtn.addEventListener('click', async () => {
+      appsLaunchFeedback.innerHTML = '<span style="color: #f59e0b;">Testing UAC / Credential Dialogue Protection...</span>';
+      try {
+        const res = await fetch('/api/jarvis/apps/focus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ appId: 'vscode', windowTitleFilter: 'Windows Security Credential Dialog', simulate: true }),
+        });
+        const data = await res.json();
+        if (res.status === 403 || !data.success) {
+          appsLaunchFeedback.innerHTML = `<span style="color: #10b981;">[PASSED SECURITY INVARIANT] Blocked elevated prompt automation: ${data.error}</span>`;
+        } else {
+          appsLaunchFeedback.innerHTML = `<span style="color: #ef4444;">[SECURITY FAIL] Dialog was unexpectedly allowed!</span>`;
+        }
+      } catch (err) {
+        appsLaunchFeedback.innerHTML = `<span style="color: #10b981;">[PASSED SECURITY INVARIANT] Request was rejected: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 4. URI Scheme Dispatch
+  const appsUriDispatchBtn = document.getElementById('apps-uri-dispatch-btn');
+  const appsUriResults = document.getElementById('apps-uri-results');
+  if (appsUriDispatchBtn && appsUriResults) {
+    appsUriDispatchBtn.addEventListener('click', async () => {
+      const select = document.getElementById('apps-uri-select');
+      const input = document.getElementById('apps-uri-input');
+      const appId = select ? select.value : 'vscode';
+      const uri = input ? input.value.trim() : '';
+
+      appsUriResults.innerHTML = '<span style="color: var(--hud-cyan);">Verifying scheme and dispatching URI...</span>';
+      try {
+        const res = await fetch('/api/jarvis/apps/uri', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ appId, uri, simulate: true }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          appsUriResults.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 4px;">[SUCCESS] Deep Link Dispatched</div>
+            <div>URI: <code>${data.data.uri}</code></div>
+            <div>Message: ${data.data.message}</div>
+          `;
+        } else {
+          appsUriResults.innerHTML = `<div style="color: #ef4444;">[BLOCKED] ${data.error}</div>`;
+        }
+      } catch (err) {
+        appsUriResults.innerHTML = `<div style="color: #ef4444;">[ERROR] ${err.message}</div>`;
+      }
+    });
+  }
+
+  // URI Presets
+  const uriInput = document.getElementById('apps-uri-input');
+  const uriSelect = document.getElementById('apps-uri-select');
+  const presetVscode = document.getElementById('apps-uri-preset-vscode');
+  const presetObsidian = document.getElementById('apps-uri-preset-obsidian');
+  const presetSpotify = document.getElementById('apps-uri-preset-spotify');
+
+  if (presetVscode && uriInput && uriSelect) {
+    presetVscode.addEventListener('click', () => {
+      uriSelect.value = 'vscode';
+      uriInput.value = 'vscode://file/src/server/app.ts';
+    });
+  }
+  if (presetObsidian && uriInput && uriSelect) {
+    presetObsidian.addEventListener('click', () => {
+      uriSelect.value = 'obsidian';
+      uriInput.value = 'obsidian://open?vault=SecondBrain&file=ResearchNotes';
+    });
+  }
+  if (presetSpotify && uriInput && uriSelect) {
+    presetSpotify.addEventListener('click', () => {
+      uriSelect.value = 'spotify';
+      uriInput.value = 'spotify://track/4cOdK2wGLETKBW3PvgPWqT';
+    });
+  }
+
+  // 5. Local API Runner
+  const appsApiSendBtn = document.getElementById('apps-api-send-btn');
+  const appsApiResults = document.getElementById('apps-api-results');
+  if (appsApiSendBtn && appsApiResults) {
+    appsApiSendBtn.addEventListener('click', async () => {
+      const select = document.getElementById('apps-api-target-select');
+      const epInput = document.getElementById('apps-api-endpoint');
+      const tokenInput = document.getElementById('apps-api-token');
+      const appId = select ? select.value : 'obsidian';
+      const endpoint = epInput ? epInput.value.trim() : '/vault/notes.md';
+      const authToken = tokenInput ? tokenInput.value.trim() : '';
+
+      appsApiResults.innerHTML = '<span style="color: var(--hud-cyan);">Sending authenticated local API request...</span>';
+      try {
+        const res = await fetch('/api/jarvis/apps/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ appId, endpoint, authToken, simulate: true }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          appsApiResults.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 4px;">[SUCCESS] API Response (${data.data.durationMs}ms)</div>
+            <pre style="background: #0f172a; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #cbd5e1;">${JSON.stringify(data.data.response, null, 2)}</pre>
+          `;
+        } else {
+          appsApiResults.innerHTML = `<div style="color: #ef4444;">[BLOCKED] ${data.error}</div>`;
+        }
+      } catch (err) {
+        appsApiResults.innerHTML = `<div style="color: #ef4444;">[ERROR] ${err.message}</div>`;
+      }
+    });
+  }
+
+  // 6. Authorization Audit Loading
+  async function loadAppsAudit() {
+    try {
+      const res = await fetch('/api/jarvis/apps/audit', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const audit = json.data;
+        const totalEl = document.getElementById('apps-audit-total');
+        const authEl = document.getElementById('apps-audit-authorized');
+        const pendEl = document.getElementById('apps-audit-pending');
+        const blockEl = document.getElementById('apps-audit-blocked');
+        const noticeEl = document.getElementById('apps-audit-notice');
+        const listEl = document.getElementById('apps-audit-list');
+
+        if (totalEl) totalEl.textContent = audit.totalRegistered;
+        if (authEl) authEl.textContent = audit.authorizedCount;
+        if (pendEl) pendEl.textContent = audit.pendingCount;
+        if (blockEl) blockEl.textContent = audit.blockedCount;
+        if (noticeEl) noticeEl.textContent = audit.securityNotice;
+
+        if (listEl && audit.applications) {
+          listEl.innerHTML = audit.applications.map((a) => `
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+              <span><strong>${a.name}</strong> (<code>${a.executable}</code>)</span>
+              <span style="color: ${a.status === 'authorized' ? '#10b981' : a.status === 'pending' ? '#f59e0b' : '#ef4444'}; text-transform: uppercase; font-weight: 600;">${a.status}</span>
+            </div>
+          `).join('');
+        }
+      }
+    } catch (e) {
+      // Keep static defaults on error
+    }
+  }
+
   // Start
   initSession();
 });

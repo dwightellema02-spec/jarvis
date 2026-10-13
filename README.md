@@ -744,9 +744,53 @@ JARVIS incorporates an autonomous Web & Browser subsystem engineered for compreh
 
 ---
 
+## 🖥️ Phase 18 Architecture: Application Control & Local Integration Agent
+
+JARVIS features a controlled, security-gated interface with authorized host applications, process monitoring, deep-link scheme dispatching, and local desktop APIs:
+
+### 1. Application Catalog & Authorization Statuses
+* **Pre-Configured Applications**: VS Code, Text Editor (Notepad), Calculator, System Terminal, Obsidian Knowledge Base, Spotify Music Player, Slack Communication, Google Chrome, and Microsoft Edge.
+* **Capability Does Not Equal Permission**: Automated application execution requires explicit authorization. Statuses: `authorized`, `pending`, `blocked`.
+* **Blacklisted Destructive Utilities**: High-risk binaries (`format`, `regedit`, `rundll32`, `vssadmin`, `certutil`, `bcdedit`, `diskpart`, `shutdown`) are permanently prohibited from registration or execution.
+
+### 2. Platform Process & Window Detector
+* **Cross-Platform Discovery**: Queries active host processes and window titles via PowerShell (`Get-Process`) on Windows and POSIX `ps` on Unix, with deterministic test fallbacks.
+* **Process Discovery Metrics**: Reports process ID (PID), executable name, window title, working set memory (MB), and responsiveness status.
+
+### 3. Safe CLI Launcher & Command Chaining Shield
+* **Argument Sanitization**: `CliAdapter` strictly scans command arguments, blocking shell injection and metacharacters (`;`, `&`, `|`, `` ` ``, `$`, quotes, newlines).
+* **Process Termination**: Supports graceful process closing and forceful process termination by PID with audit logging.
+
+### 4. Deep-Link URI Scheme Dispatcher
+* **Prefix Verification**: Validates URI prefixes against registered application protocols (`vscode://`, `obsidian://`, `spotify://`, `slack://`).
+* **Metacharacter Filter**: Neutralizes command injection attempts disguised inside URI query strings.
+
+### 5. Local Application API Connector (REST / IPC)
+* **Localhost Confinement**: Restricts outbound integration traffic strictly to local application APIs (e.g. Obsidian Local REST API on port `27123`).
+* **Mandatory Authentication**: Enforces valid authentication tokens before dispatching commands when `apiAuthRequired` is enabled.
+
+### 6. Window Management & UI Automation Safeguard
+* **Safe Window Focus**: Brings authorized application windows to foreground.
+* **Elevated Security Shield**: UI Automation and synthetic input are strictly forbidden on sensitive dialogues matching `/credential/`, `/password/`, `/user account control/`, or `/windows security/`.
+
+### 7. Security Gating, Agent & Tools
+* Gated by `ResourceType.APPLICATIONS` (`READ` for catalog/processes/audit, `WRITE` for URI/API commands, `EXECUTE` for launching/window control, `ADMIN` for modifying authorization statuses).
+* Coordinated by `ApplicationManager` and autonomous `ApplicationControlAgent` (`id: 'app-control-agent'`).
+* 8 Registered Tools:
+  1. `apps.list_installed`
+  2. `apps.get_running_processes`
+  3. `apps.launch_application`
+  4. `apps.close_application`
+  5. `apps.focus_window`
+  6. `apps.dispatch_uri`
+  7. `apps.send_api_command`
+  8. `apps.audit_authorization`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (418 automated tests across 56 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, Broker Sandbox Gating, Web Search Ranking, Anti-SSRF Protection, Sanitized Page Extraction, Form Automation, Sandbox Downloads, and Multi-Step Browser Workflows):
+Run the full Vitest suite (450 automated tests across 58 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, Broker Sandbox Gating, Web Search Ranking, Anti-SSRF Protection, Sanitized Page Extraction, Form Automation, Sandbox Downloads, Multi-Step Browser Workflows, Application Catalog, Process Discovery, Safe CLI Launching, Argument Sanitization, URI Scheme Dispatching, Localhost API Connector, and UI Automation Safeguards):
 ```bash
 # Run all tests
 npm test

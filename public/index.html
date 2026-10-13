@@ -10,140 +10,607 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-core">
-          <div class="core-pulse"></div>
-          <span class="brand-title">JARVIS</span>
+  <div class="hud-window-frame">
+    <!-- Top Header Bar -->
+    <header class="hud-topbar">
+      <div class="hud-topbar-left">
+        <div class="hud-command-indicator">
+          <div class="cyan-pulse-dot"></div>
+          <span>Command Center</span>
         </div>
-        <span class="badge phase-badge">Phase 17: Web & Browser Active</span>
+        <div class="system-status-pill">
+          <span class="green-dot"></span>
+          <span>System Status: Optimal</span>
+        </div>
       </div>
-      <div class="header-meta">
-        <button id="browser-toggle-btn" class="btn btn-outline" style="border-color: rgba(14, 165, 233, 0.4); color: #0ea5e9;" title="JARVIS Web & Browser Autonomous Agent">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          <span>Browser</span>
-        </button>
-        <button id="finance-toggle-btn" class="btn btn-outline" style="border-color: rgba(34, 197, 94, 0.4); color: #22c55e;" title="JARVIS Financial Research & Quantitative Intelligence Terminal">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <span>Finance</span>
-        </button>
-        <button id="innovation-toggle-btn" class="btn btn-outline" style="border-color: rgba(20, 184, 166, 0.4); color: #14b8a6;" title="JARVIS Product Innovation & Venture Architecture Studio">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-          <span>Innovation</span>
-        </button>
-        <button id="animation-toggle-btn" class="btn btn-outline" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;" title="JARVIS Bring It Alive Animation Pipeline">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Animation</span>
-        </button>
-        <button id="creative-toggle-btn" class="btn btn-outline" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc;" title="JARVIS Creative Studio (Images, Graphics, Decks, Storyboards)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-          <span>Creative</span>
-        </button>
-        <button id="tuklas-toggle-btn" class="btn btn-outline" style="border-color: rgba(236, 72, 153, 0.4); color: #ec4899;" title="Tuklas EdTech Platform Integration">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span>Tuklas</span>
-        </button>
-        <button id="devenv-toggle-btn" class="btn btn-outline" style="border-color: rgba(234, 88, 12, 0.4); color: #ea580c;" title="Development Environment Integration">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          <span>DevEnv</span>
-        </button>
-        <button id="coding-toggle-btn" class="btn btn-outline" style="border-color: rgba(6, 182, 212, 0.4); color: #06b6d4;" title="Coding Agent & AST Patch Engine">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          <span>Coding</span>
-        </button>
-        <button id="data-toggle-btn" class="btn btn-outline" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8;" title="Data Analytics & Statistics Engine">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          <span>Data & Stats</span>
-        </button>
-        <button id="research-toggle-btn" class="btn btn-outline" style="border-color: rgba(168, 85, 247, 0.4); color: #a855f7;" title="Scientific Research & Epistemic Engine">
+
+      <div class="hud-topbar-center">
+        <span id="hud-live-date" class="hud-date">Monday, 15 June 2026</span>
+        <span id="hud-live-clock" class="hud-clock">11:18:21 am</span>
+      </div>
+
+      <div class="hud-topbar-right">
+        <div class="hud-search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <span>Research</span>
-        </button>
-        <button id="math-toggle-btn" class="btn btn-outline" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;" title="Mathematics & LET Review Engine">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-          <span>Math & LET</span>
-        </button>
-        <button id="documents-toggle-btn" class="btn btn-outline" style="border-color: rgba(59, 130, 246, 0.4); color: #3b82f6;" title="Document Intelligence & Analysis">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <span>Documents</span>
-        </button>
-        <button id="second-brain-toggle-btn" class="btn btn-outline" style="border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Explore Second Brain Knowledge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <span>Second Brain</span>
-        </button>
-        <button id="profile-toggle-btn" class="btn btn-outline profile-pill" title="View User Profile & Identity">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span id="header-user-name">Dwight</span>
-        </button>
-        <div class="session-info">
-          <span class="label">Session:</span>
-          <span id="session-id-display" class="mono">Initializing...</span>
+          <input type="text" id="hud-global-search" placeholder="Search...">
         </div>
-        <button id="new-session-btn" class="btn btn-outline" title="Start a fresh conversation session">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          New Session
+        <button id="hud-launcher-btn" class="hud-icon-btn" title="App Launcher">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         </button>
+        <button id="hud-notifications-btn" class="hud-icon-btn" title="Live Intelligence Feed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="hud-badge-dot">2</span>
+        </button>
+        <button id="hud-settings-btn" class="hud-icon-btn" title="Settings & Architecture">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div id="profile-toggle-btn" class="hud-operator-pill" title="View User Profile & Identity">
+          <div class="operator-avatar">D</div>
+          <span>Operator Dwight</span>
+        </div>
       </div>
     </header>
 
-    <!-- Main Chat Workspace -->
-    <main class="chat-workspace">
-      <!-- Chat Messages Container -->
-      <div id="messages-container" class="messages-container" role="log" aria-live="polite">
-        <!-- Initial Welcome Message -->
-        <div class="message-wrapper assistant-wrapper">
-          <div class="avatar assistant-avatar">J</div>
-          <div class="message-content">
-            <div class="sender-name">JARVIS <span class="tag">AI</span></div>
-            <div class="bubble assistant-bubble">
-              <p>Greetings, <strong>Dwight</strong>. I am JARVIS, your personal AI assistant and second brain.</p>
-              <p>I am operating in <strong>Phase 3: Personal Identity & User Profile Active</strong>. I recognize your active projects (<em>JARVIS</em>, <em>Tuklas</em>) and study tracks (<em>Higher Mathematics</em>, <em>LET Review</em>). How may I assist you today?</p>
-              <p class="disclaimer-note"><em>Note: Capability does not equal permission. Operations are guarded and verified before execution.</em></p>
+    <!-- Main HUD Layout -->
+    <div class="hud-body-layout">
+      <!-- Left Sidebar -->
+      <aside class="hud-sidebar">
+        <div>
+          <div class="hud-brand-header">
+            <div class="reactor-core"></div>
+            <div class="hud-brand-title">
+              <span class="hud-brand-name">JARVIS</span>
+              <span class="hud-brand-sub">COMMAND CENTER</span>
             </div>
-            <div class="timestamp">Ready</div>
+          </div>
+
+          <nav class="hud-nav-list">
+            <a href="#" id="nav-command-center" class="hud-nav-item active">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Command Center</span>
+              </div>
+            </a>
+            <a href="#" id="nav-ai-core" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+                <span>AI Core</span>
+              </div>
+            </a>
+            <a href="#" id="nav-agents" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Agents</span>
+              </div>
+              <span class="hud-nav-badge">18</span>
+            </a>
+            <a href="#" id="nav-tasks" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span>Tasks</span>
+              </div>
+              <span class="hud-nav-badge">3</span>
+            </a>
+            <a href="#" id="nav-calendar" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Calendar</span>
+              </div>
+            </a>
+            <a href="#" id="nav-memory" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2v-2h2zm0-4h-2V7h2z"/></svg>
+                <span>Memory</span>
+              </div>
+            </a>
+            <a href="#" id="nav-conversations" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Conversations</span>
+              </div>
+              <span class="hud-nav-badge">12</span>
+            </a>
+            <a href="#" id="nav-knowledge" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span>Knowledge Base</span>
+              </div>
+            </a>
+            <a href="#" id="nav-tools" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                <span>Tools & Skills</span>
+              </div>
+              <span class="hud-nav-badge">18</span>
+            </a>
+            <a href="#" id="nav-workflows" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span>Workflows</span>
+              </div>
+            </a>
+            <a href="#" id="nav-apps" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>App Control</span>
+              </div>
+              <span class="hud-nav-badge">P18</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Voice Status Widget -->
+        <div class="hud-voice-widget">
+          <div class="voice-widget-header">
+            <span>Voice Status</span>
+            <span class="cyan-pulse-dot"></span>
+          </div>
+          <div class="voice-wave-container">
+            <canvas id="voice-wave-canvas" class="voice-wave-canvas"></canvas>
+          </div>
+          <div class="voice-mic-trigger">
+            <button id="hud-mic-btn" class="hud-mic-circle" title="Tap to Speak to JARVIS">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <span class="listening-caption">Listening...</span>
+          </div>
+          <button id="focus-mode-btn" class="focus-mode-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Focus Mode</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Workspace -->
+      <main class="hud-main-workspace">
+        <!-- Dashboard Grid View (Default HUD) -->
+        <div id="hud-dashboard-view" class="hud-dashboard-view">
+          <!-- Card 1: AI Core Overview -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <div class="card-title-group">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <span>AI Core Overview</span>
+              </div>
+            </div>
+            <div class="overview-list">
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-cyan)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  <span>AI Core</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-cyan);">Active</span>
+              </div>
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-blue)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  <span>Memory</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-blue);">3,380 Stored</span>
+              </div>
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-teal)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                  <span>Voice</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-teal);">Online</span>
+              </div>
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <span>Agents</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-purple);">18 Configured</span>
+              </div>
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-amber)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>LLMs</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-amber);">4 Connected</span>
+              </div>
+              <div class="overview-item">
+                <div class="overview-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>System</span>
+                </div>
+                <span class="overview-item-val" style="color: var(--hud-green);">Optimal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: JARVIS AI CORE 3D Holographic Sphere (Screenshot Hero) -->
+          <div class="hud-card hero-sphere-card">
+            <canvas id="hero-globe-canvas" class="hero-globe-canvas"></canvas>
+            <div class="hero-overlay-info">
+              <div class="hero-brand-name">JARVIS</div>
+              <div class="hero-sub-title">AI CORE</div>
+              <div class="hero-version">v3.0.0</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Live Intelligence Feed -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <div class="card-title-group">
+                <span class="green-dot"></span>
+                <span>Live Intelligence Feed</span>
+              </div>
+              <span class="feed-badge live">LIVE</span>
+            </div>
+            <div id="hud-intelligence-feed" class="feed-container">
+              <div class="feed-item info">
+                <div style="font-weight: 600; color: #fff;">Design review with the product team</div>
+                <div class="feed-meta">
+                  <span style="color: var(--text-muted);">Meeting</span>
+                  <span class="feed-badge info">INFO</span>
+                </div>
+              </div>
+              <div class="feed-item warn">
+                <div style="font-weight: 600; color: #fff;">2 tasks overdue — "Polish voice..."</div>
+                <div class="feed-meta">
+                  <span style="color: var(--text-muted);">Overdue</span>
+                  <span class="feed-badge warn">WARN</span>
+                </div>
+              </div>
+              <div class="feed-item tip">
+                <div style="font-weight: 600; color: #fff;">3 pull requests are awaiting your review</div>
+                <div class="feed-meta">
+                  <span style="color: var(--text-muted);">GitHub</span>
+                  <span class="feed-badge tip">TIP</span>
+                </div>
+              </div>
+              <div class="feed-item tip">
+                <div style="font-weight: 600; color: #fff;">Your deep-work block is 2-4 PM. Notifications muted.</div>
+                <div class="feed-meta">
+                  <span style="color: var(--text-muted);">Focus</span>
+                  <span class="feed-badge tip">TIP</span>
+                </div>
+              </div>
+              <div class="feed-item live">
+                <div style="font-weight: 600; color: #fff;">CPU usage at 15%. Security Guardian nominal.</div>
+                <div class="feed-meta">
+                  <span style="color: var(--text-muted);">System</span>
+                  <span class="feed-badge live">LIVE</span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: auto; padding-top: 8px; text-align: right;">
+              <a href="#" id="view-all-intel-btn" class="hud-card-link">View All Intelligence &gt;</a>
+            </div>
+          </div>
+
+          <!-- Card 4: Active Agents -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>Active Agents</span>
+              <a href="#" id="view-all-agents-btn" class="hud-card-link">View All &gt;</a>
+            </div>
+            <div class="agents-grid">
+              <div class="agent-chip" id="chip-coding-agent" title="Open Autonomous Coding Studio">
+                <div class="agent-chip-header">
+                  <span>Coding Agent</span>
+                  <span class="green-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-research-agent" title="Open Scientific Research Studio">
+                <div class="agent-chip-header">
+                  <span>Research Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#00f0ff"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-memory-agent" title="Open Memory & Second Brain">
+                <div class="agent-chip-header">
+                  <span>Memory Agent</span>
+                  <span style="color: var(--hud-purple); font-size: 0.7rem;">&#9679;</span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#a855f7"></canvas>
+                <div class="agent-status-label dot-standby">&#9679; Standby</div>
+              </div>
+              <div class="agent-chip" id="chip-browser-agent" title="Open Autonomous Browser Cockpit">
+                <div class="agent-chip-header">
+                  <span>Browser Agent</span>
+                  <span style="color: var(--hud-amber); font-size: 0.7rem;">&#9679;</span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#f59e0b"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-math-agent" title="Open Mathematics & LET Review">
+                <div class="agent-chip-header">
+                  <span>Math Agent</span>
+                  <span style="color: var(--hud-blue); font-size: 0.7rem;">&#9679;</span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#38bdf8"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-finance-agent" title="Open Financial Terminal">
+                <div class="agent-chip-header">
+                  <span>Finance Agent</span>
+                  <span style="color: var(--hud-green); font-size: 0.7rem;">&#9679;</span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-app-control-agent" title="Open Application Control & Local Integration">
+                <div class="agent-chip-header">
+                  <span>App Control Agent</span>
+                  <span class="green-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#38bdf8"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Mission Timeline -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>Mission Timeline</span>
+              <span style="font-size: 0.72rem; color: var(--hud-cyan);">Today &#9662;</span>
+            </div>
+            <div class="timeline-list">
+              <div class="timeline-item">
+                <div class="timeline-task">
+                  <div class="timeline-dot" style="background: var(--hud-green);"></div>
+                  <span>Daily Standup</span>
+                </div>
+                <span class="timeline-time" style="color: var(--hud-green);">Done</span>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-task">
+                  <div class="timeline-dot" style="background: var(--hud-cyan);"></div>
+                  <span>Finalize HUD panel spacing</span>
+                </div>
+                <span class="timeline-time">In 42 min</span>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-task">
+                  <div class="timeline-dot" style="background: var(--hud-amber);"></div>
+                  <span>Deep work block: Voice pipeline</span>
+                </div>
+                <span class="timeline-time" style="color: var(--hud-amber);">In 2h 42m</span>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-task">
+                  <div class="timeline-dot" style="background: var(--hud-blue);"></div>
+                  <span>Design Review — Command Center V1</span>
+                </div>
+                <span class="timeline-time">In 5h 12m</span>
+              </div>
+            </div>
+            <div style="margin-top: auto; padding-top: 8px; text-align: center;">
+              <a href="#" id="view-schedule-btn" class="hud-card-link">View Full Schedule &gt;</a>
+            </div>
+          </div>
+
+          <!-- Card 6: Quick Commands -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>Quick Commands</span>
+            </div>
+            <div class="quick-commands-grid">
+              <button id="cmd-new-task-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Start New Task</span>
+              </button>
+              <button id="cmd-calendar-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Open Calendar / Schedule</span>
+              </button>
+              <button id="cmd-voice-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                <span>Start Voice Chat</span>
+              </button>
+              <button id="cmd-workflow-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Run Autonomous Workflow</span>
+              </button>
+              <button id="cmd-apps-btn" class="quick-cmd-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>App Control & Integration</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 7: System Monitor Radial Gauges -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>System Monitor</span>
+            </div>
+            <div class="gauges-row">
+              <div class="gauge-item">
+                <div class="gauge-svg-wrap">
+                  <svg viewBox="0 0 36 36" width="66" height="66">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--hud-cyan)" stroke-dasharray="15, 100" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                  <div class="gauge-val-text">15%</div>
+                </div>
+                <span class="gauge-label">CPU</span>
+              </div>
+              <div class="gauge-item">
+                <div class="gauge-svg-wrap">
+                  <svg viewBox="0 0 36 36" width="66" height="66">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--hud-teal)" stroke-dasharray="54, 100" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                  <div class="gauge-val-text">54%</div>
+                </div>
+                <span class="gauge-label">RAM</span>
+              </div>
+              <div class="gauge-item">
+                <div class="gauge-svg-wrap">
+                  <svg viewBox="0 0 36 36" width="66" height="66">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--hud-blue)" stroke-dasharray="40, 100" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                  <div class="gauge-val-text">40%</div>
+                </div>
+                <span class="gauge-label">Disk</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 8: Memory Insights -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>Memory Insights</span>
+              <a href="#" id="view-memory-map-link" class="hud-card-link">View Memory Map &gt;</a>
+            </div>
+            <div class="memory-card-body">
+              <canvas id="constellation-canvas" class="constellation-canvas"></canvas>
+              <div class="memory-metrics-col">
+                <div class="metric-row">
+                  <span class="metric-lbl">Memories</span>
+                  <span class="metric-num">3,380</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-lbl">Session Turns</span>
+                  <span class="metric-num">22</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-lbl">Tool Calls</span>
+                  <span class="metric-num">18</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 9: LLM Status -->
+          <div class="hud-card">
+            <div class="hud-card-header">
+              <span>LLM Status</span>
+              <span class="hud-nav-badge">4 Connected</span>
+            </div>
+            <div class="llm-grid">
+              <div class="llm-provider-chip">
+                <span class="provider-name">Claude</span>
+                <span class="provider-status" style="color: var(--text-muted);">&#9679; Not Linked</span>
+              </div>
+              <div class="llm-provider-chip">
+                <span class="provider-name">OpenAI</span>
+                <span class="provider-status">&#9679; Connected</span>
+              </div>
+              <div class="llm-provider-chip">
+                <span class="provider-name">Gemini</span>
+                <span class="provider-status" style="color: var(--hud-cyan); font-weight: 700;">&#9679; Primary</span>
+              </div>
+              <div class="llm-provider-chip">
+                <span class="provider-name">Groq</span>
+                <span class="provider-status">&#9679; Connected</span>
+              </div>
+              <div class="llm-provider-chip">
+                <span class="provider-name">OpenRouter</span>
+                <span class="provider-status" style="color: var(--text-muted);">&#9679; Not Linked</span>
+              </div>
+              <div class="llm-provider-chip">
+                <span class="provider-name">Ollama</span>
+                <span class="provider-status">&#9679; Ready</span>
+              </div>
+            </div>
+            <div style="margin-top: auto; padding-top: 6px; text-align: center;">
+              <a href="#" id="manage-providers-link" class="hud-card-link">Manage Providers &gt;</a>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Quick Prompt Suggestions -->
-      <div class="suggestions-container" id="suggestions">
-        <button class="chip" data-prompt="What active goals and projects are registered in my profile?">🎯 My Goals & Projects</button>
-        <button class="chip" data-prompt="How can you help me prepare for the LET Licensure Examination in Mathematics?">📚 LET Exam Review</button>
-        <button class="chip" data-prompt="Teach me how fractions work step-by-step.">🧮 Fractions (Math)</button>
-        <button class="chip" data-prompt="Explain what an API is in simple terms.">💻 What is an API? (Coding)</button>
-        <button class="chip" data-prompt="Can you access my physical camera?">📷 Check Camera Access</button>
-        <button class="chip" data-prompt="Can you protect my computer from viruses?">🛡️ Check Antivirus Protection</button>
-      </div>
+        <!-- Chat Workspace View (Toggled when in Conversations / Voice mode) -->
+        <div id="hud-chat-view" class="hud-chat-view hidden">
+          <div style="padding: 10px 20px; background: rgba(11, 20, 42, 0.9); border-bottom: 1px solid var(--border-hud); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="cyan-pulse-dot"></span>
+              <strong style="color: #fff; font-size: 0.9rem;">JARVIS Conversational Neural Stream</strong>
+              <span id="session-id-display" class="mono" style="font-size: 0.75rem; color: var(--hud-cyan);">Initializing...</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="new-session-btn" class="btn btn-sm btn-outline">New Session</button>
+              <button id="close-chat-view-btn" class="btn btn-sm btn-outline" style="color: var(--hud-cyan);">Back to HUD</button>
+            </div>
+          </div>
 
-      <!-- Error Banner -->
-      <div id="error-banner" class="error-banner hidden" role="alert">
-        <span id="error-text">An error occurred.</span>
-        <button id="close-error" class="close-btn" aria-label="Close error">&times;</button>
-      </div>
+          <div id="messages-container" class="messages-container" role="log" aria-live="polite">
+            <div class="message-wrapper assistant-wrapper">
+              <div class="avatar assistant-avatar">J</div>
+              <div class="message-content">
+                <div class="sender-name">JARVIS <span class="tag">AI</span></div>
+                <div class="bubble assistant-bubble">
+                  <p>Greetings, <strong>Commander Dwight</strong>. JARVIS Command Center is fully operational.</p>
+                  <p>All 18 autonomous agent workers, Second Brain memory constellation (3,380 nodes), and anti-SSRF security shields are online. How may I direct the core?</p>
+                </div>
+                <div class="timestamp">Ready</div>
+              </div>
+            </div>
+          </div>
 
-      <!-- Input Area -->
-      <footer class="input-footer">
-        <form id="chat-form" class="chat-form">
-          <textarea
-            id="message-input"
-            class="chat-input"
-            placeholder="Type your message to JARVIS... (Shift+Enter for new line)"
-            rows="1"
-            aria-label="Message to JARVIS"
-            required
-          ></textarea>
-          <button type="submit" id="send-btn" class="btn btn-primary" aria-label="Send message">
-            <span>Send</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          </button>
-        </form>
-        <div class="footer-caption">
-          <span>JARVIS Core Architecture • Phase 3 Identity & User Profile Active • Verified Execution</span>
+          <div class="suggestions-container" id="suggestions" style="padding: 8px 20px; display: flex; gap: 8px; overflow-x: auto;">
+            <button class="chip" data-prompt="What active goals and projects are registered in my profile?">🎯 My Goals & Projects</button>
+            <button class="chip" data-prompt="How can you help me prepare for the LET Licensure Examination in Mathematics?">📚 LET Exam Review</button>
+            <button class="chip" data-prompt="Run technical analysis on Apple AAPL and evaluate DCF fair value.">📈 Finance DCF Analysis</button>
+            <button class="chip" data-prompt="Perform safe search and extract key insights from documentation.">🌐 Autonomous Web Search</button>
+            <button class="chip" data-prompt="Explain what an API is in simple terms.">💻 What is an API?</button>
+          </div>
+
+          <div id="error-banner" class="error-banner hidden" role="alert" style="margin: 0 20px 8px; padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 6px; font-size: 0.8rem; color: #fca5a5; display: flex; justify-content: space-between;">
+            <span id="error-text">An error occurred.</span>
+            <button id="close-error" style="background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+          </div>
+
+          <footer class="input-footer">
+            <form id="chat-form" class="chat-form">
+              <textarea id="message-input" class="chat-input" placeholder="Type your directive to JARVIS... (Shift+Enter for new line)" rows="1" required></textarea>
+              <button type="submit" id="send-btn" class="btn btn-primary">
+                <span>Send</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </button>
+            </form>
+          </footer>
         </div>
-      </footer>
-    </main>
+
+        <!-- Floating Bottom Dock (Screenshot Match) -->
+        <div class="hud-bottom-dock">
+          <div class="dock-left-telemetry">
+            <div class="telemetry-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-cyan)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Bhimber, Pakistan</span>
+            </div>
+            <div class="telemetry-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <span>28°C Overcast</span>
+            </div>
+            <div class="telemetry-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-teal)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Network: Excellent</span>
+            </div>
+          </div>
+
+          <div class="dock-center-action">
+            <button id="hud-talk-jarvis-btn" class="hud-talk-pill-btn" title="Activate Direct Voice Link">
+              <div class="voice-bars">
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+              </div>
+              <div class="talk-label-group">
+                <span class="talk-main-text">TALK TO JARVIS</span>
+                <span class="talk-sub-text">I am listening...</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="dock-right-action">
+            <button id="hud-briefing-btn" class="briefing-btn" title="Play Real-Time Executive Summary">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Executive Briefing</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
   <!-- Profile Modal Overlay -->
@@ -1346,6 +1813,225 @@
             <p style="color: #94a3b8; margin: 0;">Inspect active session history, cookie stores, and test Anti-SSRF defense enforcement.</p>
           </div>
         </div>
+      </div>
+    </div>
+  <!-- Phase 18 Application Control & Local Integration Modal -->
+  <div id="apps-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-container" style="background: #090e1a; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; width: 92%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.03);">
+        <div>
+          <h2 style="margin: 0; color: var(--hud-cyan); font-size: 1.15rem; font-family: monospace; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            APPLICATION CONTROL & LOCAL INTEGRATION AGENT [PHASE 18]
+          </h2>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+            Autonomous desktop software launcher, process detector, window automation, and local API gateway with capability-gated security.
+          </div>
+        </div>
+        <button id="close-apps-modal-btn" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 4px 8px;">&times;</button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div style="display: flex; gap: 4px; padding: 0.5rem 1.5rem; background: #060b17; border-bottom: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto;">
+        <button id="apps-tab-btn-catalog" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">App Catalog</button>
+        <button id="apps-tab-btn-processes" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Active Processes</button>
+        <button id="apps-tab-btn-launch" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Launch & Window</button>
+        <button id="apps-tab-btn-uri" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Deep Link URIs</button>
+        <button id="apps-tab-btn-api" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Local API Runner</button>
+        <button id="apps-tab-btn-audit" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Authorization Audit</button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
+
+        <!-- Tab 1: App Catalog -->
+        <div id="apps-panel-catalog">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; color: #cbd5e1;">Pre-configured desktop and developer applications</div>
+            <button id="apps-refresh-catalog-btn" class="btn btn-sm btn-outline" style="border-color: var(--hud-cyan); color: var(--hud-cyan);">Refresh Catalog</button>
+          </div>
+          <div id="apps-catalog-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- Dynamically populated catalog cards -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Running Processes -->
+        <div id="apps-panel-processes" class="hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; color: #cbd5e1;">Live host process discovery via platform detector</div>
+            <button id="apps-refresh-processes-btn" class="btn btn-sm btn-outline" style="border-color: var(--hud-cyan); color: var(--hud-cyan);">Refresh Processes</button>
+          </div>
+          <div style="overflow-x: auto; max-height: 400px; border: 1px solid #1e293b; border-radius: 8px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+              <thead>
+                <tr style="background: #0f172a; color: var(--hud-cyan); border-bottom: 1px solid #334155;">
+                  <th style="padding: 8px 12px;">PID</th>
+                  <th style="padding: 8px 12px;">Process Name</th>
+                  <th style="padding: 8px 12px;">Window Title</th>
+                  <th style="padding: 8px 12px;">Memory</th>
+                  <th style="padding: 8px 12px;">Status</th>
+                  <th style="padding: 8px 12px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="apps-processes-tbody">
+                <!-- Dynamically populated process rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Launch & Window Control -->
+        <div id="apps-panel-launch" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Launch Authorized Application</h3>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Target Application</label>
+                <select id="apps-launch-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+                  <option value="calculator">Calculator (calc)</option>
+                  <option value="notepad">Text Editor (notepad)</option>
+                  <option value="vscode">Visual Studio Code (code)</option>
+                  <option value="terminal">System Terminal (wt)</option>
+                  <option value="browser_chrome">Google Chrome (chrome)</option>
+                  <option value="browser_edge">Microsoft Edge (msedge)</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Arguments (comma-separated)</label>
+                <input type="text" id="apps-launch-args" placeholder="e.g. --new-window" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+                <input type="checkbox" id="apps-launch-simulate" checked>
+                <label for="apps-launch-simulate" style="font-size: 0.8rem; color: #cbd5e1;">Simulation Mode (Safe test PID)</label>
+              </div>
+              <button id="apps-execute-launch-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600; width: 100%;">Launch Application</button>
+            </div>
+
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px;">
+              <h3 style="margin-top: 0; color: var(--hud-teal); font-size: 0.95rem;">Window Management & Safeguard</h3>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Target Application</label>
+                <select id="apps-window-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+                  <option value="vscode">Visual Studio Code</option>
+                  <option value="notepad">Notepad</option>
+                  <option value="calculator">Calculator</option>
+                  <option value="spotify">Spotify</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Window Title Filter (Optional)</label>
+                <input type="text" id="apps-window-title-filter" placeholder="e.g. Visual Studio Code" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <button id="apps-window-focus-btn" class="btn btn-outline" style="border-color: var(--hud-teal); color: var(--hud-teal); flex: 1;">Focus Window</button>
+                <button id="apps-test-uac-block-btn" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;" title="Verify UI Automation is blocked on sensitive dialogues">Test UAC Block</button>
+              </div>
+              <div style="font-size: 0.72rem; color: #94a3b8;">
+                Protected: Keystroke injection is strictly prohibited on sensitive system dialogs (/credential/, /password/, /uac/).
+              </div>
+            </div>
+          </div>
+          <div id="apps-launch-feedback" style="margin-top: 1rem; padding: 0.75rem; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: #94a3b8;">
+            Ready to execute application commands.
+          </div>
+        </div>
+
+        <!-- Tab 4: Deep Link URIs -->
+        <div id="apps-panel-uri" class="hidden">
+          <div style="background: #0d1527; padding: 1.25rem; border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Deep-Link URI Scheme Dispatcher</h3>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+              Dispatches authenticated deep-link URIs (e.g. <code>vscode://</code>, <code>obsidian://</code>, <code>spotify://</code>) with prefix verification and command-injection sanitization.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.75rem; margin-bottom: 1rem;">
+              <select id="apps-uri-select" style="padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+                <option value="vscode">VS Code (vscode://)</option>
+                <option value="obsidian">Obsidian (obsidian://)</option>
+                <option value="spotify">Spotify (spotify://)</option>
+                <option value="slack">Slack (slack://)</option>
+              </select>
+              <input type="text" id="apps-uri-input" value="vscode://file/src/server/app.ts" placeholder="Deep link URI..." style="padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+              <button id="apps-uri-dispatch-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">Dispatch URI</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="apps-uri-preset-vscode" class="btn btn-sm btn-ghost" style="color: var(--hud-cyan); border: 1px solid rgba(0, 240, 255, 0.3);">Preset: VS Code File</button>
+              <button id="apps-uri-preset-obsidian" class="btn btn-sm btn-ghost" style="color: var(--hud-purple); border: 1px solid rgba(168, 85, 247, 0.3);">Preset: Obsidian Vault</button>
+              <button id="apps-uri-preset-spotify" class="btn btn-sm btn-ghost" style="color: var(--hud-green); border: 1px solid rgba(16, 185, 129, 0.3);">Preset: Spotify Focus</button>
+            </div>
+          </div>
+          <div id="apps-uri-results" style="padding: 1rem; background: #060b17; border: 1px solid #1e293b; border-radius: 8px; min-height: 150px; font-family: monospace; font-size: 0.8rem; color: #94a3b8;">
+            Awaiting URI dispatch command.
+          </div>
+        </div>
+
+        <!-- Tab 5: Local API Runner -->
+        <div id="apps-panel-api" class="hidden">
+          <div style="background: #0d1527; padding: 1.25rem; border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Local Application API Connector (REST / IPC)</h3>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+              Interacts directly with localhost APIs exposed by desktop software (e.g. Obsidian Local REST API on port 27123) under localhost bounds and authentication tokens.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Target App</label>
+                <select id="apps-api-target-select" style="width: 100%; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+                  <option value="obsidian">Obsidian (Port 27123)</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Endpoint Path</label>
+                <input type="text" id="apps-api-endpoint" value="/vault/Second-Brain-Notes.md" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Auth Token</label>
+                <input type="text" id="apps-api-token" value="vault_token_secure_456" placeholder="Bearer auth token" style="width: 100%; box-sizing: border-box; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button id="apps-api-send-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">Send API Command</button>
+            </div>
+          </div>
+          <div id="apps-api-results" style="padding: 1rem; background: #060b17; border: 1px solid #1e293b; border-radius: 8px; min-height: 150px; font-family: monospace; font-size: 0.8rem; color: #94a3b8;">
+            Awaiting API command execution.
+          </div>
+        </div>
+
+        <!-- Tab 6: Authorization Audit -->
+        <div id="apps-panel-audit" class="hidden">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; text-align: center;">
+              <div id="apps-audit-total" style="font-size: 1.8rem; font-weight: 700; color: #fff;">0</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Total Registered</div>
+            </div>
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; text-align: center;">
+              <div id="apps-audit-authorized" style="font-size: 1.8rem; font-weight: 700; color: var(--hud-green);">0</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Authorized</div>
+            </div>
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; text-align: center;">
+              <div id="apps-audit-pending" style="font-size: 1.8rem; font-weight: 700; color: var(--hud-amber);">0</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Pending Approval</div>
+            </div>
+            <div style="background: #0d1527; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; text-align: center;">
+              <div id="apps-audit-blocked" style="font-size: 1.8rem; font-weight: 700; color: #ef4444;">0</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Blocked</div>
+            </div>
+          </div>
+          <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h4 style="margin: 0 0 8px 0; color: var(--hud-cyan); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Master Plan Invariant: Capability Does Not Equal Permission
+            </h4>
+            <p id="apps-audit-notice" style="margin: 0; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
+              Capability does not equal permission. Only explicitly authorized applications can be launched or controlled. Dangerous system maintenance utilities (format, regedit, rundll32, vssadmin, certutil, diskpart, shutdown) are permanently blocked.
+            </p>
+          </div>
+          <div id="apps-audit-list" style="font-size: 0.8rem; color: #94a3b8;">
+            <!-- Populated audit list -->
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
