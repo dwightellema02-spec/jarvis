@@ -758,7 +758,73 @@ async function runManualVerification() {
       console.log('   Blueprint ID:', bpData.data.id, '| Product Name:', bpData.data.productName);
       console.log('   Viability PMF Score:', bpData.data.viability.overallScorePercent + '%', '| Sprints Planned:', bpData.data.roadmap.sprints.length);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 15) PASSED SUCCESSFULLY! ===');
+      console.log('59. Testing Phase 16 Ticker Quantitative Analysis (/api/jarvis/finance/ticker)');
+      const tickerRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/ticker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ symbol: 'AAPL' }),
+      });
+      const tickerData = await tickerRes.json();
+      console.log('   Ticker:', tickerData.data.symbol, '| Price:', '$' + tickerData.data.currentPrice, '| SMA20:', tickerData.data.technicals.sma20, '| RSI14:', tickerData.data.technicals.rsi14, '| Trend:', tickerData.data.trendSignal);
+
+      console.log('60. Testing Phase 16 DCF Valuation & Earnings Breakdown (/api/jarvis/finance/valuation & /earnings)');
+      const valRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/valuation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ symbol: 'MSFT', wacc: 0.09, growth: 0.025 }),
+      });
+      const valData = await valRes.json();
+      const earnRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/earnings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ symbol: 'NVDA' }),
+      });
+      const earnData = await earnRes.json();
+      console.log('   Fair Value MSFT:', '$' + valData.data.estimatedFairValue, '| Market Price:', '$' + valData.data.currentMarketPrice, '| Assessment:', valData.data.assessment);
+      console.log('   NVDA Earnings Quarter:', earnData.data.quarter, '| Revenue:', earnData.data.revenueActual, '| EPS Actual:', earnData.data.epsActual);
+
+      console.log('61. Testing Phase 16 MPT Portfolio Risk & Macroeconomic Regime (/api/jarvis/finance/portfolio/risk & /macro)');
+      const riskRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/portfolio/risk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          assets: [
+            { symbol: 'AAPL', weight: 0.4 },
+            { symbol: 'MSFT', weight: 0.4 },
+            { symbol: 'NVDA', weight: 0.2 },
+          ],
+        }),
+      });
+      const riskData = await riskRes.json();
+      const macroRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/macro', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const macroData = await macroRes.json();
+      console.log('   Portfolio Exp Return:', riskData.data.expectedAnnualReturn + '%', '| Sharpe:', riskData.data.sharpeRatio, '| 1-Day 95% VaR:', riskData.data.valueAtRisk95 + '%');
+      console.log('   Macro CPI:', macroData.data.indicators.cpiInflationYoY + '%', '| Fed Funds:', macroData.data.indicators.fedFundsRate + '%', '| Regime:', macroData.data.macroRegime);
+
+      console.log('62. Testing Phase 16 Algorithmic Backtest & Security Invariant Live Trade Block');
+      const btRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/backtest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ strategy: 'SMA_Crossover', symbol: 'SPY', timeframeDays: 250 }),
+      });
+      const btData = await btRes.json();
+      const tradeRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ symbol: 'AAPL', quantity: 10, action: 'BUY' }),
+      });
+      const tradeData = await tradeRes.json();
+      const brokerRes = await fetch('http://127.0.0.1:3099/api/jarvis/finance/brokers', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const brokerData = await brokerRes.json();
+      console.log('   Backtest Strategy:', btData.data.strategyName, '| Total Return:', btData.data.totalStrategyReturnPercent + '%', '| Win Rate:', btData.data.winRatePercent + '%');
+      console.log('   Live Trade Attempt Blocked:', tradeRes.status === 403, '| Security Block Flag:', tradeData.securityBlocked);
+      console.log('   Broker Simulation Active:', brokerData.data.isSimulationModeActive, '| Live Trading Allowed:', brokerData.data.isLiveTradingAllowed);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 16) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -648,9 +648,59 @@ IDEA ➔ RESEARCH ➔ PROBLEM ➔ USERS ➔ COMPETITORS ➔ PRODUCT ➔ FEATURES
 
 ---
 
+## 📈 Phase 16: Financial Research & Quantitative Intelligence Agent
+
+JARVIS incorporates a institutional-grade quantitative finance and research intelligence subsystem designed for rigorous educational and mathematical modeling with strict security guardrails:
+
+### 1. Market Ticker Analysis & Technical Indicators
+* **Moving Averages**: Evaluates Simple Moving Averages (SMA 20, SMA 50, SMA 200) and Exponential Moving Averages (EMA 12, EMA 26).
+* **Momentum Indicators**: Computes 14-period Relative Strength Index (RSI 14) and Moving Average Convergence Divergence (MACD value, signal line, histogram).
+* **Volatility Modeling**: Calculates Bollinger Bands (Upper, Middle, Lower bands, bandwidth) and annualized percentage volatility ($\sigma \times \sqrt{252}$).
+* **Support & Resistance**: Identifies key structural price levels and trend momentum classifications (`strong_bullish`, `bullish`, `neutral`, `bearish`, `strong_bearish`).
+
+### 2. Fundamental Valuation & DCF Modeling
+* **5-Year Discounted Cash Flow (DCF)**: Projects multi-year Free Cash Flows discounted at Weighted Average Cost of Capital (WACC), computing Gordon perpetual growth terminal value:
+  $$\text{Terminal Value} = \frac{\text{FCF}_5 \times (1 + g)}{\text{WACC} - g}$$
+* **Enterprise Fair Value & Margin of Safety**: Derives estimated intrinsic share price and percentage margin of safety relative to current market quote.
+* **Valuation Multiples**: Evaluates Price-to-Earnings (P/E), Price-to-Sales (P/S), Enterprise Value to EBITDA (EV/EBITDA), and Free Cash Flow Yield.
+* **Earnings Breakdown**: Tracks quarterly revenue, GAAP/Non-GAAP EPS actuals vs consensus estimates, earnings surprise %, YoY growth rates, gross/operating margins, and management forward guidance summaries.
+
+### 3. Modern Portfolio Theory (MPT) & Risk Analytics
+* **Markowitz Efficient Mean-Variance Modeling**: Computes portfolio expected annual return ($\mathbf{w}^T \mathbf{R}$) and true portfolio variance using the full pairwise asset covariance matrix:
+  $$\sigma_p^2 = \sum_{i} \sum_{j} w_i w_j \sigma_i \sigma_j \rho_{ij}$$
+* **Risk-Adjusted Return Ratios**: Calculates Sharpe Ratio and Sortino Ratio (downside deviation adjusted) against official risk-free Treasury benchmarks.
+* **Parametric Value at Risk (VaR)**: Derives 1-day 95% VaR ($1.645 \times \frac{\sigma_p}{\sqrt{252}}$) and 99% VaR ($2.326 \times \frac{\sigma_p}{\sqrt{252}}$).
+* **Asset Correlation Matrix**: Generates cross-asset Pearson correlation matrices for multi-asset portfolios (Equities, ETFs, Crypto, Fixed Income, Commodities) and computes 0–100 diversification scores.
+
+### 4. Macroeconomic Regime & Economic Signals
+* **Core Economic Indicators**: Monitors CPI Inflation YoY, Federal Funds Rate, 10Y-2Y Treasury Yield Curve Spread, Real GDP growth, and Unemployment rates.
+* **Yield Curve Status & Recession Probability**: Evaluates inverted, flat, or normal yield curve dynamics and models recession risk levels (`low`, `moderate`, `elevated`, `high`).
+* **Macroeconomic Regime Categorization**: Classifies the current economy into `disinflationary_boom`, `expansion`, `stagflation`, or `contraction`, outputting systematic asset class allocation cues across equities, fixed income, and cash equivalents.
+
+### 5. Algorithmic Strategy Backtesting
+* **Golden Cross / SMA Crossover**: Simulates moving average trend-following rules over configurable historical trading candle timeframes.
+* **RSI Mean-Reversion**: Simulates counter-trend exhaustion strategies (e.g. 30 oversold / 70 overbought triggers).
+* **Performance Metrics**: Computes total strategy return %, benchmark buy-and-hold return %, trade count, win rate %, profit factor, maximum percentage drawdown, and detailed trade execution log samples.
+
+### 6. Security Invariants & Default-Deny Safety Gating
+* **Mandatory Legal Disclaimer**: Every financial output includes: *"JARVIS Financial Research provides quantitative analysis and educational mathematical modeling, not licensed fiduciary financial advice or investment recommendations. Live capital execution is strictly prohibited by default-deny security policy."*
+* **Prohibited Real-Money Trading (Hard Invariant)**: In `SecurityGuardian`, `ResourceType.FINANCIAL_SERVICES` triggers `ThreatCategory.UNAUTHORIZED_FINANCIAL_ACTION` with `CRITICAL` severity for any write/execute attempt. Live orders and fund transfers are strictly intercepted and blocked with HTTP 403 Forbidden.
+* **Honest Broker Auditing**: Inspects sandbox API credentials and verifies simulation mode status, ensuring no live capital or unverified brokerage credentials are ever exposed.
+* **8 Registered Tools**:
+  1. `finance.analyze_ticker`
+  2. `finance.valuation_model`
+  3. `finance.portfolio_risk`
+  4. `finance.macro_economic_overview`
+  5. `finance.correlation_matrix`
+  6. `finance.earnings_breakdown`
+  7. `finance.backtest_strategy`
+  8. `finance.check_broker_credentials`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (363 automated tests across 50 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, and PMF Viability Evaluations):
+Run the full Vitest suite (388 automated tests across 53 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, and Broker Sandbox Gating):
 ```bash
 # Run all tests
 npm test

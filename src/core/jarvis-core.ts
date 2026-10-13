@@ -111,6 +111,11 @@ import {
   InnovationAgent,
   createInnovationTools,
 } from '../innovation/index.js';
+import {
+  FinanceManager,
+  FinanceAgent,
+  createFinanceTools,
+} from '../finance/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -135,6 +140,7 @@ export interface JarvisCoreConfig {
   creativeManager?: CreativeManager;
   animationManager?: AnimationManager;
   innovationManager?: InnovationManager;
+  financeManager?: FinanceManager;
 }
 
 export interface JarvisChatRequest {
@@ -181,6 +187,7 @@ export class JarvisCore {
   private creativeManager: CreativeManager;
   private animationManager: AnimationManager;
   private innovationManager: InnovationManager;
+  private financeManager: FinanceManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -388,7 +395,18 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Financial Research Engine, Agent, and Tools
+    this.financeManager =
+      config.financeManager ||
+      new FinanceManager(this.permissionManager, this.guardian, this.auditLogger);
+    const financeAgent = new FinanceAgent(this.financeManager);
+    this.agentRegistry.registerImplementation(financeAgent);
+
+    for (const tool of createFinanceTools(this.financeManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -758,6 +776,10 @@ export class JarvisCore {
 
   public getInnovationManager(): InnovationManager {
     return this.innovationManager;
+  }
+
+  public getFinanceManager(): FinanceManager {
+    return this.financeManager;
   }
 
   public async orchestrate(

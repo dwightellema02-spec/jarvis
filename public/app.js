@@ -3622,6 +3622,424 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Phase 16: Financial Terminal Modal & Quantitative Actions
+  const finToggleBtn = document.getElementById('finance-toggle-btn');
+  const finModal = document.getElementById('finance-modal');
+  const finCloseBtn = document.getElementById('finance-modal-close');
+
+  if (finToggleBtn && finModal) {
+    finToggleBtn.addEventListener('click', () => {
+      finModal.classList.toggle('hidden');
+    });
+  }
+
+  if (finCloseBtn && finModal) {
+    finCloseBtn.addEventListener('click', () => {
+      finModal.classList.add('hidden');
+    });
+  }
+
+  // Financial Terminal Tabs
+  const finTabs = [
+    { btn: 'finance-tab-ticker', panel: 'finance-panel-ticker' },
+    { btn: 'finance-tab-valuation', panel: 'finance-panel-valuation' },
+    { btn: 'finance-tab-risk', panel: 'finance-panel-risk' },
+    { btn: 'finance-tab-macro', panel: 'finance-panel-macro' },
+    { btn: 'finance-tab-backtest', panel: 'finance-panel-backtest' },
+    { btn: 'finance-tab-broker', panel: 'finance-panel-broker' },
+  ];
+
+  finTabs.forEach((tab) => {
+    const btnEl = document.getElementById(tab.btn);
+    if (!btnEl) return;
+    btnEl.addEventListener('click', () => {
+      finTabs.forEach((t) => {
+        const b = document.getElementById(t.btn);
+        const p = document.getElementById(t.panel);
+        if (b) {
+          b.className = 'btn btn-sm btn-outline';
+          b.style.background = 'transparent';
+          b.style.borderColor = '#334155';
+          b.style.color = '#cbd5e1';
+        }
+        if (p) p.classList.add('hidden');
+      });
+      btnEl.className = 'btn btn-sm btn-primary';
+      btnEl.style.background = '#22c55e';
+      btnEl.style.borderColor = '#22c55e';
+      btnEl.style.color = '#000';
+      const targetPanel = document.getElementById(tab.panel);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+    });
+  });
+
+  // 1. Ticker Analysis Action
+  const finAnalyzeBtn = document.getElementById('fin-analyze-ticker-btn');
+  const finTickerResult = document.getElementById('fin-ticker-result');
+  if (finAnalyzeBtn && finTickerResult) {
+    finAnalyzeBtn.addEventListener('click', async () => {
+      try {
+        const symbol = (document.getElementById('fin-ticker-symbol')?.value || '').trim() || 'AAPL';
+        finTickerResult.innerHTML = '<span style="color: #22c55e;">Analyzing quantitative indicators...</span>';
+
+        const res = await fetch('/api/jarvis/finance/ticker', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ symbol }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finTickerResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const t = data.data;
+        finTickerResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+            <div>
+              <h4 style="margin: 0; color: #f8fafc; font-size: 1.25rem;">${t.symbol} &mdash; ${t.name}</h4>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Asset Class: ${t.assetClass.toUpperCase()}</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">$${t.currentPrice.toFixed(2)}</span>
+              <div style="font-size: 0.8rem; color: ${t.change24h >= 0 ? '#22c55e' : '#ef4444'};">
+                ${t.change24h >= 0 ? '+' : ''}${t.change24h.toFixed(2)} (${t.change24hPercent.toFixed(2)}%)
+              </div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">SMA 20 / 50 / 200</div>
+              <div style="font-size: 0.8rem; font-weight: bold; color: #38bdf8;">${t.technicals.sma20} / ${t.technicals.sma50} / ${t.technicals.sma200}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">RSI (14)</div>
+              <div style="font-size: 0.8rem; font-weight: bold; color: ${t.technicals.rsi14 > 70 ? '#ef4444' : t.technicals.rsi14 < 30 ? '#22c55e' : '#f59e0b'};">${t.technicals.rsi14}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">MACD Histogram</div>
+              <div style="font-size: 0.8rem; font-weight: bold; color: ${t.technicals.macd.histogram >= 0 ? '#22c55e' : '#ef4444'};">${t.technicals.macd.histogram}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Trend Signal</div>
+              <div style="font-size: 0.8rem; font-weight: bold; color: #10b981;">${t.trendSignal.toUpperCase()}</div>
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+            <strong>Support:</strong> $${t.supportResistance.support} | <strong>Resistance:</strong> $${t.supportResistance.resistance} | <strong>Annual Volatility:</strong> ${t.technicals.annualizedVolatility}%
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            <strong>Insights:</strong> ${t.keyInsights.join(' &bull; ')}
+          </div>
+        `;
+      } catch (err) {
+        finTickerResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 2. DCF Valuation Action
+  const finCalculateValBtn = document.getElementById('fin-calculate-val-btn');
+  const finValuationResult = document.getElementById('fin-valuation-result');
+  if (finCalculateValBtn && finValuationResult) {
+    finCalculateValBtn.addEventListener('click', async () => {
+      try {
+        const symbol = (document.getElementById('fin-val-symbol')?.value || '').trim() || 'MSFT';
+        const wacc = parseFloat(document.getElementById('fin-val-wacc')?.value || '0.09');
+        const growth = parseFloat(document.getElementById('fin-val-growth')?.value || '0.025');
+        finValuationResult.innerHTML = '<span style="color: #22c55e;">Modeling discounted cash flows & valuation multiples...</span>';
+
+        const res = await fetch('/api/jarvis/finance/valuation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ symbol, wacc, growth }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finValuationResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const v = data.data;
+        finValuationResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <h4 style="margin: 0; color: #f8fafc;">DCF Valuation Model: ${v.symbol}</h4>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Gordon Perpetual Growth (WACC: ${(v.dcfInputs.wacc * 100).toFixed(1)}%, g: ${(v.dcfInputs.terminalGrowthRate * 100).toFixed(1)}%)</span>
+            </div>
+            <span class="badge" style="background: #1e293b; color: ${v.assessment === 'undervalued' ? '#22c55e' : v.assessment === 'fairly_valued' ? '#38bdf8' : '#f59e0b'}; font-weight: bold; text-transform: uppercase;">${v.assessment}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Current Market Price</div>
+              <div style="font-size: 1.2rem; font-weight: bold; color: #f8fafc;">$${v.currentMarketPrice.toFixed(2)}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Estimated Intrinsic Fair Value</div>
+              <div style="font-size: 1.2rem; font-weight: bold; color: #22c55e;">$${v.estimatedFairValue.toFixed(2)}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Margin of Safety</div>
+              <div style="font-size: 1.2rem; font-weight: bold; color: ${v.marginOfSafetyPercent >= 0 ? '#22c55e' : '#ef4444'};">${v.marginOfSafetyPercent > 0 ? '+' : ''}${v.marginOfSafetyPercent.toFixed(1)}%</div>
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+            P/E: <strong>${v.multiples.peRatio.toFixed(1)}x</strong> | P/S: <strong>${v.multiples.psRatio.toFixed(1)}x</strong> | EV/EBITDA: <strong>${v.multiples.evEbitda.toFixed(1)}x</strong> | FCF Yield: <strong>${v.multiples.fcfYield.toFixed(1)}%</strong>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            ${v.summary}
+          </div>
+        `;
+      } catch (err) {
+        finValuationResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 3. Portfolio Risk (MPT) Action
+  const finEvalRiskBtn = document.getElementById('fin-evaluate-risk-btn');
+  const finRiskResult = document.getElementById('fin-risk-result');
+  if (finEvalRiskBtn && finRiskResult) {
+    finEvalRiskBtn.addEventListener('click', async () => {
+      try {
+        const rawInput = (document.getElementById('fin-portfolio-input')?.value || '').trim();
+        const assets = JSON.parse(rawInput);
+        finRiskResult.innerHTML = '<span style="color: #22c55e;">Computing portfolio covariance & VaR metrics...</span>';
+
+        const res = await fetch('/api/jarvis/finance/portfolio/risk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ assets }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finRiskResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const r = data.data;
+        finRiskResult.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Expected Return</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #22c55e;">${r.expectedAnnualReturn.toFixed(1)}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Portfolio Volatility</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #f59e0b;">${r.portfolioVolatility.toFixed(1)}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Sharpe / Sortino</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #38bdf8;">${r.sharpeRatio.toFixed(2)} / ${r.sortinoRatio.toFixed(2)}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">1-Day 95% VaR</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #ef4444;">-${r.valueAtRisk95.toFixed(2)}%</div>
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 0.6rem; border-radius: 6px; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+            Diversification Score: <strong>${r.diversificationScore}/100</strong> | Max Historical Drawdown: <strong>${r.maxDrawdownPercent}%</strong> | 99% VaR: <strong>-${r.valueAtRisk99}%</strong>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            Assets: ${r.assets.map(a => `${a.symbol} (${(a.weight * 100).toFixed(0)}%)`).join(', ')}
+          </div>
+        `;
+      } catch (err) {
+        finRiskResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 4. Macroeconomic Regime Action
+  const finFetchMacroBtn = document.getElementById('fin-fetch-macro-btn');
+  const finMacroResult = document.getElementById('fin-macro-result');
+  if (finFetchMacroBtn && finMacroResult) {
+    finFetchMacroBtn.addEventListener('click', async () => {
+      try {
+        finMacroResult.innerHTML = '<span style="color: #22c55e;">Fetching macroeconomic indicators...</span>';
+
+        const res = await fetch('/api/jarvis/finance/macro', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finMacroResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const m = data.data;
+        finMacroResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <h4 style="margin: 0; color: #f8fafc;">Macro Regime: ${m.macroRegime.toUpperCase()}</h4>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Recession Risk: ${m.recessionRiskAssessment.toUpperCase()}</span>
+            </div>
+            <span class="badge" style="background: #1e293b; color: #38bdf8; font-weight: bold;">YIELD CURVE: ${m.yieldCurveStatus.toUpperCase()}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">CPI YoY</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #f8fafc;">${m.indicators.cpiInflationYoY}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Fed Funds Target</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #38bdf8;">${m.indicators.fedFundsRate}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">10Y-2Y Spread</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #22c55e;">+${m.indicators.treasury10Y2YSpread}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Unemployment</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #f59e0b;">${m.indicators.unemploymentRate}%</div>
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: #cbd5e1;">
+            <strong>Implications:</strong><br/>
+            ${m.marketImplications.map(imp => `&bull; ${imp}`).join('<br/>')}
+          </div>
+        `;
+      } catch (err) {
+        finMacroResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 5. Strategy Backtest Action
+  const finRunBtBtn = document.getElementById('fin-run-backtest-btn');
+  const finBtResult = document.getElementById('fin-backtest-result');
+  if (finRunBtBtn && finBtResult) {
+    finRunBtBtn.addEventListener('click', async () => {
+      try {
+        const strategy = document.getElementById('fin-bt-strategy')?.value || 'SMA_Crossover';
+        const symbol = (document.getElementById('fin-bt-symbol')?.value || '').trim() || 'SPY';
+        const timeframeDays = parseInt(document.getElementById('fin-bt-days')?.value || '250', 10);
+        finBtResult.innerHTML = '<span style="color: #22c55e;">Simulating algorithmic trading rules...</span>';
+
+        const res = await fetch('/api/jarvis/finance/backtest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ strategy, symbol, timeframeDays }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finBtResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const b = data.data;
+        finBtResult.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <h4 style="margin: 0; color: #f8fafc;">${b.strategyName} on ${b.symbol}</h4>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Time Horizon: ${b.timeframeDays} trading days | Total Trades: ${b.totalTrades}</span>
+            </div>
+            <span class="badge" style="background: #1e293b; color: #22c55e; font-weight: bold;">WIN RATE: ${b.winRatePercent}%</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Strategy Return</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: ${b.totalStrategyReturnPercent >= 0 ? '#22c55e' : '#ef4444'};">${b.totalStrategyReturnPercent > 0 ? '+' : ''}${b.totalStrategyReturnPercent}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Benchmark (Buy & Hold)</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #38bdf8;">${b.benchmarkBuyAndHoldReturnPercent > 0 ? '+' : ''}${b.benchmarkBuyAndHoldReturnPercent}%</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Profit Factor</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #f59e0b;">${b.profitFactor.toFixed(2)}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Max Drawdown</div>
+              <div style="font-size: 1.1rem; font-weight: bold; color: #ef4444;">-${b.maxDrawdownPercent}%</div>
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8;">
+            Simulated trades executed: ${b.tradeLogSample.length} logged samples.
+          </div>
+        `;
+      } catch (err) {
+        finBtResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 6. Broker & Safety Audit Action
+  const finAuditBrokerBtn = document.getElementById('fin-audit-broker-btn');
+  const finTestLiveTradeBtn = document.getElementById('fin-test-live-trade-btn');
+  const finBrokerResult = document.getElementById('fin-broker-result');
+
+  if (finAuditBrokerBtn && finBrokerResult) {
+    finAuditBrokerBtn.addEventListener('click', async () => {
+      try {
+        finBrokerResult.innerHTML = '<span style="color: #22c55e;">Auditing broker credentials and simulation bounds...</span>';
+
+        const res = await fetch('/api/jarvis/finance/brokers', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          finBrokerResult.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const a = data.data;
+        finBrokerResult.innerHTML = `
+          <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <strong style="color: #22c55e;">Policy: Simulation Mode Active</strong>
+              <span class="badge" style="background: #0f172a; color: #ef4444;">LIVE TRADING: PROHIBITED</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem;">
+              ${a.securityNotice}
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8;">
+            Configured Sandbox Connectors:
+            <ul style="margin: 0.3rem 0; padding-left: 1.25rem;">
+              ${a.configuredBrokers.map(b => `<li><strong>${b.name}</strong> (${b.accountType.toUpperCase()}): ${b.status}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      } catch (err) {
+        finBrokerResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  if (finTestLiveTradeBtn && finBrokerResult) {
+    finTestLiveTradeBtn.addEventListener('click', async () => {
+      try {
+        finBrokerResult.innerHTML = '<span style="color: #ef4444;">Testing live trade request through Security Guardian...</span>';
+
+        const res = await fetch('/api/jarvis/finance/trade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ symbol: 'AAPL', quantity: 10, action: 'BUY' }),
+        });
+        const data = await res.json();
+
+        if (res.status === 403 && data.securityBlocked) {
+          finBrokerResult.innerHTML = `
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; padding: 0.75rem; border-radius: 6px;">
+              <strong style="color: #ef4444;">[CRITICAL] Security Guardian Block Verified!</strong>
+              <div style="font-size: 0.8rem; color: #fca5a5; margin-top: 0.35rem;">
+                Live trade execution attempt was intercepted and DENIED: <code>${data.error}</code>
+              </div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.35rem;">
+                Invariant holds: Zero unauthorized financial transfers or real money execution can occur.
+              </div>
+            </div>
+          `;
+        } else {
+          finBrokerResult.innerHTML = `<span style="color: #ef4444;">Unexpected: Order not blocked.</span>`;
+        }
+      } catch (err) {
+        finBrokerResult.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
   // Start
   initSession();
 });

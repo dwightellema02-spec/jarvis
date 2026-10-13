@@ -18,9 +18,13 @@
           <div class="core-pulse"></div>
           <span class="brand-title">JARVIS</span>
         </div>
-        <span class="badge phase-badge">Phase 15: Product Innovation Active</span>
+        <span class="badge phase-badge">Phase 16: Financial Research Active</span>
       </div>
       <div class="header-meta">
+        <button id="finance-toggle-btn" class="btn btn-outline" style="border-color: rgba(34, 197, 94, 0.4); color: #22c55e;" title="JARVIS Financial Research & Quantitative Intelligence Terminal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Finance</span>
+        </button>
         <button id="innovation-toggle-btn" class="btn btn-outline" style="border-color: rgba(20, 184, 166, 0.4); color: #14b8a6;" title="JARVIS Product Innovation & Venture Architecture Studio">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
           <span>Innovation</span>
@@ -1108,6 +1112,114 @@
           </div>
           <div id="innov-roadmap-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; max-height: 400px; overflow-y: auto;">
             <p style="color: #94a3b8; margin: 0;">Inspect agile sprint milestones, deliverables, risk levels, launch checklist, and deterministic PMF viability score.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Research & Quantitative Intelligence Terminal Modal (Phase 16) -->
+  <div id="finance-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; background: #0b1120; border: 1px solid #1e293b; color: #e2e8f0; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid #1e293b;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; color: #22c55e;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #f8fafc;">Quantitative Financial Terminal</h3>
+            <span style="font-size: 0.75rem; color: #94a3b8;">Technical Indicators, DCF Modeling, MPT Risk, Backtesting & Safety Gating</span>
+          </div>
+        </div>
+        <button id="finance-modal-close" class="btn btn-icon" style="background: transparent; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Financial Terminal Disclaimer Banner -->
+      <div style="margin: 1rem 1.5rem 0.5rem; padding: 0.6rem 0.9rem; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 6px; font-size: 0.75rem; color: #86efac; display: flex; align-items: center; gap: 0.5rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><strong>Disclaimer:</strong> Quantitative analysis & educational modeling only. Not licensed investment advice. Live trading execution is prohibited by Security Guardian.</span>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div style="display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid #1e293b; overflow-x: auto;">
+        <button id="finance-tab-ticker" class="btn btn-sm btn-primary" style="background: #22c55e; border-color: #22c55e;">Ticker Analysis</button>
+        <button id="finance-tab-valuation" class="btn btn-sm btn-outline">Valuation & DCF</button>
+        <button id="finance-tab-risk" class="btn btn-sm btn-outline">Portfolio Risk (MPT)</button>
+        <button id="finance-tab-macro" class="btn btn-sm btn-outline">Macro Overview</button>
+        <button id="finance-tab-backtest" class="btn btn-sm btn-outline">Strategy Backtest</button>
+        <button id="finance-tab-broker" class="btn btn-sm btn-outline">Broker & Safety Audit</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+        <!-- Tab 1: Ticker Analysis -->
+        <div id="finance-panel-ticker">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" id="fin-ticker-symbol" value="AAPL" placeholder="Symbol (e.g. AAPL, NVDA, MSFT, SPY)" style="flex: 1; padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+            <button id="fin-analyze-ticker-btn" class="btn btn-primary" style="background: #22c55e; border-color: #22c55e; color: #000; font-weight: 600;">Analyze Technicals</button>
+          </div>
+          <div id="fin-ticker-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Enter a ticker to compute SMA 20/50/200, RSI 14, MACD, Bollinger Bands, annualized volatility, and trend momentum signals.</p>
+          </div>
+        </div>
+
+        <!-- Tab 2: Valuation & DCF -->
+        <div id="finance-panel-valuation" class="hidden">
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" id="fin-val-symbol" value="MSFT" placeholder="Symbol" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+            <input type="number" id="fin-val-wacc" value="0.09" step="0.005" placeholder="WACC (0.09)" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+            <input type="number" id="fin-val-growth" value="0.025" step="0.005" placeholder="Terminal g (0.025)" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+            <button id="fin-calculate-val-btn" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">Calculate DCF</button>
+          </div>
+          <div id="fin-valuation-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Calculate 5-year free cash flow projections, terminal value, enterprise fair value, and valuation multiples (P/E, P/S, EV/EBITDA, FCF yield).</p>
+          </div>
+        </div>
+
+        <!-- Tab 3: Portfolio Risk (MPT) -->
+        <div id="finance-panel-risk" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <textarea id="fin-portfolio-input" rows="2" style="flex: 1; padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.85rem;" placeholder="JSON Assets, e.g. [{&quot;symbol&quot;:&quot;AAPL&quot;,&quot;weight&quot;:0.4},{&quot;symbol&quot;:&quot;MSFT&quot;,&quot;weight&quot;:0.4},{&quot;symbol&quot;:&quot;NVDA&quot;,&quot;weight&quot;:0.2}]">[{"symbol":"AAPL","weight":0.4},{"symbol":"MSFT","weight":0.4},{"symbol":"NVDA","weight":0.2}]</textarea>
+            <button id="fin-evaluate-risk-btn" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e; align-self: flex-start;">Compute Risk</button>
+          </div>
+          <div id="fin-risk-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Calculates portfolio expected return, covariance variance, Sharpe ratio, Sortino, 95%/99% Parametric VaR, and correlation matrix.</p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Macro Overview -->
+        <div id="finance-panel-macro" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button id="fin-fetch-macro-btn" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">Refresh Macroeconomic Regime</button>
+          </div>
+          <div id="fin-macro-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Fetches CPI inflation, benchmark policy rate, 10Y-2Y yield curve spread, recession probability, and macro regime allocation cues.</p>
+          </div>
+        </div>
+
+        <!-- Tab 5: Strategy Backtest -->
+        <div id="finance-panel-backtest" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 1rem;">
+            <select id="fin-bt-strategy" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+              <option value="SMA_Crossover">SMA Crossover (Golden Cross)</option>
+              <option value="RSI_Mean_Reversion">RSI Mean-Reversion</option>
+            </select>
+            <input type="text" id="fin-bt-symbol" value="SPY" placeholder="Symbol" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace;">
+            <input type="number" id="fin-bt-days" value="250" placeholder="Timeframe (Days)" style="padding: 0.5rem 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff;">
+            <button id="fin-run-backtest-btn" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">Run Backtest</button>
+          </div>
+          <div id="fin-backtest-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Simulates technical strategies against historical data, calculating win rate, profit factor, max drawdown, and sample trade execution logs.</p>
+          </div>
+        </div>
+
+        <!-- Tab 6: Broker & Safety Audit -->
+        <div id="finance-panel-broker" class="hidden">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button id="fin-audit-broker-btn" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">Audit Broker & Policy Status</button>
+            <button id="fin-test-live-trade-btn" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;" title="Verify Security Guardian blocks real order placement">Test Live Trade Gating (Invariant Check)</button>
+          </div>
+          <div id="fin-broker-result" style="padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 250px;">
+            <p style="color: #94a3b8; margin: 0;">Verify sandbox bounds and test Security Guardian live execution enforcement.</p>
           </div>
         </div>
       </div>
