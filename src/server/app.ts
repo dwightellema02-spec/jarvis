@@ -49,6 +49,7 @@ import { createCollaborationRouter } from './routes/collaboration.js';
 import { createVerificationRouter } from './routes/verification.js';
 import { createLearningRouter } from './routes/learning.js';
 import { createContextRouter } from './routes/context.js';
+import { createSecurityHardeningRouter } from './routes/security-hardening.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -269,6 +270,20 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     allowedActions: ['read', 'write', 'execute', 'modify', 'delete', 'admin'],
     grantedBy: 'system',
   });
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.SECURITY,
+    level: PermissionLevel.WRITE,
+    allowedActions: ['read', 'write'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.SECURITY,
+    level: PermissionLevel.ADMIN,
+    allowedActions: ['read', 'write', 'execute', 'admin'],
+    grantedBy: 'system',
+  });
 
   const core =
     deps.jarvisCore ||
@@ -333,7 +348,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.28.0-phase28';
+  const version = '0.29.0-phase29';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -362,6 +377,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis/verification', createVerificationRouter(core.getVerificationSuite()));
   app.use('/api/jarvis/learning', createLearningRouter(core.getSelfCorrectionManager()));
   app.use('/api/jarvis/context', createContextRouter(core.getContextManager()));
+  app.use('/api/jarvis/security', createSecurityHardeningRouter(core.getSecurityHardeningManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

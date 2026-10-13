@@ -184,6 +184,11 @@ import {
   ContextAgent,
   createContextTools,
 } from '../context/index.js';
+import {
+  SecurityHardeningManager,
+  SecurityHardeningAgent,
+  createSecurityHardeningTools,
+} from '../security/hardening/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -221,6 +226,7 @@ export interface JarvisCoreConfig {
   verificationSuite?: VerificationSuiteManager;
   selfCorrectionManager?: SelfCorrectionManager;
   contextManager?: PersonalContextManager;
+  securityHardeningManager?: SecurityHardeningManager;
 }
 
 export interface JarvisChatRequest {
@@ -280,6 +286,7 @@ export class JarvisCore {
   private verificationSuite: VerificationSuiteManager;
   private selfCorrectionManager: SelfCorrectionManager;
   private contextManager: PersonalContextManager;
+  private securityHardeningManager: SecurityHardeningManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -684,7 +691,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Phase 28 Personal Context Engine & Unified Dashboard, Phase 27 Self-Correction & Learning Loop Engine, Phase 26 Verification Suite Engine, Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Security & Privacy Hardening Engine, Agent, and Tools (Phase 29)
+    this.securityHardeningManager =
+      config.securityHardeningManager ||
+      new SecurityHardeningManager({
+        permissionManager: this.permissionManager,
+        guardian: this.guardian,
+        auditLogger: this.auditLogger,
+      });
+    const securityAgent = new SecurityHardeningAgent(this.securityHardeningManager);
+    this.agentRegistry.registerImplementation(securityAgent);
+
+    for (const tool of createSecurityHardeningTools(this.securityHardeningManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Phase 29 Security, Privacy & Permissions Hardening, Phase 28 Personal Context Engine & Unified Dashboard, Phase 27 Self-Correction & Learning Loop Engine, Phase 26 Verification Suite Engine, Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -1106,6 +1128,10 @@ export class JarvisCore {
 
   public getContextManager(): PersonalContextManager {
     return this.contextManager;
+  }
+
+  public getSecurityHardeningManager(): SecurityHardeningManager {
+    return this.securityHardeningManager;
   }
 
   public async orchestrate(

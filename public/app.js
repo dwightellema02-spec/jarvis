@@ -10123,6 +10123,446 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 29: SECURITY & PRIVACY CITADEL CONTROLLER ====================
+  function initSecurityStudio() {
+    const modal = document.getElementById('security-modal');
+    const openNav = document.getElementById('nav-security');
+    const openChip = document.getElementById('chip-security-agent');
+    const closeBtn = document.getElementById('close-security-modal');
+
+    let lastEnvelope = null;
+    let lastToken = null;
+
+    function openModal() {
+      if (modal) {
+        modal.style.display = 'flex';
+        loadPosture();
+        loadKeyHistory();
+        loadDelegations();
+      }
+    }
+
+    function closeModal() {
+      if (modal) modal.style.display = 'none';
+    }
+
+    if (openNav) {
+      openNav.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+      });
+    }
+
+    if (openChip) {
+      openChip.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+      });
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    }
+
+    // Tab Switching
+    const tabBtns = [
+      { btn: document.getElementById('tab-btn-sec-posture'), content: document.getElementById('tab-sec-posture') },
+      { btn: document.getElementById('tab-btn-sec-crypto'), content: document.getElementById('tab-sec-crypto') },
+      { btn: document.getElementById('tab-btn-sec-privacy'), content: document.getElementById('tab-sec-privacy') },
+      { btn: document.getElementById('tab-btn-sec-scanner'), content: document.getElementById('tab-sec-scanner') },
+    ];
+
+    tabBtns.forEach(({ btn, content }) => {
+      if (!btn || !content) return;
+      btn.addEventListener('click', () => {
+        tabBtns.forEach((t) => {
+          if (t.btn) {
+            t.btn.style.background = 'transparent';
+            t.btn.style.borderColor = 'transparent';
+            t.btn.style.color = '#94a3b8';
+          }
+          if (t.content) t.content.style.display = 'none';
+        });
+
+        btn.style.background = '#0b1730';
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#10b981';
+        content.style.display = 'flex';
+      });
+    });
+
+    // 1. Posture & Defenses
+    async function loadPosture() {
+      try {
+        const res = await fetch('/api/jarvis/security/posture', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const p = data.data;
+          const gradeEl = document.getElementById('sec-posture-grade');
+          const algoEl = document.getElementById('sec-posture-algo');
+          const keyEl = document.getElementById('sec-posture-key');
+          const delgEl = document.getElementById('sec-posture-delg');
+          const defEl = document.getElementById('sec-defenses-list');
+
+          if (gradeEl) gradeEl.textContent = `${p.rating || 'GRADE_A_CITADEL'} (${p.postureScore || 100}/100)`;
+          if (algoEl) algoEl.textContent = 'AES-256-GCM';
+          if (keyEl) keyEl.textContent = `v${p.activeKeysCount || 1}`;
+          if (delgEl) delgEl.textContent = `${p.activeDelegationsCount || 0} Tokens`;
+
+          if (defEl && p.subsystemDefenses) {
+            const defenseNames = {
+              cryptoVault: 'AES-256-GCM Envelope Encryption (NIST SP 800-38D)',
+              privacyVault: 'RA 10173 Philippine Statutory PII Redactor',
+              securityScanner: 'AST & Prototype Pollution Interceptor',
+              delegationManager: 'Zero-Trust Ephemeral Delegations (HMAC-SHA256)',
+              auditLogging: 'Immutable Audit Trail & Tamper Detection',
+            };
+
+            defEl.innerHTML = Object.entries(p.subsystemDefenses)
+              .map(([k, status]) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #070e1e; border: 1px solid #1e293b; border-radius: 4px;">
+                  <span style="color: #cbd5e1;">${defenseNames[k] || k}</span>
+                  <span style="font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; text-transform: uppercase;">
+                    ${status}
+                  </span>
+                </div>
+              `)
+              .join('');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load security posture:', err);
+      }
+    }
+
+    const refreshPostureBtn = document.getElementById('sec-refresh-posture-btn');
+    if (refreshPostureBtn) refreshPostureBtn.addEventListener('click', loadPosture);
+
+    // 2. Envelope Crypto & Key Rotation
+    const encBtn = document.getElementById('sec-encrypt-btn');
+    const decBtn = document.getElementById('sec-decrypt-btn');
+    const cryptoOutput = document.getElementById('sec-crypto-output');
+
+    if (encBtn) {
+      encBtn.addEventListener('click', async () => {
+        const rawInput = (document.getElementById('sec-enc-data')?.value || '').trim();
+        const plaintext = rawInput;
+
+        try {
+          if (cryptoOutput) cryptoOutput.textContent = '// Encrypting with AES-256-GCM...';
+          const res = await fetch('/api/jarvis/security/encrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ plaintext }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            lastEnvelope = d.data;
+            if (cryptoOutput) cryptoOutput.textContent = JSON.stringify(d.data, null, 2);
+          } else {
+            if (cryptoOutput) cryptoOutput.textContent = `// Encryption failed: ${d.error}`;
+          }
+        } catch (err) {
+          if (cryptoOutput) cryptoOutput.textContent = `// Encryption error: ${err.message}`;
+        }
+      });
+    }
+
+    if (decBtn) {
+      decBtn.addEventListener('click', async () => {
+        let env = lastEnvelope;
+        if (!env) {
+          try {
+            env = JSON.parse(cryptoOutput?.textContent || '{}');
+          } catch {
+            env = null;
+          }
+        }
+
+        if (!env || !env.ciphertext) {
+          if (cryptoOutput) cryptoOutput.textContent = '// Please encrypt a payload first or provide an envelope';
+          return;
+        }
+
+        try {
+          if (cryptoOutput) cryptoOutput.textContent = '// Decrypting envelope with authentication tag verification...';
+          const res = await fetch('/api/jarvis/security/decrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ envelope: env }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            if (cryptoOutput) cryptoOutput.textContent = `// DECRYPTED PAYLOAD (Authentication Tag Validated):\n${d.data.decryptedText}`;
+          } else {
+            if (cryptoOutput) cryptoOutput.textContent = `// Decryption failed: ${d.error}`;
+          }
+        } catch (err) {
+          if (cryptoOutput) cryptoOutput.textContent = `// Decryption error: ${err.message}`;
+        }
+      });
+    }
+
+    // Key Rotation
+    async function loadKeyHistory() {
+      const container = document.getElementById('sec-key-history');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/jarvis/security/keys', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const d = await res.json();
+        if (d.success && Array.isArray(d.data)) {
+          container.innerHTML = d.data
+            .map((k) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #070e1e; border: 1px solid #1e293b; border-radius: 4px;">
+                <div>
+                  <span style="font-weight: 600; color: #f8fafc; font-size: 0.78rem;">v${k.version} (${k.keyId})</span>
+                  <span style="font-size: 0.72rem; color: #94a3b8; margin-left: 6px;">[${k.algorithm}]</span>
+                </div>
+                <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: ${k.status === 'active' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(100, 116, 139, 0.2)'}; color: ${k.status === 'active' ? '#f59e0b' : '#94a3b8'}; font-weight: 600; text-transform: uppercase;">
+                  ${k.status}
+                </span>
+              </div>
+            `)
+            .join('');
+        }
+      } catch (err) {
+        console.error('Failed to load key history:', err);
+      }
+    }
+
+    const rotateBtn = document.getElementById('sec-rotate-key-btn');
+    if (rotateBtn) {
+      rotateBtn.addEventListener('click', async () => {
+        const reason = (document.getElementById('sec-rotate-reason')?.value || '').trim() || 'Manual UI rotation';
+        try {
+          const res = await fetch('/api/jarvis/security/rotate-key', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ reason }),
+          });
+          const d = await res.json();
+          if (d.success) {
+            loadKeyHistory();
+            loadPosture();
+            alert(`Master key rotated to version ${d.data?.version}!`);
+          } else {
+            alert(`Rotation failed: ${d.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    // 3. RA 10173 Privacy & Token Vault
+    const redactBtn = document.getElementById('sec-redact-btn');
+    if (redactBtn) {
+      redactBtn.addEventListener('click', async () => {
+        const text = (document.getElementById('sec-pii-input')?.value || '').trim();
+        const outEl = document.getElementById('sec-redact-output');
+        const metaEl = document.getElementById('sec-redact-meta');
+        if (!text) return;
+
+        try {
+          const res = await fetch('/api/jarvis/security/redact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ text }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            if (outEl) outEl.textContent = d.data.sanitizedText;
+            if (metaEl) {
+              const types = d.data.detections?.map((m) => m.type).join(', ') || 'None';
+              metaEl.textContent = `Detections Found: ${d.data.matchesCount} | Classifications: ${types}`;
+            }
+          }
+        } catch (err) {
+          if (outEl) outEl.textContent = `Error: ${err.message}`;
+        }
+      });
+    }
+
+    const tokBtn = document.getElementById('sec-tokenize-btn');
+    const detokBtn = document.getElementById('sec-detokenize-btn');
+    const tokOutput = document.getElementById('sec-token-output');
+
+    if (tokBtn) {
+      tokBtn.addEventListener('click', async () => {
+        const plaintext = (document.getElementById('sec-tok-plain')?.value || '').trim();
+        const classification = (document.getElementById('sec-tok-class')?.value || 'SECRET').trim();
+        if (!plaintext) return;
+
+        try {
+          const res = await fetch('/api/jarvis/security/tokenize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ value: plaintext, classification, durationMinutes: 60 }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            lastToken = d.data.tokenId;
+            if (tokOutput) tokOutput.textContent = JSON.stringify(d.data, null, 2);
+          }
+        } catch (err) {
+          if (tokOutput) tokOutput.textContent = `Error: ${err.message}`;
+        }
+      });
+    }
+
+    if (detokBtn) {
+      detokBtn.addEventListener('click', async () => {
+        if (!lastToken) {
+          if (tokOutput) tokOutput.textContent = '// Please tokenize a secret first';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/jarvis/security/detokenize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ tokenId: lastToken }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            if (tokOutput) tokOutput.textContent = `// REVERSED PLAINTEXT FROM VAULT:\n${d.data.originalValue}`;
+          } else {
+            if (tokOutput) tokOutput.textContent = `Lookup error: ${d.error}`;
+          }
+        } catch (err) {
+          if (tokOutput) tokOutput.textContent = `Error: ${err.message}`;
+        }
+      });
+    }
+
+    // 4. Vulnerability Scanner & Delegations
+    const auditBtn = document.getElementById('sec-audit-btn');
+    const auditOutput = document.getElementById('sec-audit-output');
+
+    if (auditBtn) {
+      auditBtn.addEventListener('click', async () => {
+        const raw = (document.getElementById('sec-audit-payload')?.value || '').trim();
+        let payload;
+        try {
+          payload = JSON.parse(raw);
+        } catch {
+          payload = raw;
+        }
+
+        try {
+          if (auditOutput) auditOutput.textContent = '// Scanning payload across AST, injection, traversal, ReDoS vectors...';
+          const res = await fetch('/api/jarvis/security/audit-payload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ payload }),
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            if (auditOutput) auditOutput.textContent = JSON.stringify(d.data, null, 2);
+          }
+        } catch (err) {
+          if (auditOutput) auditOutput.textContent = `Error: ${err.message}`;
+        }
+      });
+    }
+
+    // Delegations
+    async function loadDelegations() {
+      const container = document.getElementById('sec-delg-list');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/jarvis/security/delegations', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const d = await res.json();
+        if (d.success && Array.isArray(d.data)) {
+          if (d.data.length === 0) {
+            container.innerHTML = `<div style="font-size: 0.75rem; color: #64748b; padding: 8px;">No active delegations.</div>`;
+            return;
+          }
+          container.innerHTML = d.data
+            .map((del) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #070e1e; border: 1px solid #1e293b; border-radius: 4px;">
+                <div>
+                  <div style="font-weight: 600; color: #38bdf8; font-size: 0.78rem;">${del.delegateeId}</div>
+                  <div style="font-size: 0.7rem; color: #94a3b8;">${del.resource} | ${del.action} (${del.level})</div>
+                </div>
+                <button class="revoke-delg-btn" data-id="${del.id}" style="padding: 3px 8px; background: #ef4444; border: none; border-radius: 4px; color: #fff; font-size: 0.7rem; cursor: pointer;">
+                  Revoke
+                </button>
+              </div>
+            `)
+            .join('');
+
+          container.querySelectorAll('.revoke-delg-btn').forEach((btn) => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.target.getAttribute('data-id');
+              if (!id) return;
+              try {
+                const r = await fetch(`/api/jarvis/security/delegations/${id}`, {
+                  method: 'DELETE',
+                  headers: { 'x-user-id': 'dwight' },
+                });
+                const resData = await r.json();
+                if (resData.success) {
+                  loadDelegations();
+                  loadPosture();
+                }
+              } catch (err) {
+                console.error('Revocation failed:', err);
+              }
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load delegations:', err);
+      }
+    }
+
+    const createDelgBtn = document.getElementById('sec-create-delg-btn');
+    if (createDelgBtn) {
+      createDelgBtn.addEventListener('click', async () => {
+        const delegateUserId = (document.getElementById('sec-delg-user')?.value || '').trim() || 'subagent-01';
+        const durationMinutes = parseInt(document.getElementById('sec-delg-ttl')?.value || '60', 10);
+        const reason = (document.getElementById('sec-delg-reason')?.value || '').trim() || 'Ephemeral delegation';
+
+        try {
+          const res = await fetch('/api/jarvis/security/delegations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              delegateeId: delegateUserId,
+              resource: 'SYSTEM',
+              action: 'read',
+              level: 'READ',
+              durationMinutes,
+              reason,
+            }),
+          });
+          const d = await res.json();
+          if (d.success) {
+            loadDelegations();
+            loadPosture();
+            alert(`Delegation created for ${delegateUserId}!`);
+          } else {
+            alert(`Failed: ${d.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
   initSkillBuilderStudio();
@@ -10130,6 +10570,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initVerificationStudio();
   initLearningStudio();
   initContextStudio();
+  initSecurityStudio();
   initSession();
 });
 

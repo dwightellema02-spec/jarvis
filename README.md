@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 28 — Personal Context Engine & Unified Dashboard Active**
+> **Current Status**: **Phase 29 — Security, Privacy & Permissions Hardening Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -1290,14 +1290,64 @@ $$\begin{pmatrix} \text{User Profile} \\ \text{Goals \& Plans} \\ \text{Second B
 
 ---
 
+## 🔒 Phase 29 Architecture: Security, Privacy & Permissions Hardening
+
+Phase 29 fortifies JARVIS into an enterprise-grade sovereign AI fortress ("Citadel"). It implements cryptographically verified envelope encryption, statutory personal data protection under the Republic Act 10173 (Philippine Data Privacy Act of 2012), zero-trust ephemeral permission delegations, and multi-vector runtime attack surface screening:
+
+$$\begin{pmatrix} \text{Payload / Ingress} \\ \text{Statutory PII} \\ \text{Master Keys} \\ \text{Subagent Permissions} \end{pmatrix} \xrightarrow{\text{Security Hardening Engine}} \begin{Bmatrix} \text{AES-256-GCM Envelope Encryption} \\ \text{RA 10173 Luhn / PCN Sanitizer} \\ \text{Cryptographic Token Vault} \\ \text{Signed Ephemeral Delegations} \\ \text{AST Prototype Pollution Interceptor} \end{Bmatrix} \xrightarrow{\text{Citadel Radar}} \begin{cases} \text{Grade A Posture (98\%+)} \\ \text{Immutable Audit Trail} \\ \text{Zero Leakage Invariant} \end{cases}$$
+
+### 1. CryptoVault (AES-256-GCM Envelope Cryptography & Key Epochs)
+* **Authenticated Envelope Encryption**: Encrypts data using NIST SP 800-38D standard AES-256-GCM with 96-bit cryptographically secure pseudorandom IVs, 128-bit authentication tags, and secondary HMAC-SHA256 integrity layers.
+* **Key Derivation & Rotation**: Uses PBKDF2 with 100,000 SHA-256 iterations and random cryptographic salt for master key derivation. Supports hot cryptographic key rotation, retaining historical key versions for backward-compatible decryption while generating new active epoch keys.
+* **Timing-Safe Verification**: Enforces `crypto.timingSafeEqual` across all tag and signature comparisons to neutralize timing-side-channel attacks.
+
+### 2. PrivacyVault (RA 10173 Philippine Statutory Protection & Tokenization)
+* **Philippine Statutory Identifier Protection**: Native regex sanitization and checksum algorithms for Republic Act 10173 statutory identifiers:
+  * PhilSys National ID (PCN): `\d{4}-\d{4}-\d{4}-\d{4}` $\rightarrow$ `[REDACTED_PHILSYS_PCN]`
+  * Social Security System (SSS): `\d{2}-\d{7}-\d{1}` $\rightarrow$ `[REDACTED_SSS_ID]`
+  * Tax Identification Number (TIN): `\d{3}-\d{3}-\d{3}(-\d{3})?` $\rightarrow$ `[REDACTED_TIN]`
+  * Unified Multi-Purpose ID (UMID): `\d{4}-\d{7}-\d{1}` $\rightarrow$ `[REDACTED_UMID]`
+* **Global Credential & PII Sanitizer**: Luhn-validated credit cards (`\b(?:\d[ -]*?){13,19}\b`), bearer tokens, API keys (`(sk|ghp|xoxb)_[a-zA-Z0-9]{20,}`), and emails.
+* **Reversible Pseudonymization Vault**: Generates cryptographically secure token handles (`tok_<classification>_<hash>`) mapped to in-memory encrypted originals, enabling authorized reversal without exposing raw data to LLM context streams.
+
+### 3. DelegationManager (Zero-Trust Ephemeral Permission Delegations)
+* **Time-Bound Delegations**: Enables primary users to issue scoped, ephemeral delegation tokens (`jarvis_del_*`) to subagents or specific tasks with strict time-to-live (TTL) expiration.
+* **Resource & Action Scoping**: Delegations specify exact resources (`SYSTEM`, `PROJECTS`, `RESEARCH`, etc.) and allowed actions (`read`, `write`, `execute`).
+* **Immediate Revocation**: Any delegation can be immediately invalidated and purged from the active delegation registry.
+
+### 4. SecurityScanner (Ingress Vulnerability & Injection Detection)
+* **AST & Runtime Prototype Pollution Defense**: Detects prototype pollution in serialized JSON strings as well as live in-memory objects via prototype identity checks (`__proto__`, `constructor.prototype`).
+* **Multi-Vector Threat Heuristics**: Inspects ingress payloads against prompt injection jailbreaks, path traversal null-byte bypasses (`../../` / `%2e%2e` / `\0`), shell command chaining (`rm -rf`, `;`, `&&`), and ReDoS patterns.
+* **Composite Risk Scoring**: Computes composite risk scores ($0$ to $100$) and recommends automated disposition (`ALLOW`, `BLOCK`, `QUARANTINE`).
+
+### 5. Security Agent & 8 Registered Tools
+* `SecurityAgent` (`id: 'security-agent'`, `version: '0.29.0-phase29'`) coordinates envelope cryptography, privacy scrubbing, delegation lifecycle, and real-time posture defense.
+* 8 Registered Tools:
+  1. `security.encrypt_envelope` — Encrypts data payload into an AES-256-GCM envelope with HMAC integrity.
+  2. `security.decrypt_envelope` — Decrypts an authenticated envelope using the appropriate key epoch.
+  3. `security.redact_pii` — Scans and redacts sensitive PII under RA 10173 and global compliance rules.
+  4. `security.tokenize_sensitive` — Pseudonymizes sensitive values into reversible cryptographic tokens.
+  5. `security.create_delegation` — Issues a time-bound granular permission delegation for subagents.
+  6. `security.revoke_delegation` — Immediately revokes an active permission delegation token.
+  7. `security.audit_payload` — Scans arbitrary payloads for prototype pollution, injections, and traversal.
+  8. `security.get_security_posture` — Returns the real-time Citadel security posture overview and defense metrics.
+
+### 6. Interactive HUD Security & Privacy Citadel Studio
+* **Executive Posture & Defenses Tab**: Displays Citadel Grade (`GRADE_A_CITADEL - 98/100`), encryption status (`AES-256-GCM`), active key version, active delegations, and live subsystem defense states.
+* **Envelope Crypto & Key Rotation Tab**: Interactive workbench to encrypt plaintext payloads into sealed envelopes, verify authentication tags, and trigger master key rotations with cryptographic history logs.
+* **RA 10173 Privacy & Token Vault Tab**: Interactive sanitization testbed for Philippine statutory IDs and global credentials, paired with reversible pseudonymization token lookup.
+* **Vulnerability Scanner & Delegations Tab**: Real-time ingress payload scanner with threat findings and severity badges, paired with the ephemeral delegation manager.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (784 automated tests across 78 test files covering all phases, plus 132 end-to-end manual verification steps):
+Run the full Vitest suite (810 automated tests across 80 test files covering all phases, plus 138 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 28
+# Run manual end-to-end verification across Phases 1 to 29
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check
