@@ -116,6 +116,11 @@ import {
   FinanceAgent,
   createFinanceTools,
 } from '../finance/index.js';
+import {
+  BrowserManager,
+  BrowserAgent,
+  createBrowserTools,
+} from '../browser/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -141,6 +146,7 @@ export interface JarvisCoreConfig {
   animationManager?: AnimationManager;
   innovationManager?: InnovationManager;
   financeManager?: FinanceManager;
+  browserManager?: BrowserManager;
 }
 
 export interface JarvisChatRequest {
@@ -188,6 +194,7 @@ export class JarvisCore {
   private animationManager: AnimationManager;
   private innovationManager: InnovationManager;
   private financeManager: FinanceManager;
+  private browserManager: BrowserManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -406,7 +413,18 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Web & Browser Engine, Agent, and Tools
+    this.browserManager =
+      config.browserManager ||
+      new BrowserManager(this.permissionManager, this.guardian, this.auditLogger);
+    const browserAgent = new BrowserAgent(this.browserManager);
+    this.agentRegistry.registerImplementation(browserAgent);
+
+    for (const tool of createBrowserTools(this.browserManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -780,6 +798,10 @@ export class JarvisCore {
 
   public getFinanceManager(): FinanceManager {
     return this.financeManager;
+  }
+
+  public getBrowserManager(): BrowserManager {
+    return this.browserManager;
   }
 
   public async orchestrate(

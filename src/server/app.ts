@@ -37,6 +37,7 @@ import { createCreativeRouter } from './routes/creative.js';
 import { createAnimationRouter } from './routes/animation.js';
 import { createInnovationRouter } from './routes/innovation.js';
 import { createFinanceRouter } from './routes/finance.js';
+import { createBrowserRouter } from './routes/browser.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -173,6 +174,20 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
     allowedActions: ['read'],
     grantedBy: 'system',
   });
+  permissionManager.grantPermission({
+    userId: 'default_user',
+    resource: ResourceType.WEBSITES,
+    level: PermissionLevel.EXECUTE,
+    allowedActions: ['read', 'write', 'execute'],
+    grantedBy: 'system',
+  });
+  permissionManager.grantPermission({
+    userId: 'dwight',
+    resource: ResourceType.WEBSITES,
+    level: PermissionLevel.EXECUTE,
+    allowedActions: ['read', 'write', 'execute'],
+    grantedBy: 'system',
+  });
 
   const core =
     deps.jarvisCore ||
@@ -237,7 +252,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.16.0-phase16';
+  const version = '0.17.0-phase17';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -254,6 +269,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis', createAnimationRouter(core.getAnimationManager()));
   app.use('/api/jarvis', createInnovationRouter(core.getInnovationManager()));
   app.use('/api/jarvis', createFinanceRouter(core.getFinanceManager()));
+  app.use('/api/jarvis', createBrowserRouter(core.getBrowserManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

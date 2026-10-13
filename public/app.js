@@ -4040,6 +4040,483 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Phase 17: Autonomous Browser Cockpit Modal & Actions
+  const browserToggleBtn = document.getElementById('browser-toggle-btn');
+  const browserModal = document.getElementById('browser-modal');
+  const browserCloseBtn = document.getElementById('browser-modal-close');
+
+  if (browserToggleBtn && browserModal) {
+    browserToggleBtn.addEventListener('click', () => {
+      browserModal.classList.toggle('hidden');
+    });
+  }
+
+  if (browserCloseBtn && browserModal) {
+    browserCloseBtn.addEventListener('click', () => {
+      browserModal.classList.add('hidden');
+    });
+  }
+
+  // Browser Tabs
+  const browserTabs = [
+    { btn: 'browser-tab-search', panel: 'browser-panel-search' },
+    { btn: 'browser-tab-reader', panel: 'browser-panel-reader' },
+    { btn: 'browser-tab-forms', panel: 'browser-panel-forms' },
+    { btn: 'browser-tab-downloads', panel: 'browser-panel-downloads' },
+    { btn: 'browser-tab-workflows', panel: 'browser-panel-workflows' },
+    { btn: 'browser-tab-security', panel: 'browser-panel-security' },
+  ];
+
+  browserTabs.forEach((tab) => {
+    const btnEl = document.getElementById(tab.btn);
+    if (!btnEl) return;
+    btnEl.addEventListener('click', () => {
+      browserTabs.forEach((t) => {
+        const b = document.getElementById(t.btn);
+        const p = document.getElementById(t.panel);
+        if (b) {
+          b.className = 'btn btn-sm btn-outline';
+          b.style.background = 'transparent';
+          b.style.borderColor = '#334155';
+          b.style.color = '#cbd5e1';
+        }
+        if (p) p.classList.add('hidden');
+      });
+      btnEl.className = 'btn btn-sm btn-primary';
+      btnEl.style.background = '#0ea5e9';
+      btnEl.style.borderColor = '#0ea5e9';
+      btnEl.style.color = '#000';
+      const targetPanel = document.getElementById(tab.panel);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+    });
+  });
+
+  // 1. Web Search Action
+  const browserSearchBtn = document.getElementById('browser-search-btn');
+  const browserSearchResults = document.getElementById('browser-search-results');
+  if (browserSearchBtn && browserSearchResults) {
+    browserSearchBtn.addEventListener('click', async () => {
+      try {
+        const query = (document.getElementById('browser-search-query')?.value || '').trim();
+        const domain = (document.getElementById('browser-search-domain')?.value || '').trim() || undefined;
+        if (!query) {
+          alert('Please enter a search query');
+          return;
+        }
+        browserSearchResults.innerHTML = '<span style="color: #0ea5e9;">Searching the web safely...</span>';
+
+        const res = await fetch('/api/jarvis/browser/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ query, domain, limit: 5 }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserSearchResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const list = data.data;
+        if (list.length === 0) {
+          browserSearchResults.innerHTML = '<span style="color: #94a3b8;">No results found.</span>';
+          return;
+        }
+
+        browserSearchResults.innerHTML = `
+          <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 600; margin-bottom: 0.75rem;">
+            Found ${list.length} ranked results:
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            ${list.map((r) => `
+              <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; border-left: 3px solid #0ea5e9;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                  <strong style="color: #f8fafc; font-size: 0.95rem;">${r.title}</strong>
+                  <span style="font-size: 0.75rem; color: #0ea5e9;">Score: ${Math.round(r.relevanceScore * 100)}%</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #0284c7; margin: 0.15rem 0;">${r.url}</div>
+                <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.25rem;">${r.snippet}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        browserSearchResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 2. Page Reader & Sanitizer Action
+  const browserReadBtn = document.getElementById('browser-read-btn');
+  const browserReaderResults = document.getElementById('browser-reader-results');
+  if (browserReadBtn && browserReaderResults) {
+    browserReadBtn.addEventListener('click', async () => {
+      try {
+        const url = (document.getElementById('browser-read-url')?.value || '').trim();
+        const rawHtml = (document.getElementById('browser-read-rawhtml')?.value || '').trim() || undefined;
+        if (!url) {
+          alert('Please enter a URL');
+          return;
+        }
+        browserReaderResults.innerHTML = '<span style="color: #0ea5e9;">Reading, parsing, and sanitizing page...</span>';
+
+        const res = await fetch('/api/jarvis/browser/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ url, rawHtml }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserReaderResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const page = data.data;
+        browserReaderResults.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+            <div>
+              <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">${page.title || 'Untitled Document'}</h4>
+              <span style="font-size: 0.75rem; color: #0ea5e9;">${page.url}</span>
+            </div>
+            <span class="badge" style="background: #065f46; color: #6ee7b7; font-weight: bold;">SANITIZED & SAFE</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem;">
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Headings</div>
+              <div style="font-size: 1rem; font-weight: bold; color: #38bdf8;">${page.headings?.length || 0}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Links Found</div>
+              <div style="font-size: 1rem; font-weight: bold; color: #38bdf8;">${page.links?.length || 0}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Forms Detected</div>
+              <div style="font-size: 1rem; font-weight: bold; color: #38bdf8;">${page.forms?.length || 0}</div>
+            </div>
+            <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #94a3b8;">Fetched At</div>
+              <div style="font-size: 0.8rem; font-weight: 500; color: #94a3b8;">${new Date(page.fetchedAt).toLocaleTimeString()}</div>
+            </div>
+          </div>
+          <div style="margin-bottom: 0.5rem;">
+            <strong style="font-size: 0.8rem; color: #94a3b8;">Markdown Content Preview:</strong>
+            <pre style="background: #1e293b; padding: 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #f8fafc; overflow-x: auto; max-height: 180px;">${page.markdownContent || 'No textual content extracted.'}</pre>
+          </div>
+        `;
+      } catch (err) {
+        browserReaderResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 3. Form Automation Actions
+  const browserInspectFormsBtn = document.getElementById('browser-inspect-forms-btn');
+  const browserFillFormBtn = document.getElementById('browser-fill-form-btn');
+  const browserFormsResults = document.getElementById('browser-forms-results');
+
+  if (browserInspectFormsBtn && browserFormsResults) {
+    browserInspectFormsBtn.addEventListener('click', async () => {
+      try {
+        const url = (document.getElementById('browser-forms-url')?.value || '').trim();
+        if (!url) {
+          alert('Please enter a URL');
+          return;
+        }
+        browserFormsResults.innerHTML = '<span style="color: #0ea5e9;">Inspecting web page forms and schemas...</span>';
+
+        const res = await fetch('/api/jarvis/browser/forms/inspect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserFormsResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const forms = data.data.forms || [];
+        if (forms.length === 0) {
+          browserFormsResults.innerHTML = '<div style="color: #94a3b8;">No interactive forms detected on this page.</div>';
+          return;
+        }
+
+        browserFormsResults.innerHTML = `
+          <div style="color: #38bdf8; font-weight: bold; margin-bottom: 0.5rem;">Detected ${forms.length} Form(s):</div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            ${forms.map((f, i) => `
+              <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <strong style="color: #f8fafc;">Form ID: ${f.id || `form_${i + 1}`} (Action: <code>${f.action}</code>, Method: ${f.method})</strong>
+                  ${f.containsCredentials ? '<span class="badge" style="background: #7f1d1d; color: #fca5a5;">CONTAINS CREDENTIAL FIELDS</span>' : '<span class="badge" style="background: #065f46; color: #6ee7b7;">SAFE STANDARD FORM</span>'}
+                </div>
+                <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.4rem;">
+                  Fields:
+                  <ul style="margin: 0.25rem 0; padding-left: 1.25rem;">
+                    ${f.fields.map(fl => `<li><code>${fl.name}</code> (${fl.type}) ${fl.required ? '<span style="color: #f59e0b;">*required</span>' : ''} ${fl.isSensitive ? '<span style="color: #ef4444;">[SENSITIVE]</span>' : ''}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        browserFormsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  if (browserFillFormBtn && browserFormsResults) {
+    browserFillFormBtn.addEventListener('click', async () => {
+      try {
+        const url = (document.getElementById('browser-forms-url')?.value || '').trim();
+        const formId = (document.getElementById('browser-form-id-input')?.value || '').trim() || undefined;
+        let fields = {};
+        try {
+          fields = JSON.parse(document.getElementById('browser-form-fields-input')?.value || '{}');
+        } catch (e) {
+          alert('Invalid JSON in fields input');
+          return;
+        }
+
+        browserFormsResults.innerHTML = '<span style="color: #0ea5e9;">Filling form and submitting payload...</span>';
+
+        const res = await fetch('/api/jarvis/browser/forms/fill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ url, formId, fields, submit: true }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserFormsResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const out = data.data;
+        browserFormsResults.innerHTML = `
+          <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <strong style="color: #10b981;">Form Submission Completed</strong>
+              <span class="badge" style="background: #065f46; color: #6ee7b7;">HTTP 200 OK</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1;">
+              Target URL: <code>${out.targetUrl}</code><br/>
+              Fields Populated: <strong>${out.fieldsPopulated?.join(', ') || 'None'}</strong><br/>
+              Response: <em>${out.responseSummary || 'Success'}</em>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        browserFormsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 4. Secure Downloads Actions
+  const browserDownloadBtn = document.getElementById('browser-download-btn');
+  const browserTestBlockedDlBtn = document.getElementById('browser-test-blocked-dl-btn');
+  const browserDownloadsResults = document.getElementById('browser-downloads-results');
+
+  if (browserDownloadBtn && browserDownloadsResults) {
+    browserDownloadBtn.addEventListener('click', async () => {
+      try {
+        const url = (document.getElementById('browser-dl-url')?.value || '').trim();
+        const destinationFilename = (document.getElementById('browser-dl-filename')?.value || '').trim();
+        if (!url) {
+          alert('Please enter a download URL');
+          return;
+        }
+        browserDownloadsResults.innerHTML = '<span style="color: #0ea5e9;">Verifying URL and downloading file into sandbox...</span>';
+
+        const res = await fetch('/api/jarvis/browser/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ url, destinationFilename }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserDownloadsResults.innerHTML = `<span style="color: #ef4444;">Download Failed: ${data.error}</span>`;
+          return;
+        }
+
+        const dl = data.data;
+        browserDownloadsResults.innerHTML = `
+          <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; border-left: 3px solid #10b981;">
+            <strong style="color: #10b981;">Download Successful</strong>
+            <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem;">
+              Saved Path: <code>${dl.savedPath}</code><br/>
+              File Size: <strong>${dl.sizeBytes} bytes</strong><br/>
+              MIME Type: <strong>${dl.mimeType}</strong><br/>
+              SHA256 Checksum: <code>${dl.checksumSha256 || 'N/A'}</code>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        browserDownloadsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  if (browserTestBlockedDlBtn && browserDownloadsResults) {
+    browserTestBlockedDlBtn.addEventListener('click', async () => {
+      try {
+        browserDownloadsResults.innerHTML = '<span style="color: #ef4444;">Testing malicious executable download block (.exe)...</span>';
+
+        const res = await fetch('/api/jarvis/browser/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({
+            url: 'https://example.com/malicious_payload.exe',
+            destinationFilename: 'payload.exe',
+          }),
+        });
+        const data = await res.json();
+
+        if (res.status === 403 || !data.success) {
+          browserDownloadsResults.innerHTML = `
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; padding: 0.75rem; border-radius: 6px;">
+              <strong style="color: #ef4444;">[CRITICAL] Malware Download Shield Enforced!</strong>
+              <div style="font-size: 0.8rem; color: #fca5a5; margin-top: 0.35rem;">
+                Executable file download intercepted and blocked: <code>${data.error}</code>
+              </div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.35rem;">
+                Invariant holds: Executable files (.exe, .bat, .cmd, .ps1, .scr) are strictly prohibited from being downloaded.
+              </div>
+            </div>
+          `;
+        } else {
+          browserDownloadsResults.innerHTML = `<span style="color: #ef4444;">Unexpected: Download was not blocked.</span>`;
+        }
+      } catch (err) {
+        browserDownloadsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 5. Workflows Pipeline Action
+  const browserRunWorkflowBtn = document.getElementById('browser-run-workflow-btn');
+  const browserWorkflowsResults = document.getElementById('browser-workflows-results');
+  if (browserRunWorkflowBtn && browserWorkflowsResults) {
+    browserRunWorkflowBtn.addEventListener('click', async () => {
+      try {
+        const workflowName = (document.getElementById('browser-wf-name')?.value || '').trim() || 'Workflow';
+        let steps = [];
+        try {
+          steps = JSON.parse(document.getElementById('browser-wf-steps')?.value || '[]');
+        } catch (e) {
+          alert('Invalid JSON in workflow steps');
+          return;
+        }
+
+        browserWorkflowsResults.innerHTML = '<span style="color: #0ea5e9;">Executing multi-step browser pipeline...</span>';
+
+        const res = await fetch('/api/jarvis/browser/workflow', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ workflowName, steps }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserWorkflowsResults.innerHTML = `<span style="color: #ef4444;">Workflow Failed: ${data.error}</span>`;
+          return;
+        }
+
+        const wf = data.data;
+        browserWorkflowsResults.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <strong style="color: #0ea5e9; font-size: 1rem;">Workflow: ${wf.workflowName}</strong>
+              <div style="font-size: 0.75rem; color: #94a3b8;">Steps: ${wf.stepsExecuted?.length || 0} executed | Duration: ${wf.totalDurationMs}ms</div>
+            </div>
+            <span class="badge" style="background: ${wf.success ? '#065f46' : '#7f1d1d'}; color: #fff;">${wf.success ? 'SUCCESS' : 'FAILED'}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            ${(wf.stepsExecuted || []).map((s, idx) => `
+              <div style="background: #1e293b; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; display: flex; justify-content: space-between;">
+                <span><strong>Step ${idx + 1}:</strong> [${s.action.toUpperCase()}] ${s.target || ''}</span>
+                <span style="color: ${s.success ? '#10b981' : '#ef4444'};">${s.success ? 'OK' : 'FAIL'} (${s.durationMs}ms)</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        browserWorkflowsResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // 6. Security Policy & Anti-SSRF Invariant Actions
+  const browserSessionBtn = document.getElementById('browser-session-btn');
+  const browserTestSsrfBtn = document.getElementById('browser-test-ssrf-btn');
+  const browserSecurityResults = document.getElementById('browser-security-results');
+
+  if (browserSessionBtn && browserSecurityResults) {
+    browserSessionBtn.addEventListener('click', async () => {
+      try {
+        browserSecurityResults.innerHTML = '<span style="color: #0ea5e9;">Fetching browser session state...</span>';
+
+        const res = await fetch('/api/jarvis/browser/session', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          browserSecurityResults.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
+          return;
+        }
+
+        const s = data.data;
+        browserSecurityResults.innerHTML = `
+          <div style="background: #1e293b; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <strong style="color: #0ea5e9;">Active Browser Session</strong>
+              <span class="badge" style="background: #0f172a; color: #10b981;">SESSION ACTIVE</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem;">
+              Current URL: <code>${s.currentUrl || 'about:blank'}</code><br/>
+              Navigation History: <strong>${s.navigationHistory?.length || 0} pages</strong><br/>
+              Active Cookies: <strong>${Object.keys(s.cookies || {}).length} stored</strong><br/>
+              Total Workflows Executed: <strong>${s.totalWorkflowsExecuted || 0}</strong>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        browserSecurityResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  if (browserTestSsrfBtn && browserSecurityResults) {
+    browserTestSsrfBtn.addEventListener('click', async () => {
+      try {
+        browserSecurityResults.innerHTML = '<span style="color: #ef4444;">Testing Anti-SSRF protection with loopback probe (http://127.0.0.1:8080/secrets)...</span>';
+
+        const res = await fetch('/api/jarvis/browser/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ url: 'http://127.0.0.1:8080/secrets' }),
+        });
+        const data = await res.json();
+
+        if (res.status === 403 || !data.success) {
+          browserSecurityResults.innerHTML = `
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; padding: 0.75rem; border-radius: 6px;">
+              <strong style="color: #ef4444;">[CRITICAL] Anti-SSRF Guardrail Enforced!</strong>
+              <div style="font-size: 0.8rem; color: #fca5a5; margin-top: 0.35rem;">
+                Loopback address probe intercepted and blocked: <code>${data.error}</code>
+              </div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.35rem;">
+                Invariant holds: Zero unauthorized internal RFC 1918 or loopback (127.0.0.1 / localhost) connections can be established.
+              </div>
+            </div>
+          `;
+        } else {
+          browserSecurityResults.innerHTML = `<span style="color: #ef4444;">Unexpected: SSRF probe was not blocked.</span>`;
+        }
+      } catch (err) {
+        browserSecurityResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
   // Start
   initSession();
 });

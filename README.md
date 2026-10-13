@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 15 — Product Innovation Agent Active**
+> **Current Status**: **Phase 17 — Web & Browser Agent Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -698,9 +698,55 @@ JARVIS incorporates a institutional-grade quantitative finance and research inte
 
 ---
 
+## 🌐 Phase 17: Autonomous Web & Browser Agent
+
+JARVIS incorporates an autonomous Web & Browser subsystem engineered for comprehensive research, data extraction, and web workflows with strict security boundaries:
+
+### 1. Web Search & Safe Search Ranking
+* **Algorithmic Search Provider**: Simulates query matching across structured knowledge indices with domain filtering and relevance scoring (0.0 to 1.0).
+* **Safe Search & Domain Exclusion**: Automatically detects and excludes suspicious, adult, or low-reputation domains, prioritizing authoritative technical and scientific sources.
+
+### 2. Page Reader & Sanitizing HTML Parser
+* **Anti-SSRF Protection (Hard Invariant)**: In `PageReader.assertUrlSafe`, hostnames and resolved IPs are strictly validated against:
+  * Loopback addresses (`127.0.0.1`, `localhost`, `0.0.0.0`)
+  * Cloud metadata IP (`169.254.169.254`)
+  * Private RFC 1918 blocks (`10.0.0.0/8`, `192.168.0.0/16`, `172.16.0.0/12`)
+  * Prohibited non-HTTP protocols (`file:`, `gopher:`, `ftp:`)
+  Any attempt to probe private network services is immediately rejected with HTTP 403 Forbidden.
+* **XSS Sanitization & Stripping**: Strips executable tags (`<script>`, `<iframe>`, `<object>`, `<embed>`) and inline event handlers (`onload`, `onclick`, `onerror`) to sanitize untrusted web content before conversion.
+* **Structured Markdown & Metadata Extraction**: Converts HTML into clean, semantic markdown while extracting headings, links, forms, and word counts.
+
+### 3. Form Automation & Credential Safeguard
+* **Schema & Field Inspection**: Discovers all `<form>` instances, parsing input fields, labels, types, and required validations.
+* **Credential Field Warning**: Automatically flags password, token, or SSN fields, notifying the user before any interaction.
+* **Automated Form Fill & Submission**: Validates payload schemas against form definitions, generates submit payloads, and simulates HTTP POST responses with comprehensive audit logging.
+
+### 4. Controlled Sandbox File Downloads
+* **Malware & Executable Download Shield**: `DownloadController` strictly blocks executable or script file extensions (`.exe`, `.scr`, `.bat`, `.cmd`, `.vbs`, `.ps1`, `.msi`, `.dll`, `.com`).
+* **Sandbox Confinement & Size Caps**: Downloads are quarantined exclusively inside the designated `downloads/` sandbox directory with configurable size caps (default 50MB) and SHA256 checksum generation.
+
+### 5. Multi-Step Browser Workflows & Stateful Session
+* **Pipeline Runner**: Executes orchestrated multi-step browser tasks (`search` $\rightarrow$ `navigate` $\rightarrow$ `read` $\rightarrow$ `fill` $\rightarrow$ `download`) with per-step execution timing and failure resilience.
+* **Stateful Browser Session**: Tracks navigation history, back/forward navigation, cookie jars, and cumulative session metrics across requests.
+
+### 6. Security Gating, Agent & Tools
+* Gated by `ResourceType.WEBSITES` with default-deny permissions (`READ` for search/reading, `WRITE` for form submission/download, `EXECUTE` for multi-step workflows).
+* Coordinated by `BrowserManager` and autonomous `BrowserAgent` (`id: 'browser-agent'`).
+* 8 Registered Tools:
+  1. `browser.search`
+  2. `browser.open_url`
+  3. `browser.read_page`
+  4. `browser.inspect_forms`
+  5. `browser.fill_form`
+  6. `browser.download_file`
+  7. `browser.execute_workflow`
+  8. `browser.session_status`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (388 automated tests across 53 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, and Broker Sandbox Gating):
+Run the full Vitest suite (418 automated tests across 56 test files covering unit, integration, security, orchestration, profile, memory, Second Brain, Document Intelligence, Mathematics Solvers, Socratic Learning, BLEPT LET Review, Epistemic Classification, Citations, Research Intelligence, Data Cleaning, Descriptive Statistics, Correlation, Regression, Hypothesis Testing, Visualizations, Repository Inspection, AST Parsing, Code Search, Code Review, Security Auditing, Atomic Patching, Stack Trace Debugging, Terminal Risk Analysis, Safe Command Execution, Git Porcelain Status/Diff/Log, Dependency Auditing, Build/Typecheck Runners, Tuklas Curriculum Search, Student Mastery Heatmaps, Practice Generation, Assessment Evaluation, Mistake Diagnostics, RA 10173 Privacy Compliance, Vector Image Generation, Graphic Design Layouts, Slide Decks, Subtitles, SSML Specs, Video Storyboards, Layer Decomposition, Skeletal Character Rigs, Keyframe Motion Graphs, Lip Sync Visemes, Interactive Animation Players, Market Research TAM/SAM/SOM, ICP Personas, RICE Scoring, MoSCoW Prioritization, UX Journey Mapping, Technical Architecture Blueprints, Agile Sprint Roadmaps, PMF Viability Evaluations, Ticker Technical Indicators, DCF Intrinsic Valuation, MPT Portfolio Risk, Parametric VaR, Macroeconomic Regimes, Algorithmic Backtesting, Broker Sandbox Gating, Web Search Ranking, Anti-SSRF Protection, Sanitized Page Extraction, Form Automation, Sandbox Downloads, and Multi-Step Browser Workflows):
 ```bash
 # Run all tests
 npm test

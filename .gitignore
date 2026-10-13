@@ -35,3 +35,4 @@ scratch_plan.md
 .jarvis_backups/
 **/.*jarvis_backups*/
 tests/fixtures/
+downloads/

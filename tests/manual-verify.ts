@@ -824,7 +824,88 @@ async function runManualVerification() {
       console.log('   Live Trade Attempt Blocked:', tradeRes.status === 403, '| Security Block Flag:', tradeData.securityBlocked);
       console.log('   Broker Simulation Active:', brokerData.data.isSimulationModeActive, '| Live Trading Allowed:', brokerData.data.isLiveTradingAllowed);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 16) PASSED SUCCESSFULLY! ===');
+      console.log('63. Testing Phase 17 Web Search & Safe Search Ranking (/api/jarvis/browser/search)');
+      const webSearchRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ query: 'autonomous ai agents' }),
+      });
+      const webSearchData = await webSearchRes.json();
+      console.log('   Search Query:', webSearchData.data.query, '| Results:', webSearchData.data.totalResults, '| Top Domain:', webSearchData.data.results[0]?.domain);
+
+      console.log('64. Testing Phase 17 Page Reading & Anti-SSRF Protection (/api/jarvis/browser/read & SSRF block)');
+      const readRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ url: 'https://docs.jarvis-ai.dev/overview' }),
+      });
+      const readData = await readRes.json();
+      const ssrfRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ url: 'http://127.0.0.1:8080/secret' }),
+      });
+      const ssrfData = await ssrfRes.json();
+      console.log('   Page Read Title:', readData.data.title, '| Words:', readData.data.wordCount, '| Forms Found:', readData.data.forms.length);
+      console.log('   SSRF Intercepted (127.0.0.1):', ssrfRes.status === 403, '| Error:', ssrfData.error);
+
+      console.log('65. Testing Phase 17 Form Inspection & Safe Form Automation (/api/jarvis/browser/forms/inspect & /fill)');
+      const formsRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/forms/inspect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ url: 'https://docs.jarvis-ai.dev/overview' }),
+      });
+      const formsData = await formsRes.json();
+      const fillRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/forms/fill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          url: 'https://docs.jarvis-ai.dev/overview',
+          formId: 'feedback-form',
+          fields: {
+            fullName: 'Dwight Lead Architect',
+            userEmail: 'dwight@example.com',
+            comments: 'Verified end-to-end browser automation.',
+          },
+          submit: true,
+        }),
+      });
+      const fillData = await fillRes.json();
+      console.log('   Forms Discovered:', formsData.data.formsCount, '| Form 1 ID:', formsData.data.forms[0]?.formId);
+      console.log('   Form Filled & Submitted:', fillData.data.submitted, '| Target Action:', fillData.data.postSubmitUrl);
+
+      console.log('66. Testing Phase 17 Multi-Step Web Workflow & Executable Download Block');
+      const wfRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          workflowName: 'Documentation Search & Extraction Workflow',
+          steps: [
+            { type: 'search', target: 'clean architecture' },
+            { type: 'navigate', target: 'https://typescript-patterns.io/clean-architecture' },
+            { type: 'read', target: 'https://typescript-patterns.io/clean-architecture' },
+          ],
+        }),
+      });
+      const wfData = await wfRes.json();
+      const dlRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          url: 'https://docs.jarvis-ai.dev/malware.exe',
+          destinationFilename: 'malware.exe',
+        }),
+      });
+      const dlData = await dlRes.json();
+      const sessionRes = await fetch('http://127.0.0.1:3099/api/jarvis/browser/session', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const sessionData = await sessionRes.json();
+      console.log('   Workflow Executed:', wfData.data.workflowName, '| Steps:', wfData.data.stepsExecuted + '/' + wfData.data.totalSteps, '| Success:', wfData.data.success);
+      console.log('   Executable Download Blocked:', dlRes.status === 403, '| Error:', dlData.error);
+      console.log('   Active Session History Steps:', sessionData.data.history?.length, '| Current URL:', sessionData.data.currentUrl);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 17) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

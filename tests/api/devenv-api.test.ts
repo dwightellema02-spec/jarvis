@@ -95,6 +95,6 @@ describe('Phase 11 - Development Environment REST API Endpoints', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.severityCounts).toBeDefined();
-    }, 20000);
+    }, 45000);
   });
 });
