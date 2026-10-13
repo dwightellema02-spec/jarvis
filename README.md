@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 27 — Self-Correction & Learning Loop Active**
+> **Current Status**: **Phase 28 — Personal Context Engine & Unified Dashboard Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -255,6 +255,15 @@ http://127.0.0.1:3000
 | `POST` | `/api/jarvis/learning/correction-plan` | Phase 27 Synthesize adapted parameters correction plan from incident history |
 | `POST` | `/api/jarvis/learning/rules/:id/feedback` | Phase 27 Record heuristic feedback (success/failure) to dynamically tune confidence |
 | `GET` | `/api/jarvis/learning/report` | Phase 27 Retrieve learning evolution telemetry and recurrence rate report |
+| `GET` | `/api/jarvis/context/snapshot` | Phase 28 Retrieve unified multi-engine context snapshot and state fingerprint |
+| `POST` | `/api/jarvis/context/focus` | Phase 28 Activate or update focus session with mode, goal, and target duration |
+| `POST` | `/api/jarvis/context/focus/end` | Phase 28 End active focus session and record completion metrics |
+| `POST` | `/api/jarvis/context/query` | Phase 28 Blended multi-engine query matching profile, goals, memory, and knowledge |
+| `GET` | `/api/jarvis/context/activities` | Phase 28 List unified activity stream with category and limit filters |
+| `POST` | `/api/jarvis/context/activities` | Phase 28 Ingest new activity item into cross-subsystem timeline stream |
+| `GET` | `/api/jarvis/context/cognitive-load` | Phase 28 Assess real-time cognitive workload level, score, factors, and guidance |
+| `GET` | `/api/jarvis/context/overview` | Phase 28 Retrieve unified master dashboard overview with 30-engine operational grid |
+| `GET` | `/api/jarvis/context/insights` | Phase 28 Generate proactive cross-system insights and health/productivity advisories |
 
 ---
 
@@ -1243,14 +1252,52 @@ $$\text{FAULT INCIDENT} \longrightarrow \text{EXPERIENCE STORE} \longrightarrow 
 
 ---
 
+## 🧭 Phase 28 Architecture: Personal Context Engine & Unified Dashboard
+
+Phase 28 delivers the centralized context synthesizer and unified master operational dashboard for JARVIS. It connects all 30 underlying engines into a cohesive situational awareness network, continuously modeling user cognitive load, maintaining focus modes, tracking an omnichannel activity stream, and presenting real-time operational telemetry through the Unified Dashboard HUD Studio:
+
+$$\begin{pmatrix} \text{User Profile} \\ \text{Goals \& Plans} \\ \text{Second Brain} \\ \text{Memory Store} \\ \text{Hardware / IoT} \\ \text{Verification} \\ \text{Self-Correction} \end{pmatrix} \xrightarrow{\text{Context Aggregator}} \begin{Bmatrix} \text{Cognitive Load} \in [0.0, 1.0] \\ \text{Focus Session State} \\ \text{SHA-256 State Fingerprint} \\ \text{Blended Context Query} \end{Bmatrix} \xrightarrow{\text{Dashboard}} \begin{cases} \text{30-Engine Grid} \\ \text{Proactive Insights} \\ \text{Activity Stream} \\ \text{Live Telemetry} \end{cases}$$
+
+### 1. ContextAggregator (Multi-Engine Synthesis & State Metrics)
+* **Unified Context Assembly**: Synthesizes data across `UserProfileManager`, `GoalsManager`, `SecondBrainManager`, `ConversationMemoryManager`, `DeviceManager`, `VerificationSuiteManager`, and `SelfCorrectionManager`.
+* **Cognitive Load Model**: Computes real-time workload score ($0.0$ to $1.0$) and categorizes levels (`low`, `optimal`, `high`, `overload`) based on active goals, focus mode duration, activity frequency in the rolling hour, and battery/environmental constraints.
+* **Cryptographic State Fingerprinting**: Computes a deterministic SHA-256 digest over the current snapshot state to track context transitions and state drift.
+* **Blended Context Query**: Synthesizes relevant profile directives, active goals, memory recalls, and second brain nodes into an integrated prompt string for downstream reasoning.
+
+### 2. PersonalContextManager (Focus Sessions, Activities & Insights)
+* **Focus Session Lifecycle**: Coordinates activation, tracking, and completion of user focus sessions across 6 operational modes (`deep_work`, `coding`, `study_review`, `creative_design`, `research`, `idle`).
+* **Omnichannel Activity Stream**: Thread-safe in-memory activity ledger capturing events across 8 categories (`chat`, `code`, `math`, `research`, `goal`, `system`, `verification`, `learning`) with category filtering and pagination.
+* **Proactive Cross-Engine Insights**: Synthesizes real-time actionable advisories covering goal velocity, cognitive rest recommendations, and system invariant assertions.
+* **Master System Health Matrix**: Monitors the operational status of all 30 architectural subsystems, verifying 100% online availability and zero recurrence invariant integrity.
+
+### 3. Context Agent & 8 Registered Tools
+* `ContextAgent` (`id: 'context-agent'`, `version: '0.28.0-phase28'`) orchestrates context queries, focus session management, cognitive load balancing, and unified dashboard inspection.
+* 8 Registered Tools:
+  1. `context.get_snapshot` — Assembles and returns the full personal context snapshot with state fingerprint.
+  2. `context.set_focus_session` — Activates or updates an active focus session with designated mode and target duration.
+  3. `context.query_relevant_context` — Queries multi-engine context blend matching a specific action or goal.
+  4. `context.log_activity` — Ingests a new activity item into the personal activity timeline stream.
+  5. `context.list_activities` — Retrieves chronological activity items with category and limit filters.
+  6. `context.assess_cognitive_load` — Computes cognitive load score, level, contributing factors, and pacing recommendations.
+  7. `context.get_dashboard_overview` — Returns the master executive dashboard overview with 30-engine status matrix.
+  8. `context.generate_insights` — Generates proactive cross-system insights, warnings, and productivity recommendations.
+
+### 4. Interactive HUD Personal Context & Master Dashboard Studio
+* **Master System Matrix Tab**: Real-time HUD cards displaying 30/30 engines online, cognitive load index, active focus mode, zero recurrence status, and an interactive 30-subsystem status grid.
+* **Focus & Cognitive Load Tab**: Focus session launcher with mode dropdown and objective inputs, paired with an interactive workload gauge, contributing factors breakdown, and proactive pace advisory.
+* **Activity Stream Tab**: Live multi-engine activity timeline filterable by category (`code`, `chat`, `math`, `research`, `system`, etc.) with quick manual activity ingestion.
+* **Context Query & Insights Tab**: Proactive cross-system advisories with priority color accents and an interactive blended query console rendering composite multi-engine context strings.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (750 automated tests across 76 test files covering all phases, plus 126 end-to-end manual verification steps):
+Run the full Vitest suite (784 automated tests across 78 test files covering all phases, plus 132 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 27
+# Run manual end-to-end verification across Phases 1 to 28
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

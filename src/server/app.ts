@@ -48,6 +48,7 @@ import { createSkillsRouter } from './routes/skills.js';
 import { createCollaborationRouter } from './routes/collaboration.js';
 import { createVerificationRouter } from './routes/verification.js';
 import { createLearningRouter } from './routes/learning.js';
+import { createContextRouter } from './routes/context.js';
 
 export interface AppDependencies {
   jarvisCore?: JarvisCore;
@@ -332,7 +333,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   });
 
   // Register API Routes
-  const version = '0.27.0-phase27';
+  const version = '0.28.0-phase28';
   app.use('/api/health', createHealthRouter(version));
   app.use('/api/jarvis', createJarvisRouter(core));
   app.use('/api/jarvis/profile', createProfileRouter(core));
@@ -360,6 +361,7 @@ export function createApp(deps: AppDependencies = {}): { app: Express; core: Jar
   app.use('/api/jarvis/collaboration', createCollaborationRouter(core.getCollaborationManager()));
   app.use('/api/jarvis/verification', createVerificationRouter(core.getVerificationSuite()));
   app.use('/api/jarvis/learning', createLearningRouter(core.getSelfCorrectionManager()));
+  app.use('/api/jarvis/context', createContextRouter(core.getContextManager()));
   app.use('/api/permissions', createPermissionsRouter(permissionManager));
   app.use('/api/agents', createAgentsRouter(agentRegistry));
   app.use('/api/tools', createToolsRouter(toolRegistry));

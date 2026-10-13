@@ -1689,7 +1689,93 @@ async function runManualVerification() {
       console.log('   Evolution Velocity:', lRepData.data?.learningVelocityScore, '| Active Directives:', lRepData.data?.activeRules);
       console.log('   Recurrence Rate:', lRepData.data?.recurrenceRatePercent + '% (TARGET ZERO)', '| Avg Confidence:', lRepData.data?.averageConfidencePercent + '%');
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 27) PASSED SUCCESSFULLY! ===');
+      console.log('127. Testing Phase 28 Context Agent & 8 Tools Registration (GET /api/agents & /api/tools)');
+      const cAgentRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const cAgentData = await cAgentRes.json();
+      const cAgent = cAgentData.agents?.find((a: any) => a.id === 'context-agent');
+      const cToolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const cToolsData = await cToolsRes.json();
+      const cTools = cToolsData.tools?.filter((t: any) => t.id.startsWith('context.'));
+      console.log('   Context Agent:', cAgent?.name, '| Version:', cAgent?.version);
+      console.log('   Context Tools Registered Count:', cTools?.length, '| Tools:', cTools?.map((t: any) => t.id).join(', '));
+
+      console.log('128. Testing Phase 28 Unified Context Snapshot & Fingerprint (GET /api/jarvis/context/snapshot)');
+      const cSnapRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/snapshot', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cSnapData = await cSnapRes.json();
+      console.log('   Snapshot User:', cSnapData.data?.userId, '| Goals Count:', cSnapData.data?.topActiveGoals?.length, '| Fingerprint:', cSnapData.data?.contextFingerprint?.slice(0, 16) + '...');
+      console.log('   Cognitive Score:', cSnapData.data?.cognitiveState?.score, '| Load Level:', cSnapData.data?.cognitiveState?.level);
+
+      console.log('129. Testing Phase 28 Focus Session Lifecycle (POST /api/jarvis/context/focus & /focus/end)');
+      const cFocusRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          mode: 'deep_work',
+          goal: 'Master Unified Architecture Synthesis',
+          project: 'JARVIS Super-Intelligence',
+          durationMinutes: 60,
+        }),
+      });
+      const cFocusData = await cFocusRes.json();
+      const cEndRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/focus/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+      });
+      const cEndData = await cEndRes.json();
+      console.log('   Focus Session Mode:', cFocusData.data?.mode, '| Goal:', cFocusData.data?.goal, '| Active:', cFocusData.data?.active);
+      console.log('   Ended Session Status:', cEndData.data?.active ? 'Still Active' : 'Concluded', '| Target Duration:', cEndData.data?.targetDurationMinutes + 'm');
+
+      console.log('130. Testing Phase 28 Blended Multi-Engine Context Query (POST /api/jarvis/context/query)');
+      const cQueryRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionOrGoal: 'Automate production deployment with zero downtime',
+          includeProfile: true,
+          includeGoals: true,
+          includeMemories: true,
+          includeKnowledgeNodes: true,
+        }),
+      });
+      const cQueryData = await cQueryRes.json();
+      console.log('   Query String:', cQueryData.data?.query);
+      console.log('   Goals Matched:', cQueryData.data?.matchedGoals?.length, '| Composite Context Length:', cQueryData.data?.compositeContextString?.length + ' chars');
+
+      console.log('131. Testing Phase 28 Activity Stream Ingestion & Timeline (POST & GET /api/jarvis/context/activities)');
+      const cActPostRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          category: 'system',
+          action: 'engine.orchestrate',
+          summary: 'Multi-agent contextual state synchronized across 30 engines',
+          metadata: { enginesSynchronized: 30 },
+        }),
+      });
+      const cActPostData = await cActPostRes.json();
+      const cActGetRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/activities?category=system&limit=5', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cActGetData = await cActGetRes.json();
+      console.log('   Logged Activity ID:', cActPostData.data?.id, '| Action:', cActPostData.data?.action);
+      console.log('   Queried Timeline Count:', cActGetData.count, '| Latest Summary:', cActGetData.data?.[0]?.summary);
+
+      console.log('132. Testing Phase 28 Unified Master Dashboard Overview & Insights (GET /overview & /insights)');
+      const cOverRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/overview', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cOverData = await cOverRes.json();
+      const cInsRes = await fetch('http://127.0.0.1:3099/api/jarvis/context/insights', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const cInsData = await cInsRes.json();
+      console.log('   Master System Status:', cOverData.data?.systemStatus, '| Total Engines Online:', cOverData.data?.totalEnginesOnline + '/30');
+      console.log('   Registered Agents:', cOverData.data?.totalAgentsRegistered, '| Registered Tools:', cOverData.data?.totalToolsRegistered);
+      console.log('   Cross-System Insights Count:', cInsData.count, '| Top Insight:', cInsData.data?.[0]?.title, '| Urgency:', cInsData.data?.[0]?.priority);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 28) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

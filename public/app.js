@@ -9786,12 +9786,350 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 28: PERSONAL CONTEXT ENGINE & UNIFIED DASHBOARD ====================
+  function initContextStudio() {
+    const modal = document.getElementById('context-modal');
+    const navBtn = document.getElementById('nav-context');
+    const chipBtn = document.getElementById('chip-context-agent');
+    const focusModeSidebarBtn = document.getElementById('focus-mode-btn');
+    const closeBtn = document.getElementById('close-context-modal');
+
+    const openModal = () => {
+      if (modal) {
+        modal.style.display = 'flex';
+        loadOverview();
+        loadCognitive();
+        loadActivities();
+        loadInsights();
+      }
+    };
+
+    if (navBtn) navBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipBtn) chipBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (focusModeSidebarBtn) focusModeSidebarBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); switchTab('focus'); });
+    if (closeBtn) closeBtn.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    }
+
+    // Tabs Switcher
+    const tabs = ['overview', 'focus', 'timeline', 'insights'];
+    function switchTab(activeTab) {
+      tabs.forEach((t) => {
+        const btn = document.getElementById(`tab-btn-ctx-${t}`);
+        const content = document.getElementById(`tab-ctx-${t}`);
+        if (btn && content) {
+          if (t === activeTab) {
+            btn.style.background = '#0b1730';
+            btn.style.borderColor = '#38bdf8';
+            btn.style.color = '#38bdf8';
+            content.style.display = 'flex';
+          } else {
+            btn.style.background = 'transparent';
+            btn.style.borderColor = 'transparent';
+            btn.style.color = '#94a3b8';
+            content.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    tabs.forEach((t) => {
+      const btn = document.getElementById(`tab-btn-ctx-${t}`);
+      if (btn) btn.addEventListener('click', () => switchTab(t));
+    });
+
+    // 1. Master System Matrix & Overview
+    async function loadOverview() {
+      try {
+        const res = await fetch('/api/jarvis/context/overview', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const d = data.data;
+          const statEngines = document.getElementById('ctx-stat-engines');
+          const statCog = document.getElementById('ctx-stat-cog');
+          const statCogLevel = document.getElementById('ctx-stat-cog-level');
+          const statFocus = document.getElementById('ctx-stat-focus');
+          const grid = document.getElementById('ctx-engine-grid');
+
+          if (statEngines) statEngines.textContent = `${d.totalEnginesOnline} / 30`;
+          if (statCog) statCog.textContent = d.cognitiveLoadScore.toFixed(2);
+          if (statCogLevel) statCogLevel.textContent = `Status: ${d.systemStatus.toUpperCase()}`;
+          if (statFocus) statFocus.textContent = d.activeFocusMode;
+
+          if (grid && d.engineStatuses) {
+            grid.innerHTML = Object.entries(d.engineStatuses)
+              .map(([name, status]) => {
+                const color = status === 'online' ? '#10b981' : '#f59e0b';
+                return `
+                  <div style="background: #070e1e; border: 1px solid #1e293b; border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 0.72rem; color: #cbd5e1; font-family: monospace;">${escapeHtml(name)}</span>
+                    <span style="display: flex; align-items: center; gap: 4px; font-size: 0.68rem; color: ${color}; text-transform: uppercase;">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color};"></span>
+                      ${status}
+                    </span>
+                  </div>
+                `;
+              })
+              .join('');
+          }
+        }
+      } catch (err) {
+        console.error('Context overview error:', err);
+      }
+    }
+
+    const refreshOverviewBtn = document.getElementById('ctx-refresh-overview-btn');
+    if (refreshOverviewBtn) refreshOverviewBtn.addEventListener('click', loadOverview);
+
+    // 2. Focus & Cognitive Load
+    async function loadCognitive() {
+      try {
+        const res = await fetch('/api/jarvis/context/cognitive-load', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          const c = data.data;
+          const scoreVal = document.getElementById('ctx-cog-score-val');
+          const bar = document.getElementById('ctx-cog-bar');
+          const factors = document.getElementById('ctx-cog-factors');
+          const rec = document.getElementById('ctx-cog-rec');
+
+          if (scoreVal) scoreVal.textContent = `${c.score.toFixed(2)} (${c.level.toUpperCase()})`;
+          if (bar) {
+            const pct = Math.min(100, Math.round(c.score * 100));
+            bar.style.width = `${pct}%`;
+            bar.style.background = c.level === 'optimal' ? '#10b981' : c.level === 'low' ? '#38bdf8' : c.level === 'high' ? '#f59e0b' : '#ef4444';
+          }
+          if (factors && Array.isArray(c.factors)) {
+            factors.innerHTML = c.factors.map((f) => `<li>${escapeHtml(f)}</li>`).join('');
+          }
+          if (rec) rec.textContent = c.recommendation;
+        }
+      } catch (err) {
+        console.error('Cognitive load error:', err);
+      }
+    }
+
+    const startFocusBtn = document.getElementById('ctx-start-focus-btn');
+    const endFocusBtn = document.getElementById('ctx-end-focus-btn');
+    const focusMsg = document.getElementById('ctx-focus-status-msg');
+
+    if (startFocusBtn) {
+      startFocusBtn.addEventListener('click', async () => {
+        const mode = (document.getElementById('ctx-focus-mode') || {}).value || 'deep_work';
+        const goal = ((document.getElementById('ctx-focus-goal') || {}).value || '').trim();
+        const project = ((document.getElementById('ctx-focus-project') || {}).value || '').trim();
+        const durationMinutes = parseInt((document.getElementById('ctx-focus-duration') || {}).value || '45', 10);
+
+        if (!goal) {
+          alert('Please enter a goal objective for the focus session.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/jarvis/context/focus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ mode, goal, project, durationMinutes }),
+          });
+          const d = await res.json();
+          if (d.success) {
+            if (focusMsg) {
+              focusMsg.style.display = 'block';
+              focusMsg.style.color = '#10b981';
+              focusMsg.textContent = `Focus session activated: [${d.data.mode}] ${d.data.goal}`;
+            }
+            loadOverview();
+            loadCognitive();
+          }
+        } catch (err) {
+          if (focusMsg) {
+            focusMsg.style.display = 'block';
+            focusMsg.style.color = '#ef4444';
+            focusMsg.textContent = `Error: ${err.message}`;
+          }
+        }
+      });
+    }
+
+    if (endFocusBtn) {
+      endFocusBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/jarvis/context/focus/end', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          });
+          const d = await res.json();
+          if (d.success) {
+            if (focusMsg) {
+              focusMsg.style.display = 'block';
+              focusMsg.style.color = '#f59e0b';
+              focusMsg.textContent = d.data.active === false ? 'Active focus session successfully concluded.' : 'No active session was running.';
+            }
+            loadOverview();
+            loadCognitive();
+          }
+        } catch (err) {
+          if (focusMsg) {
+            focusMsg.style.display = 'block';
+            focusMsg.style.color = '#ef4444';
+            focusMsg.textContent = `Error: ${err.message}`;
+          }
+        }
+      });
+    }
+
+    // 3. Activity Stream
+    async function loadActivities() {
+      const stream = document.getElementById('ctx-act-stream');
+      const cat = (document.getElementById('ctx-act-filter') || {}).value || '';
+      if (!stream) return;
+
+      try {
+        const url = cat ? `/api/jarvis/context/activities?category=${encodeURIComponent(cat)}&limit=30` : `/api/jarvis/context/activities?limit=30`;
+        const res = await fetch(url, { headers: { 'x-user-id': 'dwight' } });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          if (data.data.length === 0) {
+            stream.innerHTML = '<div style="color: #64748b; font-size: 0.78rem; padding: 12px;">No activities recorded yet in this stream.</div>';
+            return;
+          }
+          stream.innerHTML = data.data
+            .map((item) => `
+              <div style="background: #070e1e; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 600; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: rgba(56, 189, 248, 0.15); color: #38bdf8;">${escapeHtml(item.category)}</span>
+                    <span style="font-size: 0.72rem; color: #94a3b8; font-family: monospace;">${escapeHtml(item.action)}</span>
+                  </div>
+                  <div style="font-size: 0.78rem; color: #f8fafc;">${escapeHtml(item.summary)}</div>
+                </div>
+                <div style="font-size: 0.68rem; color: #64748b;">${new Date(item.timestamp).toLocaleTimeString()}</div>
+              </div>
+            `)
+            .join('');
+        }
+      } catch (err) {
+        stream.innerHTML = `<div style="color: #ef4444; font-size: 0.78rem; padding: 12px;">Failed to load activities: ${err.message}</div>`;
+      }
+    }
+
+    const refreshActBtn = document.getElementById('ctx-refresh-act-btn');
+    const actFilter = document.getElementById('ctx-act-filter');
+    if (refreshActBtn) refreshActBtn.addEventListener('click', loadActivities);
+    if (actFilter) actFilter.addEventListener('change', loadActivities);
+
+    const logBtn = document.getElementById('ctx-log-btn');
+    if (logBtn) {
+      logBtn.addEventListener('click', async () => {
+        const category = (document.getElementById('ctx-log-cat') || {}).value || 'system';
+        const action = ((document.getElementById('ctx-log-action') || {}).value || '').trim();
+        const summary = ((document.getElementById('ctx-log-summary') || {}).value || '').trim();
+
+        if (!action || !summary) {
+          alert('Action and summary are required.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/jarvis/context/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ category, action, summary }),
+          });
+          const d = await res.json();
+          if (d.success) {
+            (document.getElementById('ctx-log-action') || {}).value = '';
+            (document.getElementById('ctx-log-summary') || {}).value = '';
+            loadActivities();
+          }
+        } catch (err) {
+          console.error('Log activity error:', err);
+        }
+      });
+    }
+
+    // 4. Context Query & Insights
+    async function loadInsights() {
+      const list = document.getElementById('ctx-insights-list');
+      if (!list) return;
+
+      try {
+        const res = await fetch('/api/jarvis/context/insights', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          list.innerHTML = data.data
+            .map((ins) => {
+              const borderCol = ins.priority === 'high' ? '#ef4444' : ins.priority === 'medium' ? '#f59e0b' : '#38bdf8';
+              return `
+                <div style="background: #070e1e; border: 1px solid #1e293b; border-left: 3px solid ${borderCol}; border-radius: 6px; padding: 10px 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: 600; font-size: 0.8rem; color: #f8fafc;">${escapeHtml(ins.title)}</span>
+                    <span style="font-size: 0.68rem; text-transform: uppercase; color: ${borderCol}; font-weight: 600;">${ins.priority}</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 4px;">${escapeHtml(ins.message)}</div>
+                  ${ins.actionableSuggestion ? `<div style="font-size: 0.72rem; color: #38bdf8; font-style: italic;">Suggestion: ${escapeHtml(ins.actionableSuggestion)}</div>` : ''}
+                </div>
+              `;
+            })
+            .join('');
+        }
+      } catch (err) {
+        list.innerHTML = `<div style="color: #ef4444; font-size: 0.78rem; padding: 12px;">Failed to load insights: ${err.message}</div>`;
+      }
+    }
+
+    const refreshInsBtn = document.getElementById('ctx-refresh-ins-btn');
+    if (refreshInsBtn) refreshInsBtn.addEventListener('click', loadInsights);
+
+    const queryBtn = document.getElementById('ctx-query-btn');
+    const queryOutput = document.getElementById('ctx-query-output');
+
+    if (queryBtn) {
+      queryBtn.addEventListener('click', async () => {
+        const inputVal = ((document.getElementById('ctx-query-input') || {}).value || '').trim();
+        if (!inputVal) return;
+
+        if (queryOutput) queryOutput.textContent = '// Querying cross-engine knowledge nodes and memory...';
+
+        try {
+          const res = await fetch('/api/jarvis/context/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              actionOrGoal: inputVal,
+              includeProfile: true,
+              includeGoals: true,
+              includeMemories: true,
+              includeKnowledgeNodes: true,
+            }),
+          });
+          const d = await res.json();
+          if (d.success && d.data && queryOutput) {
+            queryOutput.textContent = d.data.compositeContextString;
+          }
+        } catch (err) {
+          if (queryOutput) queryOutput.textContent = `// Query error: ${err.message}`;
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
   initSkillBuilderStudio();
   initCollaborationStudio();
   initVerificationStudio();
   initLearningStudio();
+  initContextStudio();
   initSession();
 });
 
