@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 20 — Voice & Audio Intelligence Studio Active**
+> **Current Status**: **Phase 21 — Hardware, Device & IoT Integration Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -882,14 +882,60 @@ Phase 20 equips JARVIS with full audio intelligence, real-time voice processing,
 
 ---
 
+## 🔌 Phase 21: Hardware, Device & IoT Integration Studio
+
+Phase 21 establishes JARVIS as a physical and hardware computing orchestrator, interfacing with real host sensors, USB/Serial peripherals, Bluetooth Low Energy (BLE) beacons, and Smart Home IoT systems, strictly regulated by physical safety interlocks.
+
+### 1. Host Hardware Sensor Telemetry
+* **Real System Profiling**: Real-time sampling of CPU aggregate & per-core utilization, clock frequencies (MHz), physical/logical core counts, and thermal sensor outputs.
+* **GPU & Memory Telemetry**: VRAM allocation, GPU core thermals, and host RAM utilization percentages.
+* **Thermal Throttling Protection**: Evaluates die temperatures against critical thermal trip points (88°C), surfacing `throttlingDetected: true` and automated cooling load alerts.
+* **Storage & Battery Metrics**: System drive capacity monitoring and AC/battery charging state tracking.
+
+### 2. USB Peripheral Discovery & Microcontroller Serial Drivers
+* **USB Topology Scanner**: Identifies connected HID input devices, serial bridge microcontrollers, and audio DAC interfaces.
+* **COM Port Communications**: Configures bidirectional baud rate serial channels (`9600` to `115200` baud) with configurable data/stop/parity framing.
+* **Command Sanitization Engine**: Intercepts and blocks dangerous MCU firmware erasure sequences (`FLASH ERASE`, `BOOTLOADER UNLOCK`, raw EEPROM overwrite), preventing accidental bricking.
+* **MCU Protocol Framing**: Standardized packet wrapping with CRC checksum validation and bidirectional request/acknowledgement logging.
+
+### 3. Bluetooth Low Energy (BLE) Manager
+* **Proximity Beacon Radar**: Continuous BLE scanning returning discovered peripherals, dynamically jittered RSSI signal strengths (-100 to -30 dBm), and proximity categorizations (`immediate`, `near`, `far`).
+* **GATT Service & Characteristic Exploration**: Explores Standard Bluetooth SIG services including Heart Rate (`0x180D`), Battery Service (`0x180F`), Environmental Sensing (`0x181A`), and Immediate Alert (`0x1802`).
+* **Secure Read/Write Operations**: Enforces characteristic read/write permission guards, preventing unauthorized writes to read-only GATT descriptors.
+
+### 4. Smart Home IoT Hub & Wattage Balancer
+* **Lighting Systems**: RGB hex color modulation, Kelvin color temperature tuning (2700K warm to 6500K daylight), and dimming levels.
+* **Climate Controls**: HVAC target temperature regulation across heating, cooling, and eco modes.
+* **Real-Time Energy Metering**: Active wattage draw monitoring and cumulative energy consumption tracking (kWh).
+
+### 5. Physical Safety Interlock & Emergency Killswitch
+* **Wattage Ceiling Invariant**: Computes projected aggregate wattage before applying power commands. If projected power exceeds 2,400 Watts, the command is categorically rejected with `Wattage limit exceeded`.
+* **Emergency Cutoff Killswitch**: Instant physical disconnect that shuts down all high-draw appliances and isolates connected systems during anomalies.
+* **Trip Lockout & Recovery**: When tripped, all device power requests remain locked until an administrative reset (`POST /api/jarvis/devices/safety/cutoff` with `restore: true`) is executed.
+
+### 6. Security Gating, Agent & Tools
+* Gated by `ResourceType.DEVICES` (`READ` for telemetry, peripheral discovery, BLE scanning, safety status; `WRITE` for IoT state manipulation, serial transmissions, BLE writes; `EXECUTE` for calibration routines; `ADMIN` for emergency cutoffs and safety resets).
+* Coordinated by `DeviceManager` and autonomous `DeviceAgent` (`id: 'device-agent'`).
+* 8 Registered Tools:
+  1. `device.list_devices`
+  2. `device.get_telemetry`
+  3. `device.control_iot`
+  4. `device.serial_communicate`
+  5. `device.ble_scan`
+  6. `device.ble_connect`
+  7. `device.safety_interlock`
+  8. `device.hardware_status`
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (518 automated tests across 62 test files covering all phases, plus 84 end-to-end manual verification steps):
+Run the full Vitest suite (548 automated tests across 64 test files covering all phases, plus 90 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 20
+# Run manual end-to-end verification across Phases 1 to 21
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check
@@ -907,3 +953,4 @@ Every phase adheres to:
 $$\text{INSPECT} \longrightarrow \text{PLAN} \longrightarrow \text{IMPLEMENT} \longrightarrow \text{TEST} \longrightarrow \text{VERIFY} \longrightarrow \text{DOCUMENT} \longrightarrow \text{COMMIT}$$
 
 > **Core Rule**: A capability is never called "working" until it actually executes in the real environment and passes verification.
+

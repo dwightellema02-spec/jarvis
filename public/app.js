@@ -6327,6 +6327,519 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==================== PHASE 21: HARDWARE, DEVICE & IOT INTELLIGENCE CONTROLLER ====================
+  const devicesModal = document.getElementById('devices-modal');
+  const closeDevicesModalBtn = document.getElementById('close-devices-modal-btn');
+  const navDevicesBtn = document.getElementById('nav-devices');
+  const chipDeviceAgent = document.getElementById('chip-device-agent');
+
+  function openDevicesModal() {
+    if (devicesModal) {
+      devicesModal.classList.remove('hidden');
+      refreshTelemetry();
+      refreshIotDevices();
+      refreshSafetyInterlock();
+      loadBleBeacons();
+    }
+  }
+
+  function closeDevicesModal() {
+    if (devicesModal) {
+      devicesModal.classList.add('hidden');
+    }
+  }
+
+  if (navDevicesBtn) navDevicesBtn.addEventListener('click', (e) => { e.preventDefault(); openDevicesModal(); });
+  if (chipDeviceAgent) chipDeviceAgent.addEventListener('click', openDevicesModal);
+  if (closeDevicesModalBtn) closeDevicesModalBtn.addEventListener('click', closeDevicesModal);
+  if (devicesModal) {
+    devicesModal.addEventListener('click', (e) => {
+      if (e.target === devicesModal) closeDevicesModal();
+    });
+  }
+
+  // Devices Modal Tab Switching
+  const deviceTabs = [
+    { btn: 'devices-tab-btn-telemetry', panel: 'devices-panel-telemetry' },
+    { btn: 'devices-tab-btn-iot', panel: 'devices-panel-iot' },
+    { btn: 'devices-tab-btn-usb', panel: 'devices-panel-usb' },
+    { btn: 'devices-tab-btn-ble', panel: 'devices-panel-ble' },
+    { btn: 'devices-tab-btn-safety', panel: 'devices-panel-safety' },
+  ];
+
+  deviceTabs.forEach((tab) => {
+    const btnEl = document.getElementById(tab.btn);
+    if (btnEl) {
+      btnEl.addEventListener('click', () => {
+        deviceTabs.forEach((t) => {
+          const b = document.getElementById(t.btn);
+          const p = document.getElementById(t.panel);
+          if (b) {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-ghost');
+            b.style.background = 'transparent';
+            b.style.color = '#94a3b8';
+          }
+          if (p) p.classList.add('hidden');
+        });
+        btnEl.classList.remove('btn-ghost');
+        btnEl.classList.add('btn-primary');
+        btnEl.style.background = 'var(--hud-cyan)';
+        btnEl.style.color = '#000';
+        const activePanel = document.getElementById(tab.panel);
+        if (activePanel) activePanel.classList.remove('hidden');
+      });
+    }
+  });
+
+  // Tab 1: System Telemetry Controller
+  const refreshTelemetryBtn = document.getElementById('devices-refresh-telemetry-btn');
+  const cpuUsageEl = document.getElementById('devices-cpu-usage');
+  const cpuTempEl = document.getElementById('devices-cpu-temp');
+  const cpuBarEl = document.getElementById('devices-cpu-bar');
+  const cpuCoresEl = document.getElementById('devices-cpu-cores');
+  const cpuFreqEl = document.getElementById('devices-cpu-freq');
+  const cpuThrottleEl = document.getElementById('devices-cpu-throttle');
+
+  const gpuUsageEl = document.getElementById('devices-gpu-usage');
+  const gpuTempEl = document.getElementById('devices-gpu-temp');
+  const gpuBarEl = document.getElementById('devices-gpu-bar');
+
+  const memPercentEl = document.getElementById('devices-mem-percent');
+  const memUsedEl = document.getElementById('devices-mem-used');
+  const memBarEl = document.getElementById('devices-mem-bar');
+  const memTotalEl = document.getElementById('devices-mem-total');
+
+  const batteryLevelEl = document.getElementById('devices-battery-level');
+  const storageUsedEl = document.getElementById('devices-storage-used');
+  const uptimeEl = document.getElementById('devices-uptime');
+
+  async function refreshTelemetry() {
+    try {
+      const res = await fetch('/api/jarvis/devices/telemetry', {
+        headers: { 'x-user-id': 'dwight' }
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const t = data.data;
+        if (cpuUsageEl) cpuUsageEl.textContent = `${t.cpu.usagePercent}%`;
+        if (cpuTempEl) cpuTempEl.textContent = `${t.cpu.tempCelsius}°C`;
+        if (cpuBarEl) cpuBarEl.style.width = `${Math.min(100, t.cpu.usagePercent)}%`;
+        if (cpuCoresEl) cpuCoresEl.textContent = `${t.cpu.cores} Cores`;
+        if (cpuFreqEl) cpuFreqEl.textContent = `${t.cpu.freqGhz} GHz`;
+        if (cpuThrottleEl) {
+          cpuThrottleEl.textContent = t.cpu.throttling ? 'THROTTLED' : 'Nominal';
+          cpuThrottleEl.style.color = t.cpu.throttling ? '#ef4444' : '#10b981';
+        }
+
+        if (gpuUsageEl) gpuUsageEl.textContent = `${t.gpu.usagePercent}%`;
+        if (gpuTempEl) gpuTempEl.textContent = `${t.gpu.tempCelsius}°C`;
+        if (gpuBarEl) gpuBarEl.style.width = `${Math.min(100, t.gpu.usagePercent)}%`;
+
+        if (memPercentEl) memPercentEl.textContent = `${t.memory.usagePercent}%`;
+        const usedGb = (t.memory.usedBytes / (1024 ** 3)).toFixed(1);
+        const totalGb = (t.memory.totalBytes / (1024 ** 3)).toFixed(1);
+        if (memUsedEl) memUsedEl.textContent = `${usedGb} GB`;
+        if (memBarEl) memBarEl.style.width = `${Math.min(100, t.memory.usagePercent)}%`;
+        if (memTotalEl) memTotalEl.textContent = `Total: ${totalGb} GB Installed`;
+
+        if (batteryLevelEl) batteryLevelEl.textContent = `${t.battery.levelPercent}%`;
+        const storageGb = Math.round(t.storage.usedBytes / (1024 ** 3));
+        if (storageUsedEl) storageUsedEl.textContent = `${storageGb} GB`;
+
+        const uptimeHrs = Math.floor(t.systemUptimeSec / 3600);
+        const uptimeMins = Math.floor((t.systemUptimeSec % 3600) / 60);
+        if (uptimeEl) uptimeEl.textContent = `${uptimeHrs}h ${uptimeMins}m`;
+      }
+    } catch (err) {
+      console.warn('Telemetry refresh error:', err);
+    }
+  }
+
+  if (refreshTelemetryBtn) {
+    refreshTelemetryBtn.addEventListener('click', refreshTelemetry);
+  }
+
+  // Tab 2: Smart Home IoT Controller
+  const totalWattageEl = document.getElementById('devices-total-wattage');
+  const iotBtnLightDesk = document.getElementById('iot-btn-light-desk');
+  const iotSliderLightDesk = document.getElementById('iot-slider-light-desk');
+  const iotValLightDeskBright = document.getElementById('iot-val-light-desk-bright');
+  const iotTempMinusBtn = document.getElementById('iot-temp-minus-btn');
+  const iotTempPlusBtn = document.getElementById('iot-temp-plus-btn');
+  const iotTargetTempVal = document.getElementById('iot-target-temp-val');
+  const iotBtnPlugWorkstation = document.getElementById('iot-btn-plug-workstation');
+  const iotBtnPlugHeater = document.getElementById('iot-btn-plug-heater');
+
+  let currentTargetTemp = 21.0;
+  let deskLightPowered = true;
+  let workstationPlugPowered = true;
+  let heaterPlugPowered = false;
+
+  async function refreshIotDevices() {
+    try {
+      const res = await fetch('/api/jarvis/devices/iot', {
+        headers: { 'x-user-id': 'dwight' }
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        let totalWatts = 0;
+        data.data.forEach((d) => {
+          if (d.power && d.currentWattage) totalWatts += d.currentWattage;
+        });
+        if (totalWattageEl) totalWattageEl.textContent = `${totalWatts.toFixed(1)} Watts`;
+      }
+    } catch (err) {
+      console.warn('IoT refresh error:', err);
+    }
+  }
+
+  if (iotBtnLightDesk) {
+    iotBtnLightDesk.addEventListener('click', async () => {
+      deskLightPowered = !deskLightPowered;
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_light_desk', power: deskLightPowered })
+        });
+        iotBtnLightDesk.textContent = deskLightPowered ? 'ON' : 'OFF';
+        iotBtnLightDesk.style.background = deskLightPowered ? 'var(--hud-cyan)' : 'transparent';
+        iotBtnLightDesk.style.color = deskLightPowered ? '#000' : '#64748b';
+        refreshIotDevices();
+      } catch (err) {
+        console.error('Failed to toggle desk light:', err);
+      }
+    });
+  }
+
+  if (iotSliderLightDesk && iotValLightDeskBright) {
+    iotSliderLightDesk.addEventListener('input', async () => {
+      const val = parseInt(iotSliderLightDesk.value, 10);
+      iotValLightDeskBright.textContent = `${val}%`;
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_light_desk', brightness: val })
+        });
+      } catch (err) {
+        console.error('Failed to set light brightness:', err);
+      }
+    });
+  }
+
+  document.querySelectorAll('.iot-color-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const color = e.currentTarget.getAttribute('data-color');
+      document.querySelectorAll('.iot-color-btn').forEach((b) => b.style.borderColor = 'transparent');
+      e.currentTarget.style.borderColor = '#fff';
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_light_desk', colorHex: color })
+        });
+      } catch (err) {
+        console.error('Failed to set color:', err);
+      }
+    });
+  });
+
+  if (iotTempMinusBtn && iotTargetTempVal) {
+    iotTempMinusBtn.addEventListener('click', async () => {
+      currentTargetTemp = Math.max(16, currentTargetTemp - 0.5);
+      iotTargetTempVal.textContent = `${currentTargetTemp.toFixed(1)}°C`;
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_thermostat_main', targetTempCelsius: currentTargetTemp })
+        });
+      } catch (err) {
+        console.error('Thermostat target error:', err);
+      }
+    });
+  }
+
+  if (iotTempPlusBtn && iotTargetTempVal) {
+    iotTempPlusBtn.addEventListener('click', async () => {
+      currentTargetTemp = Math.min(30, currentTargetTemp + 0.5);
+      iotTargetTempVal.textContent = `${currentTargetTemp.toFixed(1)}°C`;
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_thermostat_main', targetTempCelsius: currentTargetTemp })
+        });
+      } catch (err) {
+        console.error('Thermostat target error:', err);
+      }
+    });
+  }
+
+  ['cool', 'heat', 'auto', 'off'].forEach((mode) => {
+    const mBtn = document.getElementById(`iot-hvac-${mode}`);
+    if (mBtn) {
+      mBtn.addEventListener('click', async () => {
+        ['cool', 'heat', 'auto', 'off'].forEach((m) => {
+          const b = document.getElementById(`iot-hvac-${m}`);
+          if (b) {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-ghost');
+            b.style.background = 'transparent';
+            b.style.color = '#94a3b8';
+          }
+        });
+        mBtn.classList.remove('btn-ghost');
+        mBtn.classList.add('btn-primary');
+        mBtn.style.background = 'var(--hud-cyan)';
+        mBtn.style.color = '#000';
+        try {
+          await fetch('/api/jarvis/devices/iot/control', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ deviceId: 'iot_thermostat_main', hvacMode: mode })
+          });
+        } catch (err) {
+          console.error('Failed to set HVAC mode:', err);
+        }
+      });
+    }
+  });
+
+  if (iotBtnPlugWorkstation) {
+    iotBtnPlugWorkstation.addEventListener('click', async () => {
+      workstationPlugPowered = !workstationPlugPowered;
+      try {
+        await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_plug_workstation', power: workstationPlugPowered })
+        });
+        iotBtnPlugWorkstation.textContent = workstationPlugPowered ? 'POWERED' : 'OFF';
+        iotBtnPlugWorkstation.style.background = workstationPlugPowered ? '#10b981' : 'transparent';
+        iotBtnPlugWorkstation.style.color = workstationPlugPowered ? '#000' : '#64748b';
+        refreshIotDevices();
+      } catch (err) {
+        console.error('Workstation plug error:', err);
+      }
+    });
+  }
+
+  if (iotBtnPlugHeater) {
+    iotBtnPlugHeater.addEventListener('click', async () => {
+      try {
+        const nextState = !heaterPlugPowered;
+        const res = await fetch('/api/jarvis/devices/iot/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ deviceId: 'iot_plug_heater', power: nextState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          heaterPlugPowered = nextState;
+          iotBtnPlugHeater.textContent = heaterPlugPowered ? 'HEATER ACTIVE' : 'OFF (STANDBY)';
+          iotBtnPlugHeater.style.borderColor = heaterPlugPowered ? '#ef4444' : '#64748b';
+          iotBtnPlugHeater.style.color = heaterPlugPowered ? '#ef4444' : '#64748b';
+          refreshIotDevices();
+        } else {
+          alert(`Safety Interlock Blocked Action: ${data.error}`);
+          refreshSafetyInterlock();
+        }
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      }
+    });
+  }
+
+  // Tab 3: USB & Serial Diagnostics Controller
+  const serialPortSelect = document.getElementById('serial-port-select');
+  const serialCmdInput = document.getElementById('serial-command-input');
+  const serialSendBtn = document.getElementById('serial-send-btn');
+  const serialConsole = document.getElementById('serial-terminal-console');
+
+  document.querySelectorAll('.serial-cmd-preset').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const cmd = e.currentTarget.getAttribute('data-cmd');
+      if (serialCmdInput) serialCmdInput.value = cmd;
+    });
+  });
+
+  if (serialSendBtn && serialCmdInput && serialConsole) {
+    serialSendBtn.addEventListener('click', async () => {
+      const command = serialCmdInput.value.trim();
+      const port = serialPortSelect ? serialPortSelect.value : 'COM3';
+
+      serialConsole.innerHTML += `<div style="color: var(--hud-cyan); margin-top: 4px;">TX &gt; [${port}] ${command}</div>`;
+      try {
+        const res = await fetch('/api/jarvis/devices/serial/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ port, command })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          serialConsole.innerHTML += `<div style="color: #10b981;">RX &lt; ${data.data.response} (${data.data.latencyMs}ms)</div>`;
+        } else {
+          serialConsole.innerHTML += `<div style="color: #ef4444;">ERROR: ${data.error}</div>`;
+        }
+        serialConsole.scrollTop = serialConsole.scrollHeight;
+      } catch (err) {
+        serialConsole.innerHTML += `<div style="color: #ef4444;">COMM ERROR: ${err.message}</div>`;
+      }
+    });
+  }
+
+  // Tab 4: Bluetooth BLE Scanner Controller
+  const bleScanBtn = document.getElementById('ble-scan-btn');
+  const bleBeaconsList = document.getElementById('ble-beacons-list');
+  const bleTriggerHapticBtn = document.getElementById('ble-trigger-haptic-btn');
+  const bleInteractionResults = document.getElementById('ble-interaction-results');
+
+  async function loadBleBeacons() {
+    if (!bleBeaconsList) return;
+    try {
+      const res = await fetch('/api/jarvis/devices/ble/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' }
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        bleBeaconsList.innerHTML = data.data.map((b) => `
+          <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: bold; color: #fff; font-size: 0.85rem;">${b.name}</div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">${b.address} | RSSI: ${b.rssi} dBm</div>
+            </div>
+            <span class="badge" style="background: ${b.connected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)'}; color: ${b.connected ? '#10b981' : '#94a3b8'}; font-size: 0.7rem;">
+              ${b.connected ? 'CONNECTED' : 'DISCOVERED'}
+            </span>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.warn('BLE scan error:', err);
+    }
+  }
+
+  if (bleScanBtn) {
+    bleScanBtn.addEventListener('click', loadBleBeacons);
+  }
+
+  if (bleTriggerHapticBtn && bleInteractionResults) {
+    bleTriggerHapticBtn.addEventListener('click', async () => {
+      bleInteractionResults.innerHTML = '<span style="color: var(--hud-cyan);">Sending GATT write to Immediate Alert characteristic...</span>';
+      try {
+        const res = await fetch('/api/jarvis/devices/ble/write', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({
+            peripheralId: 'ble_smart_band',
+            serviceUuid: '1802',
+            charUuid: '2a06',
+            hexValue: '02'
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          bleInteractionResults.innerHTML = `
+            <div style="color: #10b981; font-weight: bold;">[GATT WRITE SUCCESSFUL]</div>
+            <div>Characteristic: <strong>${data.data.name}</strong></div>
+            <div>Value Transmitted: <code style="color: #fff;">0x${data.data.valueHex} (High Alert Vibration)</code></div>
+          `;
+        } else {
+          bleInteractionResults.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+        }
+      } catch (err) {
+        bleInteractionResults.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // Tab 5: Safety Interlock Controller
+  const safetyBanner = document.getElementById('safety-banner');
+  const safetyStatusTitle = document.getElementById('safety-status-title');
+  const safetyStatusDesc = document.getElementById('safety-status-desc');
+  const safetyWattageText = document.getElementById('safety-wattage-text');
+  const safetyWattageBar = document.getElementById('safety-wattage-bar');
+  const emergencyCutoffBtn = document.getElementById('devices-emergency-cutoff-btn');
+  const resetInterlockBtn = document.getElementById('devices-reset-interlock-btn');
+
+  async function refreshSafetyInterlock() {
+    try {
+      const res = await fetch('/api/jarvis/devices/safety', {
+        headers: { 'x-user-id': 'dwight' }
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const s = data.data;
+        const isCutoff = s.emergencyCutoffEngaged;
+        if (safetyBanner) {
+          safetyBanner.style.background = isCutoff ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.1)';
+          safetyBanner.style.borderColor = isCutoff ? '#ef4444' : '#10b981';
+        }
+        if (safetyStatusTitle) {
+          safetyStatusTitle.innerHTML = isCutoff
+            ? '<span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> PHYSICAL SAFETY INTERLOCK: TRIPPED (CUTOFF ENGAGED)'
+            : '<span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span> PHYSICAL SAFETY INTERLOCK: ARMED & SAFE';
+          safetyStatusTitle.style.color = isCutoff ? '#ef4444' : '#10b981';
+        }
+        if (safetyStatusDesc) {
+          safetyStatusDesc.textContent = isCutoff
+            ? `Safety tripped! Reason: ${s.trippedReasons.join(', ') || 'Emergency killswitch engaged'}`
+            : 'All electrical loads and thermal envelopes are within nominal parameters.';
+        }
+        if (safetyWattageText) safetyWattageText.textContent = `${s.totalWattageDraw} W`;
+        if (safetyWattageBar) {
+          const pct = Math.min(100, Math.round((s.totalWattageDraw / s.maxSafeWattageLimit) * 100));
+          safetyWattageBar.style.width = `${pct}%`;
+          safetyWattageBar.style.background = isCutoff ? '#ef4444' : 'var(--hud-cyan)';
+        }
+      }
+    } catch (err) {
+      console.warn('Safety refresh error:', err);
+    }
+  }
+
+  if (emergencyCutoffBtn) {
+    emergencyCutoffBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/jarvis/devices/safety/cutoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ cutoff: true, reason: 'Operator engaged manual emergency cutoff' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          refreshSafetyInterlock();
+          refreshIotDevices();
+        }
+      } catch (err) {
+        console.error('Failed to engage emergency cutoff:', err);
+      }
+    });
+  }
+
+  if (resetInterlockBtn) {
+    resetInterlockBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/jarvis/devices/safety/cutoff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+          body: JSON.stringify({ cutoff: false })
+        });
+        const data = await res.json();
+        if (data.success) {
+          refreshSafetyInterlock();
+          refreshIotDevices();
+        }
+      } catch (err) {
+        console.error('Failed to reset interlock:', err);
+      }
+    });
+  }
+
   // Start
   initSession();
 });

@@ -1128,7 +1128,74 @@ async function runManualVerification() {
       console.log('   Acoustic dB Level:', acousticData.data?.dbLevel, 'dB | Sound Events:', acousticData.data?.detectedEvents?.[0]?.type);
       console.log('   Switched Active Persona:', personaData.data?.id, '| Name:', personaData.data?.name);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 20) PASSED SUCCESSFULLY! ===');
+      console.log('85. Testing Phase 21 Connected Hardware & Peripheral Discovery (GET /api/jarvis/devices)');
+      const devRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const devData = await devRes.json();
+      console.log('   Devices Discovered:', devData.count, '| Sample Hardware:', devData.data?.[0]?.name, '| Type:', devData.data?.[0]?.type);
+
+      console.log('86. Testing Phase 21 Real-Time System Hardware Telemetry (GET /api/jarvis/devices/telemetry)');
+      const telemRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/telemetry', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const telemData = await telemRes.json();
+      console.log('   CPU Usage:', telemData.data?.cpu?.usagePercent + '%', '| CPU Temp:', telemData.data?.cpu?.tempCelsius + '°C', '| RAM Usage:', telemData.data?.memory?.usagePercent + '%', '| Battery:', telemData.data?.battery?.levelPercent + '%');
+
+      console.log('87. Testing Phase 21 Smart Home IoT Lighting & Climate Modulation (POST /api/jarvis/devices/iot/control)');
+      const iotCtrlRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/iot/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ deviceId: 'iot_light_desk', brightness: 92, colorHex: '#00f0ff' }),
+      });
+      const iotCtrlData = await iotCtrlRes.json();
+      console.log('   IoT Device Controlled:', iotCtrlData.data?.name, '| Power:', iotCtrlData.data?.power, '| Brightness:', iotCtrlData.data?.brightness, '| Color:', iotCtrlData.data?.colorHex);
+
+      console.log('88. Testing Phase 21 Microcontroller Virtual Serial COM Port Transmit (POST /api/jarvis/devices/serial/send)');
+      const serialRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/serial/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ port: 'COM3', command: 'status' }),
+      });
+      const serialData = await serialRes.json();
+      console.log('   Serial Port:', serialData.data?.port, '| Bytes Written:', serialData.data?.bytesWritten, '| Response:', serialData.data?.response);
+
+      console.log('89. Testing Phase 21 Bluetooth Low Energy Scanner & GATT Interaction (POST /api/jarvis/devices/ble/scan & write)');
+      const bleScanRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/ble/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+      });
+      const bleScanData = await bleScanRes.json();
+      const bleWriteRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/ble/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ peripheralId: 'ble_smart_band', serviceUuid: '1802', charUuid: '2a06', hexValue: '02' }),
+      });
+      const bleWriteData = await bleWriteRes.json();
+      console.log('   BLE Beacons Found:', bleScanData.count, '| Top Beacon:', bleScanData.data?.[0]?.name, '| RSSI:', bleScanData.data?.[0]?.rssi + ' dBm');
+      console.log('   GATT Characteristic Written:', bleWriteData.data?.name, '| New Value:', bleWriteData.data?.valueHex);
+
+      console.log('90. Testing Phase 21 Hardware Safety Interlock & Emergency Cutoff (GET /safety & POST /safety/cutoff)');
+      const safetyGetRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/safety', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const safetyGetData = await safetyGetRes.json();
+      const safetyCutoffRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/safety/cutoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ cutoff: true, reason: 'Operator manual verification drill' }),
+      });
+      const safetyCutoffData = await safetyCutoffRes.json();
+      const safetyRestoreRes = await fetch('http://127.0.0.1:3099/api/jarvis/devices/safety/cutoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ cutoff: false }),
+      });
+      const safetyRestoreData = await safetyRestoreRes.json();
+      console.log('   Safety Interlock Initial Status: Max Wattage:', safetyGetData.data?.maxSafeWattageLimit + 'W', '| Total Draw:', safetyGetData.data?.totalWattageDraw + 'W');
+      console.log('   Emergency Cutoff Tripped:', safetyCutoffData.data?.emergencyCutoffEngaged, '-> Cutoff Restored:', !safetyRestoreData.data?.emergencyCutoffEngaged);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 21) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -150,6 +150,13 @@
               </div>
               <span class="hud-nav-badge">P20</span>
             </a>
+            <a href="#" id="nav-devices" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>Hardware & IoT</span>
+              </div>
+              <span class="hud-nav-badge">P21</span>
+            </a>
           </nav>
         </div>
 
@@ -371,6 +378,14 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#a855f7"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-device-agent" title="Open Hardware & IoT Intelligence Studio">
+                <div class="agent-chip-header">
+                  <span>Device Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -2539,6 +2554,389 @@ Direct Phone: 555-883-9102</textarea>
 
           <div id="voice-personas-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
             <!-- Populated via API -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 21 Hardware, Device & IoT Intelligence Studio Modal -->
+  <div id="devices-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-container" style="background: #090e1a; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; width: 92%; max-width: 1080px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 240, 255, 0.03);">
+        <div>
+          <h2 style="margin: 0; color: var(--hud-cyan); font-size: 1.15rem; font-family: monospace; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            HARDWARE, DEVICE & IOT INTELLIGENCE STUDIO [PHASE 21]
+          </h2>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+            System hardware telemetry, USB peripherals, virtual COM ports, Bluetooth Low Energy beacons, Smart Home IoT automation & physical safety interlock.
+          </div>
+        </div>
+        <button id="close-devices-modal-btn" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 4px 8px;">&times;</button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div style="display: flex; gap: 4px; padding: 0.5rem 1.5rem; background: #060b17; border-bottom: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto;">
+        <button id="devices-tab-btn-telemetry" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: 600;">System Telemetry</button>
+        <button id="devices-tab-btn-iot" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Smart Home IoT</button>
+        <button id="devices-tab-btn-usb" class="btn btn-sm btn-ghost" style="color: #94a3b8;">USB & Serial Ports</button>
+        <button id="devices-tab-btn-ble" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Bluetooth BLE Scanner</button>
+        <button id="devices-tab-btn-safety" class="btn btn-sm btn-ghost" style="color: #94a3b8;">Safety Interlock</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
+
+        <!-- Tab 1: System Telemetry -->
+        <div id="devices-panel-telemetry">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #0d1527; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #1e293b;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="devices-telemetry-led" style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; display: inline-block;"></span>
+              <span style="font-size: 0.8rem; font-weight: 600; color: #fff; font-family: monospace;">HARDWARE SENSOR STREAM: LIVE</span>
+            </div>
+            <button id="devices-refresh-telemetry-btn" class="btn btn-sm btn-outline" style="border-color: var(--hud-cyan); color: var(--hud-cyan); font-size: 0.75rem;">
+              Refresh Hardware Sensors
+            </button>
+          </div>
+
+          <!-- Telemetry Grid -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
+            <!-- CPU Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">CPU PROCESSOR</span>
+                <span id="devices-cpu-temp" style="font-size: 0.8rem; color: var(--hud-cyan); font-weight: bold; font-family: monospace;">45.2°C</span>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 4px;" id="devices-cpu-usage">18.4%</div>
+              <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="devices-cpu-bar" style="width: 18%; height: 100%; background: var(--hud-cyan); transition: width 0.3s;"></div>
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                <span id="devices-cpu-cores">8 Cores</span> @ <span id="devices-cpu-freq">3.6 GHz</span> | <span id="devices-cpu-throttle" style="color: #10b981;">Nominal</span>
+              </div>
+            </div>
+
+            <!-- GPU Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">GPU ACCELERATOR</span>
+                <span id="devices-gpu-temp" style="font-size: 0.8rem; color: #a855f7; font-weight: bold; font-family: monospace;">48.0°C</span>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 4px;" id="devices-gpu-usage">14.2%</div>
+              <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="devices-gpu-bar" style="width: 14%; height: 100%; background: #a855f7; transition: width 0.3s;"></div>
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                VRAM: 2.4 / 8.0 GB Used
+              </div>
+            </div>
+
+            <!-- Memory Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">SYSTEM RAM</span>
+                <span id="devices-mem-percent" style="font-size: 0.8rem; color: #10b981; font-weight: bold; font-family: monospace;">68.2%</span>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 4px;" id="devices-mem-used">10.9 GB</div>
+              <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="devices-mem-bar" style="width: 68%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;" id="devices-mem-total">
+                Total: 16.0 GB Installed
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Metrics -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <!-- Battery Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">POWER & BATTERY</div>
+              <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 1.4rem; font-weight: bold; color: #fff;" id="devices-battery-level">94%</span>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.7rem;">AC CHARGING</span>
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                Health: 98% | ~280 min remaining
+              </div>
+            </div>
+
+            <!-- Storage Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">NVME STORAGE</div>
+              <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 1.4rem; font-weight: bold; color: #fff;" id="devices-storage-used">430 GB</span>
+                <span style="font-size: 0.8rem; color: #64748b;">/ 1024 GB (42%)</span>
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                Health: 100% SMART Good
+              </div>
+            </div>
+
+            <!-- Uptime Card -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">SYSTEM UPTIME</div>
+              <div style="font-size: 1.4rem; font-weight: bold; color: var(--hud-cyan); margin-bottom: 4px;" id="devices-uptime">
+                4d 18h 32m
+              </div>
+              <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                OS: Windows 64-bit | Node v24.21.0
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Smart Home IoT -->
+        <div id="devices-panel-iot" class="hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #0d1527; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #1e293b;">
+            <div>
+              <span style="font-size: 0.85rem; color: #94a3b8;">Total Smart Home Power Draw:</span>
+              <strong id="devices-total-wattage" style="color: var(--hud-cyan); font-size: 1.1rem; margin-left: 8px; font-family: monospace;">1327.5 Watts</strong>
+            </div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.75rem;">5 DEVICES SYNCED</span>
+          </div>
+
+          <!-- IoT Devices Grid -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+            <!-- Desk Lightbar -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.9rem;">Desk Halo Lightbar</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">Ambient Lighting | 12.5W</div>
+                </div>
+                <button id="iot-btn-light-desk" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: bold;">ON</button>
+              </div>
+
+              <label style="display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">Brightness: <span id="iot-val-light-desk-bright">85%</span></label>
+              <input type="range" id="iot-slider-light-desk" min="0" max="100" value="85" style="width: 100%; margin-bottom: 10px;">
+
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px;">Color Palette Preset</div>
+              <div style="display: flex; gap: 6px;">
+                <button class="iot-color-btn" data-color="#00f0ff" style="width: 24px; height: 24px; border-radius: 50%; background: #00f0ff; border: 2px solid #fff; cursor: pointer;"></button>
+                <button class="iot-color-btn" data-color="#10b981" style="width: 24px; height: 24px; border-radius: 50%; background: #10b981; border: 2px solid transparent; cursor: pointer;"></button>
+                <button class="iot-color-btn" data-color="#f59e0b" style="width: 24px; height: 24px; border-radius: 50%; background: #f59e0b; border: 2px solid transparent; cursor: pointer;"></button>
+                <button class="iot-color-btn" data-color="#ef4444" style="width: 24px; height: 24px; border-radius: 50%; background: #ef4444; border: 2px solid transparent; cursor: pointer;"></button>
+                <button class="iot-color-btn" data-color="#a855f7" style="width: 24px; height: 24px; border-radius: 50%; background: #a855f7; border: 2px solid transparent; cursor: pointer;"></button>
+              </div>
+            </div>
+
+            <!-- Climate Thermostat -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.9rem;">Climate Thermostat</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">HVAC Unit | 850W</div>
+                </div>
+                <div style="font-size: 1.4rem; font-weight: bold; color: var(--hud-cyan); font-family: monospace;">22.5°C</div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 0.8rem; color: #94a3b8;">Target Temperature:</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button id="iot-temp-minus-btn" class="btn btn-sm btn-ghost" style="padding: 2px 8px; border: 1px solid #334155;">-</button>
+                  <span id="iot-target-temp-val" style="font-weight: bold; color: #fff; font-family: monospace;">21.0°C</span>
+                  <button id="iot-temp-plus-btn" class="btn btn-sm btn-ghost" style="padding: 2px 8px; border: 1px solid #334155;">+</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 6px;">
+                <button id="iot-hvac-cool" class="btn btn-sm btn-primary" style="flex: 1; font-size: 0.75rem; background: var(--hud-cyan); color: #000;">Cool</button>
+                <button id="iot-hvac-heat" class="btn btn-sm btn-ghost" style="flex: 1; font-size: 0.75rem; color: #94a3b8; border: 1px solid #334155;">Heat</button>
+                <button id="iot-hvac-auto" class="btn btn-sm btn-ghost" style="flex: 1; font-size: 0.75rem; color: #94a3b8; border: 1px solid #334155;">Auto</button>
+                <button id="iot-hvac-off" class="btn btn-sm btn-ghost" style="flex: 1; font-size: 0.75rem; color: #94a3b8; border: 1px solid #334155;">Off</button>
+              </div>
+            </div>
+
+            <!-- Workstation Plug -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.9rem;">Workstation Rig Plug</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">Smart Relay | 420.0W</div>
+                </div>
+                <button id="iot-btn-plug-workstation" class="btn btn-sm btn-primary" style="background: #10b981; color: #000; font-weight: bold;">POWERED</button>
+              </div>
+              <div style="font-size: 0.75rem; color: #94a3b8; line-height: 1.6;">
+                Total Energy Consumed: <strong style="color: #fff;">142.5 kWh</strong><br>
+                Overload Safety Threshold: <strong style="color: #10b981;">1000W Max</strong>
+              </div>
+            </div>
+
+            <!-- Space Heater Relay -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.9rem;">Aux Space Heater Relay</div>
+                  <div style="font-size: 0.75rem; color: #ef4444;">High Power Load | 1500W</div>
+                </div>
+                <button id="iot-btn-plug-heater" class="btn btn-sm btn-outline" style="border-color: #64748b; color: #64748b;">OFF (STANDBY)</button>
+              </div>
+              <div style="font-size: 0.75rem; color: #ef4444; line-height: 1.6;">
+                Notice: Powering on draws 1,500W. If total load exceeds 2,400W, Safety Interlock will immediately trip.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: USB & Serial Ports -->
+        <div id="devices-panel-usb" class="hidden">
+          <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 1rem;">
+            <!-- Left: Connected USB Hardware -->
+            <div style="background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">USB Hardware Devices</h3>
+              <div id="devices-usb-list" style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px;">
+                  <div style="font-weight: bold; color: #fff; font-size: 0.8rem;">Keychron Q3 Max Pro Keyboard</div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">USB\VID_3434&PID_0280 | 1000Hz Polling</div>
+                </div>
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px;">
+                  <div style="font-weight: bold; color: #fff; font-size: 0.8rem;">Logitech G Pro Superlight Mouse</div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">USB\VID_046D&PID_C547 | 1600 DPI | 88% Batt</div>
+                </div>
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px;">
+                  <div style="font-weight: bold; color: #fff; font-size: 0.8rem;">FiiO K7 32-bit Audio DAC</div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">USB\VID_2972&PID_0049 | 192kHz 32-bit PCM</div>
+                </div>
+                <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 8px;">
+                  <div style="font-weight: bold; color: #fff; font-size: 0.8rem;">STM32F4 Core Telemetry Bridge</div>
+                  <div style="font-size: 0.7rem; color: var(--hud-cyan); font-family: monospace;">COM3 Virtual COM Port @ 115,200 Baud</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Serial Terminal Console -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Virtual Serial COM Terminal</h3>
+
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <select id="serial-port-select" style="flex: 1; padding: 0.4rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.75rem;">
+                  <option value="COM3">COM3 (STM32 Telemetry)</option>
+                  <option value="COM1">COM1 (Standard UART)</option>
+                </select>
+                <select id="serial-baud-select" style="flex: 1; padding: 0.4rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.75rem;">
+                  <option value="115200">115,200 Baud</option>
+                  <option value="9600">9,600 Baud</option>
+                </select>
+              </div>
+
+              <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap;">
+                <button class="serial-cmd-preset btn btn-sm btn-ghost" data-cmd="status" style="border: 1px solid #334155; font-size: 0.7rem;">status</button>
+                <button class="serial-cmd-preset btn btn-sm btn-ghost" data-cmd="adc_read" style="border: 1px solid #334155; font-size: 0.7rem;">adc_read</button>
+                <button class="serial-cmd-preset btn btn-sm btn-ghost" data-cmd="gpio_get" style="border: 1px solid #334155; font-size: 0.7rem;">gpio_get</button>
+                <button class="serial-cmd-preset btn btn-sm btn-ghost" data-cmd="gpio_set pin2 high" style="border: 1px solid #334155; font-size: 0.7rem;">set pin2 high</button>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="serial-command-input" value="status" style="flex: 1; padding: 0.5rem; background: #060b17; border: 1px solid #334155; border-radius: 6px; color: #fff; font-family: monospace; font-size: 0.8rem;">
+                <button id="serial-send-btn" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: bold;">Send</button>
+              </div>
+
+              <!-- Terminal Output Window -->
+              <div id="serial-terminal-console" style="flex: 1; min-height: 180px; background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; font-family: monospace; font-size: 0.75rem; color: #cbd5e1; overflow-y: auto;">
+                <div>[COM3] Serial bridge online at 115,200 baud. Ready for command frames.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Bluetooth BLE Scanner -->
+        <div id="devices-panel-ble" class="hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #0d1527; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #1e293b;">
+            <div style="font-size: 0.85rem; color: #94a3b8;">Bluetooth Low Energy Proximity Telemetry</div>
+            <button id="ble-scan-btn" class="btn btn-sm btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: bold; font-size: 0.75rem;">
+              Scan for BLE Beacons
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Beacons List -->
+            <div id="ble-beacons-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Populated via API -->
+            </div>
+
+            <!-- GATT Explorer & Interaction -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">GATT Service & Characteristic Control</h3>
+              <p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px;">
+                Interact directly with connected BLE hardware peripherals.
+              </p>
+
+              <div style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; margin-bottom: 12px; font-family: monospace; font-size: 0.75rem;">
+                <div style="color: #94a3b8;">Peripheral: <strong style="color: #fff;">Biometric Smart Band V2</strong></div>
+                <div style="color: #94a3b8;">GATT Service: <span style="color: var(--hud-cyan);">0x1802 (Immediate Alert)</span></div>
+                <div style="color: #94a3b8;">Characteristic: <span style="color: #10b981;">0x2A06 (Alert Level)</span></div>
+              </div>
+
+              <button id="ble-trigger-haptic-btn" class="btn btn-primary" style="background: var(--hud-cyan); color: #000; font-weight: bold; width: 100%; margin-bottom: 10px;">
+                Trigger Haptic Alert Vibration (Write 0x02)
+              </button>
+
+              <div id="ble-interaction-results" style="background: #060b17; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; font-family: monospace; font-size: 0.75rem; color: #64748b;">
+                Awaiting BLE interaction.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Safety Interlock -->
+        <div id="devices-panel-safety" class="hidden">
+          <!-- Interlock Banner -->
+          <div id="safety-banner" style="display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+            <div>
+              <div style="font-weight: bold; color: #10b981; font-size: 1rem; display: flex; align-items: center; gap: 8px;" id="safety-status-title">
+                <span style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                PHYSICAL SAFETY INTERLOCK: ARMED & SAFE
+              </div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 4px;" id="safety-status-desc">
+                All electrical loads and thermal envelopes are within nominal parameters.
+              </div>
+            </div>
+            <button id="devices-emergency-cutoff-btn" class="btn btn-sm btn-outline" style="border-color: #ef4444; color: #ef4444; font-weight: bold;">
+              ENGAGE EMERGENCY CUTOFF
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Electrical Envelope -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Electrical Wattage Envelope</h3>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+                <span style="color: #94a3b8;">Active Load: <strong id="safety-wattage-text" style="color: #fff;">1327.5 W</strong></span>
+                <span style="color: #64748b;">Safe Limit: 2400.0 W</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; margin-bottom: 12px;">
+                <div id="safety-wattage-bar" style="width: 55%; height: 100%; background: var(--hud-cyan); transition: width 0.3s;"></div>
+              </div>
+              <p style="font-size: 0.75rem; color: #94a3b8; line-height: 1.5; margin: 0;">
+                Protection rule trips automatically if any new appliance causes total projected draw to exceed 2400W.
+              </p>
+            </div>
+
+            <!-- Thermal Envelope -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h3 style="margin-top: 0; color: var(--hud-cyan); font-size: 0.95rem;">Thermal Envelope Protection</h3>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+                <span style="color: #94a3b8;">CPU Temperature: <strong id="safety-cpu-temp-text" style="color: #fff;">45.2°C</strong></span>
+                <span style="color: #64748b;">Thermal Trip Limit: 85.0°C</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; margin-bottom: 12px;">
+                <div id="safety-temp-bar" style="width: 53%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+              </div>
+              <p style="font-size: 0.75rem; color: #94a3b8; line-height: 1.5; margin: 0;">
+                Emergency throttling engages automatically if processor core thermals exceed 88°C.
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; text-align: center;">
+            <button id="devices-reset-interlock-btn" class="btn btn-primary" style="background: #10b981; color: #000; font-weight: bold; padding: 0.6rem 2rem;">
+              Reset & Restore Safety Interlock
+            </button>
           </div>
         </div>
 
