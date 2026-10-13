@@ -171,6 +171,13 @@
               </div>
               <span class="hud-nav-badge">P23</span>
             </a>
+            <a href="#" id="nav-skill-builder" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                <span>Skill Builder</span>
+              </div>
+              <span class="hud-nav-badge">P24</span>
+            </a>
           </nav>
         </div>
 
@@ -424,6 +431,14 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#00f0ff"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-skill-builder-agent" title="Open Skill & Tool Builder Studio">
+                <div class="agent-chip-header">
+                  <span>Skill Builder Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#ec4899"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -3447,6 +3462,266 @@ Direct Phone: 555-883-9102</textarea>
                 <button id="save-preferences-btn" class="btn btn-primary" style="font-size: 0.82rem; padding: 6px 18px;">
                   Save Monitoring Preferences
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  <!-- ========================================== -->
+  <!-- PHASE 24: SKILL & TOOL BUILDER STUDIO HUD MODAL -->
+  <!-- ========================================== -->
+  <div id="skill-builder-modal" class="hud-modal" style="display: none;">
+    <div class="hud-modal-backdrop" id="skill-builder-modal-backdrop"></div>
+    <div class="hud-modal-dialog" style="max-width: 1080px; width: 95%;">
+      <div class="hud-modal-header" style="border-bottom: 1px solid #1e293b; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(236, 72, 153, 0.1); border: 1px solid #ec4899; display: flex; align-items: center; justify-content: center; color: #ec4899;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <h2 style="margin: 0; font-size: 1.15rem; color: #fff; letter-spacing: 0.5px;">SKILL & TOOL BUILDER STUDIO</h2>
+              <span class="hud-nav-badge" style="background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid #ec4899;">P24 ACTIVE</span>
+            </div>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+              Sandboxed Tool Synthesizer &bull; Security Threat Screening &bull; Governance Approval &bull; Hot-Reloadable Tool Registry
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button id="skill-refresh-catalog-btn" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(236, 72, 153, 0.15); border: 1px solid #ec4899; color: #f472b6; cursor: pointer;">
+            🔄 Refresh Catalog
+          </button>
+          <button id="skill-builder-modal-close" class="hud-modal-close" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+      </div>
+
+      <!-- Skill Builder Navigation Tabs -->
+      <div class="hud-modal-tabs" style="display: flex; border-bottom: 1px solid #1e293b; background: rgba(2, 6, 23, 0.6); padding: 0 1.5rem;">
+        <button class="hud-tab-btn active" data-tab="skill-tab-catalog" style="padding: 10px 16px; font-size: 0.85rem; border: none; background: none; color: #ec4899; border-bottom: 2px solid #ec4899; cursor: pointer; font-weight: 500;">
+          📦 Custom Skills Catalog (<span id="skill-catalog-count">0</span>)
+        </button>
+        <button class="hud-tab-btn" data-tab="skill-tab-foundry" style="padding: 10px 16px; font-size: 0.85rem; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 500;">
+          ⚡ Skill Foundry & Generator
+        </button>
+        <button class="hud-tab-btn" data-tab="skill-tab-sandbox" style="padding: 10px 16px; font-size: 0.85rem; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 500;">
+          🧪 Sandboxed Test Harness
+        </button>
+        <button class="hud-tab-btn" data-tab="skill-tab-governance" style="padding: 10px 16px; font-size: 0.85rem; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 500;">
+          🛡️ Governance & Hot-Loader
+        </button>
+      </div>
+
+      <!-- Skill Builder Tab Contents Container -->
+      <div class="hud-modal-body" style="padding: 1.5rem; max-height: 72vh; overflow-y: auto;">
+        
+        <!-- TAB 1: SKILLS CATALOG -->
+        <div id="skill-tab-catalog" class="hud-tab-content active">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem;" id="skill-filter-group">
+              <button class="btn btn-sm active" data-filter="all" style="font-size: 0.75rem; padding: 4px 10px; background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid #ec4899; border-radius: 4px; cursor: pointer;">All</button>
+              <button class="btn btn-sm" data-filter="installed" style="font-size: 0.75rem; padding: 4px 10px; background: #0b1329; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; cursor: pointer;">Installed</button>
+              <button class="btn btn-sm" data-filter="tested" style="font-size: 0.75rem; padding: 4px 10px; background: #0b1329; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; cursor: pointer;">Tested</button>
+              <button class="btn btn-sm" data-filter="awaiting_approval" style="font-size: 0.75rem; padding: 4px 10px; background: #0b1329; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; cursor: pointer;">Awaiting Approval</button>
+              <button class="btn btn-sm" data-filter="generated" style="font-size: 0.75rem; padding: 4px 10px; background: #0b1329; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; cursor: pointer;">Draft / Generated</button>
+            </div>
+            <div style="font-size: 0.75rem; color: #64748b;" id="skill-catalog-status-label">
+              Catalog loaded
+            </div>
+          </div>
+
+          <div id="skill-catalog-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- TAB 2: SKILL FOUNDRY & GENERATOR -->
+        <div id="skill-tab-foundry" class="hud-tab-content" style="display: none;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="margin: 0; color: #f472b6; font-size: 1rem;">Dynamic Tool Generator & Foundry</h3>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.78rem; color: #94a3b8;">Preset Template:</span>
+                <select id="skill-template-select" style="background: #0b1329; border: 1px solid #334155; color: #fff; font-size: 0.78rem; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                  <option value="">-- Select Template --</option>
+                  <option value="math_solver">Custom Math Solver (Polynomial / Geometry)</option>
+                  <option value="data_transformer">JSON Data Transformer & Filter</option>
+                  <option value="string_formatter">Markdown Table & String Formatter</option>
+                  <option value="automation_script">Batch Hash & Crypto Tool</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Skill Unique ID</label>
+                <input id="skill-input-id" type="text" placeholder="custom.tool_name" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-family: monospace; font-size: 0.82rem;" />
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Display Name</label>
+                <input id="skill-input-name" type="text" placeholder="Tool Display Name" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;" />
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Skill Type</label>
+                <select id="skill-input-type" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;">
+                  <option value="custom_solver">custom_solver (Pure Computational Solver)</option>
+                  <option value="data_transformer">data_transformer (Input Data Shaper / Pipeline)</option>
+                  <option value="automation_script">automation_script (Local Automated Task)</option>
+                  <option value="api_adapter">api_adapter (Remote REST / Protocol Adapter)</option>
+                  <option value="workflow">workflow (Multi-Step Choreography)</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Tags (comma-separated)</label>
+                <input id="skill-input-tags" type="text" placeholder="math, solver, dynamic" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;" />
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Description / Specification</label>
+              <textarea id="skill-input-desc" rows="2" placeholder="Describe the capabilities, invariants, and input expectations of this tool..." style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem; resize: vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.78rem; color: #94a3b8;">Implementation Code (Must declare <code>execute(params, context)</code>)</label>
+                <span style="font-size: 0.72rem; color: #ef4444;">🛡️ Sandbox Enforced: No eval, child_process, or hardcoded keys</span>
+              </div>
+              <textarea id="skill-input-code" rows="8" placeholder="function execute(params, context) {
+  // Safe computation logic
+  return { result: true };
+}" style="width: 100%; padding: 8px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #38bdf8; font-family: 'Fira Code', monospace; font-size: 0.8rem; resize: vertical; line-height: 1.4;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Test Cases (JSON array of <code>{ name, input, expectedSuccess, expectedOutputSubstring }</code>)</label>
+              <textarea id="skill-input-tests" rows="4" placeholder='[
+  { "name": "Basic Case", "input": {}, "expectedSuccess": true }
+]' style="width: 100%; padding: 6px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #facc15; font-family: monospace; font-size: 0.78rem; resize: vertical;"></textarea>
+            </div>
+
+            <div style="text-align: right;">
+              <button id="skill-draft-submit-btn" class="btn btn-primary" style="font-size: 0.85rem; padding: 8px 20px; background: #ec4899; border: none; border-radius: 4px; color: #fff; font-weight: 600; cursor: pointer;">
+                ⚡ Synthesize & Save Draft
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: SANDBOX TEST HARNESS -->
+        <div id="skill-tab-sandbox" class="hud-tab-content" style="display: none;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                <label style="font-size: 0.82rem; color: #94a3b8;">Target Skill:</label>
+                <select id="sandbox-target-skill" style="flex: 1; max-width: 380px; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;">
+                  <!-- Populated via JavaScript -->
+                </select>
+              </div>
+              <button id="sandbox-run-test-btn" class="btn btn-primary" style="font-size: 0.82rem; padding: 6px 18px; background: #00f0ff; color: #000; font-weight: 600; border: none; border-radius: 4px; cursor: pointer;">
+                🧪 Run Test Harness
+              </button>
+            </div>
+          </div>
+
+          <!-- Sandbox Report Results -->
+          <div id="sandbox-report-container" style="display: none;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <!-- Left: Security Screening -->
+              <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <span style="font-size: 0.85rem; font-weight: 600; color: #fff;">AST Security Screening</span>
+                  <span id="sandbox-security-badge" class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem;">Passed</span>
+                </div>
+                <div style="font-size: 0.78rem; color: #94a3b8; line-height: 1.5;" id="sandbox-security-details">
+                  No forbidden tokens detected (child_process, eval, Function, process.exit). Memory and timeout boundaries intact.
+                </div>
+              </div>
+
+              <!-- Right: Execution Summary -->
+              <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <span style="font-size: 0.85rem; font-weight: 600; color: #fff;">Validation Suite Summary</span>
+                  <span id="sandbox-overall-badge" class="badge" style="background: rgba(0, 240, 255, 0.2); color: #00f0ff; border: 1px solid #00f0ff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem;">PASSED</span>
+                </div>
+                <div style="font-size: 0.85rem; color: #cbd5e1; margin-top: 4px;">
+                  Test Cases Cleared: <strong id="sandbox-pass-count" style="color: #10b981;">0</strong> / <strong id="sandbox-total-count">0</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Test Cases Breakdown -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+              <h4 style="margin: 0 0 0.75rem 0; font-size: 0.85rem; color: #fff;">Test Execution Breakdown</h4>
+              <div id="sandbox-results-list" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: GOVERNANCE & HOT-LOADER -->
+        <div id="skill-tab-governance" class="hud-tab-content" style="display: none;">
+          <!-- Governance Statement -->
+          <div style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 4px;">
+              <span style="font-size: 1.1rem;">🛡️</span>
+              <strong style="color: #f472b6; font-size: 0.88rem;">Governance Invariant: Operator-Controlled Hot Loading</strong>
+            </div>
+            <p style="margin: 0; font-size: 0.78rem; color: #cbd5e1; line-height: 1.5;">
+              JARVIS strictly forbids automatic, unconstrained self-modification. Before a dynamically synthesized skill can be injected into the production <code>ToolRegistry</code>, it must pass sandboxed verification and receive explicit, audited operator review.
+            </p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <!-- Left: Operator Review & Approval Form -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h4 style="margin: 0 0 0.75rem 0; color: #fff; font-size: 0.9rem;">Human-in-the-Loop Review</h4>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Select Skill for Review</label>
+                <select id="governance-pending-skill" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;">
+                  <!-- Populated via JavaScript -->
+                </select>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Operator Reviewer Notes</label>
+                <textarea id="governance-review-notes" rows="3" placeholder="Notes on code safety, parameter constraints, and business intent..." style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.8rem; resize: vertical;"></textarea>
+              </div>
+              <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button id="governance-reject-btn" class="btn btn-sm" style="padding: 6px 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; border-radius: 4px; cursor: pointer;">
+                  ❌ Reject Draft
+                </button>
+                <button id="governance-approve-btn" class="btn btn-sm" style="padding: 6px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                  ✅ Approve & Authorize
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Active ToolRegistry Hot-Management & Live Test Bench -->
+            <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+              <h4 style="margin: 0 0 0.75rem 0; color: #00f0ff; font-size: 0.9rem;">Live ToolRegistry Invocation</h4>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Select Installed Dynamic Tool</label>
+                <select id="live-tool-select" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.82rem;">
+                  <!-- Populated via JavaScript -->
+                </select>
+              </div>
+              <div style="margin-bottom: 0.75rem;">
+                <label style="display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">Parameters (JSON)</label>
+                <textarea id="live-tool-params" rows="2" placeholder='{ "celsius": 100 }' style="width: 100%; padding: 6px 10px; background: #070c18; border: 1px solid #334155; border-radius: 4px; color: #38bdf8; font-family: monospace; font-size: 0.78rem; resize: vertical;"></textarea>
+              </div>
+              <div style="text-align: right; margin-bottom: 0.75rem;">
+                <button id="live-tool-exec-btn" class="btn btn-sm" style="padding: 6px 14px; background: #38bdf8; color: #000; font-weight: 600; border: none; border-radius: 4px; cursor: pointer;">
+                  ▶ Execute Live Tool
+                </button>
+              </div>
+              <div id="live-tool-output" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 0.75rem; color: #94a3b8; min-height: 48px; max-height: 120px; overflow-y: auto;">
+                Awaiting invocation...
               </div>
             </div>
           </div>

@@ -7963,8 +7963,639 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // PHASE 24: SKILL & TOOL BUILDER STUDIO
+  // ==========================================
+  function initSkillBuilderStudio() {
+    const navBtn = document.getElementById('nav-skill-builder');
+    const chipBtn = document.getElementById('chip-skill-builder-agent');
+    const modal = document.getElementById('skill-builder-modal');
+    const closeBtn = document.getElementById('skill-builder-modal-close');
+    const backdrop = document.getElementById('skill-builder-modal-backdrop');
+    const refreshCatalogBtn = document.getElementById('skill-refresh-catalog-btn');
+
+    if (!modal) return;
+
+    let activeFilter = 'all';
+    let cachedSkills = [];
+
+    function openModal() {
+      modal.style.display = 'flex';
+      refreshCatalog();
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    if (navBtn) navBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipBtn) chipBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    if (refreshCatalogBtn) refreshCatalogBtn.addEventListener('click', () => refreshCatalog());
+
+    // Tab switching
+    const tabBtns = modal.querySelectorAll('.hud-tab-btn');
+    const tabPanels = modal.querySelectorAll('.hud-tab-content');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTabId = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => {
+          b.classList.remove('active');
+          b.style.color = '#94a3b8';
+          b.style.borderBottom = 'none';
+        });
+        tabPanels.forEach((p) => {
+          p.classList.remove('active');
+          p.style.display = 'none';
+        });
+
+        btn.classList.add('active');
+        btn.style.color = '#ec4899';
+        btn.style.borderBottom = '2px solid #ec4899';
+
+        const activePanel = document.getElementById(targetTabId);
+        if (activePanel) {
+          activePanel.classList.add('active');
+          activePanel.style.display = 'block';
+        }
+
+        if (targetTabId === 'skill-tab-catalog') refreshCatalog();
+        if (targetTabId === 'skill-tab-sandbox' || targetTabId === 'skill-tab-governance') populateDropdowns();
+      });
+    });
+
+    // Preset templates for Foundry
+    const templateSelect = document.getElementById('skill-template-select');
+    if (templateSelect) {
+      templateSelect.addEventListener('change', () => {
+        const val = templateSelect.value;
+        const idInput = document.getElementById('skill-input-id');
+        const nameInput = document.getElementById('skill-input-name');
+        const typeInput = document.getElementById('skill-input-type');
+        const tagsInput = document.getElementById('skill-input-tags');
+        const descInput = document.getElementById('skill-input-desc');
+        const codeInput = document.getElementById('skill-input-code');
+        const testsInput = document.getElementById('skill-input-tests');
+
+        if (val === 'math_solver') {
+          if (idInput) idInput.value = 'custom.fibonacci_generator';
+          if (nameInput) nameInput.value = 'Fibonacci Sequence Generator';
+          if (typeInput) typeInput.value = 'custom_solver';
+          if (tagsInput) tagsInput.value = 'math, sequence, solver';
+          if (descInput) descInput.value = 'Computes N terms of the Fibonacci sequence with range validation.';
+          if (codeInput) codeInput.value = `function execute(params, context) {
+  const n = Math.min(Math.max(Number(params.n) || 1, 1), 30);
+  const seq = [0, 1];
+  while (seq.length < n) {
+    seq.push(seq[seq.length - 1] + seq[seq.length - 2]);
+  }
+  return { n, sequence: seq.slice(0, n), lastTerm: seq[n - 1] };
+}`;
+          if (testsInput) testsInput.value = JSON.stringify([
+            { name: 'Compute 5 terms', input: { n: 5 }, expectedSuccess: true, expectedOutputSubstring: '"lastTerm":3' },
+            { name: 'Compute 1 term', input: { n: 1 }, expectedSuccess: true, expectedOutputSubstring: '"lastTerm":0' }
+          ], null, 2);
+        } else if (val === 'data_transformer') {
+          if (idInput) idInput.value = 'custom.json_key_sorter';
+          if (nameInput) nameInput.value = 'JSON Key Sorter & Minifier';
+          if (typeInput) typeInput.value = 'data_transformer';
+          if (tagsInput) tagsInput.value = 'data, json, transform';
+          if (descInput) descInput.value = 'Sorts object keys alphabetically and computes key statistics.';
+          if (codeInput) codeInput.value = `function execute(params, context) {
+  const obj = params.input || {};
+  const sorted = {};
+  Object.keys(obj).sort().forEach(k => { sorted[k] = obj[k]; });
+  return { sorted, keyCount: Object.keys(sorted).length };
+}`;
+          if (testsInput) testsInput.value = JSON.stringify([
+            { name: 'Sort 3 keys', input: { input: { z: 1, a: 2, m: 3 } }, expectedSuccess: true, expectedOutputSubstring: '"keyCount":3' }
+          ], null, 2);
+        } else if (val === 'string_formatter') {
+          if (idInput) idInput.value = 'custom.markdown_table_formatter';
+          if (nameInput) nameInput.value = 'Markdown Table Formatter';
+          if (typeInput) typeInput.value = 'data_transformer';
+          if (tagsInput) tagsInput.value = 'markdown, tables, format';
+          if (descInput) descInput.value = 'Converts arrays of records into formatted GitHub Markdown tables.';
+          if (codeInput) codeInput.value = `function execute(params, context) {
+  const headers = params.headers || ['Key', 'Value'];
+  const rows = params.rows || [];
+  let table = '| ' + headers.join(' | ') + ' |\\n| ' + headers.map(() => '---').join(' | ') + ' |\\n';
+  rows.forEach(r => {
+    table += '| ' + headers.map(h => String(r[h] ?? '')).join(' | ') + ' |\\n';
+  });
+  return { markdownTable: table, rowCount: rows.length };
+}`;
+          if (testsInput) testsInput.value = JSON.stringify([
+            { name: 'Format empty table', input: { headers: ['A', 'B'], rows: [] }, expectedSuccess: true, expectedOutputSubstring: '"rowCount":0' }
+          ], null, 2);
+        } else if (val === 'automation_script') {
+          if (idInput) idInput.value = 'custom.batch_hasher';
+          if (nameInput) nameInput.value = 'Batch Text Hasher';
+          if (typeInput) typeInput.value = 'automation_script';
+          if (tagsInput) tagsInput.value = 'crypto, hash, security';
+          if (descInput) descInput.value = 'Computes deterministic character count and integer hash fingerprint safely.';
+          if (codeInput) codeInput.value = `function execute(params, context) {
+  const text = String(params.text || '');
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash |= 0;
+  }
+  return { textLength: text.length, hashHex: '0x' + Math.abs(hash).toString(16) };
+}`;
+          if (testsInput) testsInput.value = JSON.stringify([
+            { name: 'Hash text', input: { text: 'hello' }, expectedSuccess: true, expectedOutputSubstring: '"textLength":5' }
+          ], null, 2);
+        }
+      });
+    }
+
+    // Filter Buttons in Catalog
+    const filterGroup = document.getElementById('skill-filter-group');
+    if (filterGroup) {
+      filterGroup.querySelectorAll('button').forEach((b) => {
+        b.addEventListener('click', () => {
+          filterGroup.querySelectorAll('button').forEach((btn) => {
+            btn.classList.remove('active');
+            btn.style.background = '#0b1329';
+            btn.style.color = '#94a3b8';
+            btn.style.borderColor = '#334155';
+          });
+          b.classList.add('active');
+          b.style.background = 'rgba(236, 72, 153, 0.2)';
+          b.style.color = '#f472b6';
+          b.style.borderColor = '#ec4899';
+          activeFilter = b.getAttribute('data-filter') || 'all';
+          renderCatalogCards();
+        });
+      });
+    }
+
+    // Submit Draft Skill
+    const draftSubmitBtn = document.getElementById('skill-draft-submit-btn');
+    if (draftSubmitBtn) {
+      draftSubmitBtn.addEventListener('click', async () => {
+        const id = (document.getElementById('skill-input-id')?.value || '').trim();
+        const name = (document.getElementById('skill-input-name')?.value || '').trim();
+        const type = document.getElementById('skill-input-type')?.value || 'custom_solver';
+        const tags = (document.getElementById('skill-input-tags')?.value || '').split(',').map((t) => t.trim()).filter(Boolean);
+        const description = (document.getElementById('skill-input-desc')?.value || '').trim();
+        const implementationCode = (document.getElementById('skill-input-code')?.value || '').trim();
+        const testsRaw = (document.getElementById('skill-input-tests')?.value || '').trim();
+
+        if (!id || !name || !description || !implementationCode) {
+          alert('Please provide Skill ID, Name, Description, and Implementation Code.');
+          return;
+        }
+
+        let testCases = [];
+        if (testsRaw) {
+          try {
+            testCases = JSON.parse(testsRaw);
+          } catch (e) {
+            alert('Test Cases must be valid JSON.');
+            return;
+          }
+        }
+
+        try {
+          draftSubmitBtn.disabled = true;
+          draftSubmitBtn.textContent = 'Synthesizing...';
+
+          const res = await fetch('/api/jarvis/skills/draft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({
+              id,
+              name,
+              type,
+              description,
+              implementationCode,
+              testCases,
+              tags,
+            }),
+          });
+          const data = await res.json();
+          draftSubmitBtn.disabled = false;
+          draftSubmitBtn.textContent = '⚡ Synthesize & Save Draft';
+
+          if (data.success) {
+            alert(`Skill draft "${data.data?.name}" created successfully!`);
+            const catalogTabBtn = modal.querySelector('[data-tab="skill-tab-catalog"]');
+            if (catalogTabBtn) catalogTabBtn.click();
+          } else {
+            alert(`Error creating skill: ${data.error}`);
+          }
+        } catch (err) {
+          draftSubmitBtn.disabled = false;
+          draftSubmitBtn.textContent = '⚡ Synthesize & Save Draft';
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    // Refresh Catalog Data
+    async function refreshCatalog() {
+      const statusLabel = document.getElementById('skill-catalog-status-label');
+      const countBadge = document.getElementById('skill-catalog-count');
+
+      try {
+        if (statusLabel) statusLabel.textContent = 'Loading custom skills...';
+        const res = await fetch('/api/jarvis/skills', {
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          cachedSkills = data.data;
+          if (countBadge) countBadge.textContent = cachedSkills.length;
+          if (statusLabel) statusLabel.textContent = `${cachedSkills.length} custom skills available`;
+          renderCatalogCards();
+          populateDropdowns();
+        }
+      } catch (err) {
+        if (statusLabel) statusLabel.textContent = `Error loading: ${err.message}`;
+      }
+    }
+
+    // Render Cards in Catalog
+    function renderCatalogCards() {
+      const container = document.getElementById('skill-catalog-cards');
+      if (!container) return;
+
+      let list = cachedSkills;
+      if (activeFilter !== 'all') {
+        list = list.filter((s) => s.status === activeFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: #64748b; background: #020617; border: 1px dashed #334155; border-radius: 8px;">
+            No custom skills matching filter "${activeFilter}". Draft a new skill in the Foundry tab.
+          </div>
+        `;
+        return;
+      }
+
+      const statusColors = {
+        installed: { bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981', text: '#10b981' },
+        tested: { bg: 'rgba(0, 240, 255, 0.2)', border: '#00f0ff', text: '#00f0ff' },
+        awaiting_approval: { bg: 'rgba(56, 189, 248, 0.2)', border: '#38bdf8', text: '#38bdf8' },
+        generated: { bg: 'rgba(236, 72, 153, 0.2)', border: '#ec4899', text: '#f472b6' },
+        draft: { bg: 'rgba(168, 85, 247, 0.2)', border: '#a855f7', text: '#c084fc' },
+        rejected: { bg: 'rgba(239, 68, 68, 0.2)', border: '#ef4444', text: '#ef4444' },
+        disabled: { bg: 'rgba(100, 116, 139, 0.2)', border: '#64748b', text: '#94a3b8' },
+      };
+
+      container.innerHTML = list.map((s) => {
+        const color = statusColors[s.status] || { bg: '#1e293b', border: '#475569', text: '#cbd5e1' };
+        const isInstalled = s.status === 'installed';
+        const canInstall = s.status === 'tested' || s.status === 'awaiting_approval';
+
+        return `
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <strong style="color: #fff; font-size: 0.92rem;">${s.name}</strong>
+                <span style="background: ${color.bg}; border: 1px solid ${color.border}; color: ${color.text}; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 600;">
+                  ${s.status.replace('_', ' ')}
+                </span>
+              </div>
+              <div style="font-family: monospace; font-size: 0.72rem; color: #ec4899; margin-bottom: 6px;">${s.id}</div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin: 0 0 10px 0; line-height: 1.4;">${s.description}</p>
+              
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
+                <span style="background: #0b1329; border: 1px solid #334155; color: #38bdf8; font-size: 0.68rem; padding: 2px 6px; border-radius: 3px;">type: ${s.type}</span>
+                <span style="background: #0b1329; border: 1px solid #334155; color: #facc15; font-size: 0.68rem; padding: 2px 6px; border-radius: 3px;">v${s.version}</span>
+                <span style="background: #0b1329; border: 1px solid #334155; color: #94a3b8; font-size: 0.68rem; padding: 2px 6px; border-radius: 3px;">${s.testCases?.length || 0} tests</span>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #0f172a; padding-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+              <button class="btn-card-test btn btn-sm" data-id="${s.id}" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(0, 240, 255, 0.1); border: 1px solid #00f0ff; color: #00f0ff; border-radius: 4px; cursor: pointer;">
+                🧪 Test
+              </button>
+              ${canInstall ? `
+                <button class="btn-card-install btn btn-sm" data-id="${s.id}" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                  ⚡ Install
+                </button>
+              ` : ''}
+              ${isInstalled ? `
+                <button class="btn-card-uninstall btn btn-sm" data-id="${s.id}" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; border-radius: 4px; cursor: pointer;">
+                  Uninstall
+                </button>
+              ` : ''}
+              <button class="btn-card-del btn btn-sm" data-id="${s.id}" style="padding: 4px 8px; font-size: 0.72rem; background: #0b1329; border: 1px solid #334155; color: #64748b; border-radius: 4px; cursor: pointer;">
+                &times;
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.btn-card-test').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const sandboxTabBtn = modal.querySelector('[data-tab="skill-tab-sandbox"]');
+          if (sandboxTabBtn) sandboxTabBtn.click();
+          const targetSelect = document.getElementById('sandbox-target-skill');
+          if (targetSelect) targetSelect.value = id;
+          runSandboxTest(id);
+        });
+      });
+
+      container.querySelectorAll('.btn-card-install').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          await installSkill(id);
+        });
+      });
+
+      container.querySelectorAll('.btn-card-uninstall').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          await uninstallSkill(id);
+        });
+      });
+
+      container.querySelectorAll('.btn-card-del').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          if (confirm(`Delete skill draft "${id}"?`)) {
+            await deleteSkill(id);
+          }
+        });
+      });
+    }
+
+    function populateDropdowns() {
+      const sandboxTargetSelect = document.getElementById('sandbox-target-skill');
+      const governancePendingSelect = document.getElementById('governance-pending-skill');
+      const liveToolSelect = document.getElementById('live-tool-select');
+
+      if (sandboxTargetSelect) {
+        const curVal = sandboxTargetSelect.value;
+        sandboxTargetSelect.innerHTML = cachedSkills.map((s) => `
+          <option value="${s.id}">${s.name} (${s.id}) [${s.status}]</option>
+        `).join('');
+        if (curVal) sandboxTargetSelect.value = curVal;
+      }
+
+      if (governancePendingSelect) {
+        const pending = cachedSkills.filter((s) => s.status === 'tested' || s.status === 'awaiting_approval' || s.status === 'generated');
+        governancePendingSelect.innerHTML = pending.length > 0
+          ? pending.map((s) => `<option value="${s.id}">${s.name} (${s.id}) [${s.status}]</option>`).join('')
+          : '<option value="">-- No Pending Skills For Review --</option>';
+      }
+
+      if (liveToolSelect) {
+        const installed = cachedSkills.filter((s) => s.status === 'installed');
+        liveToolSelect.innerHTML = installed.length > 0
+          ? installed.map((s) => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('')
+          : '<option value="">-- No Installed Dynamic Tools --</option>';
+      }
+    }
+
+    const runSandboxBtn = document.getElementById('sandbox-run-test-btn');
+    if (runSandboxBtn) {
+      runSandboxBtn.addEventListener('click', () => {
+        const id = document.getElementById('sandbox-target-skill')?.value;
+        if (!id) return;
+        runSandboxTest(id);
+      });
+    }
+
+    async function runSandboxTest(id) {
+      const container = document.getElementById('sandbox-report-container');
+      const secBadge = document.getElementById('sandbox-security-badge');
+      const secDetails = document.getElementById('sandbox-security-details');
+      const overallBadge = document.getElementById('sandbox-overall-badge');
+      const passCount = document.getElementById('sandbox-pass-count');
+      const totalCount = document.getElementById('sandbox-total-count');
+      const resultsList = document.getElementById('sandbox-results-list');
+
+      if (!container) return;
+      container.style.display = 'block';
+
+      try {
+        if (overallBadge) overallBadge.textContent = 'RUNNING...';
+        const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}/test`, {
+          method: 'POST',
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(`Test harness error: ${data.error}`);
+          return;
+        }
+
+        const rep = data.data;
+
+        if (secBadge) {
+          if (rep.securityCleared) {
+            secBadge.textContent = 'Safe & Cleared';
+            secBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+            secBadge.style.borderColor = '#10b981';
+            secBadge.style.color = '#10b981';
+            secDetails.textContent = 'Static AST security screening cleared. No dangerous forbidden tokens or secret leaks detected.';
+          } else {
+            secBadge.textContent = 'Threat Detected';
+            secBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+            secBadge.style.borderColor = '#ef4444';
+            secBadge.style.color = '#ef4444';
+            secDetails.textContent = `Security violations found: ${(rep.threatsFound || []).join(', ')}`;
+          }
+        }
+
+        if (overallBadge) {
+          if (rep.overallStatus === 'passed') {
+            overallBadge.textContent = 'PASSED';
+            overallBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+            overallBadge.style.borderColor = '#10b981';
+            overallBadge.style.color = '#10b981';
+          } else {
+            overallBadge.textContent = 'FAILED';
+            overallBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+            overallBadge.style.borderColor = '#ef4444';
+            overallBadge.style.color = '#ef4444';
+          }
+        }
+
+        if (passCount) passCount.textContent = rep.testsPassed;
+        if (totalCount) totalCount.textContent = rep.testsTotal;
+
+        if (resultsList && Array.isArray(rep.testResults)) {
+          resultsList.innerHTML = rep.testResults.map((tr) => `
+            <div style="background: #070c18; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-weight: 600; color: #fff; font-size: 0.8rem;">${tr.testCaseName}</span>
+                ${tr.error ? `<div style="color: #ef4444; font-size: 0.72rem; margin-top: 2px;">${tr.error}</div>` : ''}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.72rem; color: #64748b;">${tr.executionTimeMs}ms</span>
+                <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 3px; font-weight: bold; background: ${tr.passed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${tr.passed ? '#10b981' : '#ef4444'}; border: 1px solid ${tr.passed ? '#10b981' : '#ef4444'};">
+                  ${tr.passed ? 'PASS' : 'FAIL'}
+                </span>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        refreshCatalog();
+      } catch (err) {
+        alert(`Failed to execute test: ${err.message}`);
+      }
+    }
+
+    const approveBtn = document.getElementById('governance-approve-btn');
+    if (approveBtn) {
+      approveBtn.addEventListener('click', async () => {
+        const id = document.getElementById('governance-pending-skill')?.value;
+        const notes = document.getElementById('governance-review-notes')?.value || '';
+        if (!id) return;
+
+        try {
+          const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ approved: true, reason: notes }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert(`Skill "${id}" successfully approved! You may now hot-install it.`);
+            refreshCatalog();
+          } else {
+            alert(`Approval failed: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    const rejectBtn = document.getElementById('governance-reject-btn');
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', async () => {
+        const id = document.getElementById('governance-pending-skill')?.value;
+        const notes = document.getElementById('governance-review-notes')?.value || '';
+        if (!id) return;
+
+        try {
+          const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ approved: false, reason: notes }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert(`Skill "${id}" marked as rejected.`);
+            refreshCatalog();
+          } else {
+            alert(`Rejection failed: ${data.error}`);
+          }
+        } catch (err) {
+          alert(`Error: ${err.message}`);
+        }
+      });
+    }
+
+    async function installSkill(id) {
+      try {
+        const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}/install`, {
+          method: 'POST',
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`Skill "${id}" hot-installed into ToolRegistry!`);
+          refreshCatalog();
+        } else {
+          alert(`Install failed: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      }
+    }
+
+    async function uninstallSkill(id) {
+      try {
+        const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}/uninstall`, {
+          method: 'POST',
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`Skill "${id}" uninstalled from ToolRegistry.`);
+          refreshCatalog();
+        } else {
+          alert(`Uninstall failed: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      }
+    }
+
+    async function deleteSkill(id) {
+      try {
+        const res = await fetch(`/api/jarvis/skills/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 'x-user-id': 'dwight' },
+        });
+        const data = await res.json();
+        if (data.success) {
+          refreshCatalog();
+        } else {
+          alert(`Delete failed: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      }
+    }
+
+    const liveExecBtn = document.getElementById('live-tool-exec-btn');
+    if (liveExecBtn) {
+      liveExecBtn.addEventListener('click', async () => {
+        const toolId = document.getElementById('live-tool-select')?.value;
+        const paramsRaw = document.getElementById('live-tool-params')?.value || '{}';
+        const outputBox = document.getElementById('live-tool-output');
+
+        if (!toolId) {
+          alert('Please select an installed custom tool.');
+          return;
+        }
+
+        let params = {};
+        try {
+          params = JSON.parse(paramsRaw);
+        } catch (e) {
+          alert('Parameters must be valid JSON.');
+          return;
+        }
+
+        try {
+          if (outputBox) outputBox.innerHTML = '<span style="color: #38bdf8;">Invoking tool...</span>';
+          const res = await fetch(`/api/tools/${encodeURIComponent(toolId)}/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ params }),
+          });
+          const data = await res.json();
+          if (outputBox) {
+            outputBox.innerHTML = `
+              <pre style="margin: 0; color: ${data.success ? '#10b981' : '#ef4444'}; font-size: 0.75rem;">${JSON.stringify(data, null, 2)}</pre>
+            `;
+          }
+        } catch (err) {
+          if (outputBox) outputBox.innerHTML = `<span style="color: #ef4444;">Invocation error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
+  initSkillBuilderStudio();
   initSession();
 });
 

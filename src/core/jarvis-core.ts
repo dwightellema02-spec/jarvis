@@ -159,6 +159,11 @@ import {
   ProactiveAgent,
   createProactiveTools,
 } from '../proactive/index.js';
+import {
+  SkillBuilderManager,
+  SkillBuilderAgent,
+  createSkillBuilderTools,
+} from '../skills/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -191,6 +196,7 @@ export interface JarvisCoreConfig {
   deviceManager?: DeviceManager;
   goalsManager?: GoalsManager;
   proactiveManager?: ProactiveManager;
+  skillBuilderManager?: SkillBuilderManager;
 }
 
 export interface JarvisChatRequest {
@@ -245,6 +251,7 @@ export class JarvisCore {
   private deviceManager: DeviceManager;
   private goalsManager: GoalsManager;
   private proactiveManager: ProactiveManager;
+  private skillBuilderManager: SkillBuilderManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -567,7 +574,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Skill & Tool Builder Engine, Agent, and Tools
+    this.skillBuilderManager =
+      config.skillBuilderManager ||
+      new SkillBuilderManager(this.toolRegistry, {
+        guardian: this.guardian,
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+      });
+    const skillBuilderAgent = new SkillBuilderAgent(this.skillBuilderManager);
+    this.agentRegistry.registerImplementation(skillBuilderAgent);
+
+    for (const tool of createSkillBuilderTools(this.skillBuilderManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -969,6 +991,10 @@ export class JarvisCore {
 
   public getProactiveManager(): ProactiveManager {
     return this.proactiveManager;
+  }
+
+  public getSkillBuilderManager(): SkillBuilderManager {
+    return this.skillBuilderManager;
   }
 
   public async orchestrate(

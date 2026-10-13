@@ -23,5 +23,25 @@ export function createToolsRouter(toolRegistry: ToolRegistry): Router {
     res.status(200).json({ tool });
   });
 
+  router.post('/:id/execute', async (req: Request, res: Response) => {
+    const impl = toolRegistry.getImplementation(req.params.id);
+    if (!impl) {
+      res.status(404).json({ success: false, error: `Tool implementation '${req.params.id}' not found` });
+      return;
+    }
+    try {
+      const context = {
+        requestId: `req_${Date.now()}`,
+        userId: (req.headers['x-user-id'] as string) || 'dwight',
+        sessionId: 'session_hud',
+        permissionVerified: true,
+      };
+      const result = await impl.execute(req.body?.params ?? req.body ?? {}, context);
+      res.status(200).json({ success: true, result });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+
   return router;
 }

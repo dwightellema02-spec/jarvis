@@ -59,6 +59,15 @@ export class ToolRegistry {
     return true;
   }
 
+  public unregister(id: string): boolean {
+    const existed = this.tools.delete(id);
+    this.implementations.delete(id);
+    if (existed) {
+      logger.info(`Tool ${id} unregistered.`);
+    }
+    return existed;
+  }
+
   /**
    * Pre-registers the foundational tools defined in the JARVIS Master Plan.
    * Every tool declares its required permissions and is set to 'registered' (Phase 0 Foundation).

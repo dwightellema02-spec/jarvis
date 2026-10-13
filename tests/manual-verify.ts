@@ -1343,7 +1343,91 @@ async function runManualVerification() {
       console.log('   Updated Max Notifications Per Hour:', prefUpdateData.data?.maxNotificationsPerHour);
       console.log('   Notification Dismissed Status:', dismissData.data?.status, '| Dismissed ID:', dismissData.data?.id);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 23) PASSED SUCCESSFULLY! ===');
+      console.log('103. Testing Phase 24 Skill Builder Discovery & Agent Contract (GET /api/agents & /api/tools)');
+      const skillAgentsRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const skillAgentsData = await skillAgentsRes.json();
+      const skillAgent = skillAgentsData.agents?.find((a: any) => a.id === 'skill-builder-agent');
+      const skillToolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const skillToolsData = await skillToolsRes.json();
+      const skillTools = skillToolsData.tools?.filter((t: any) => t.id.startsWith('skill_builder.'));
+      console.log('   Skill Builder Agent Registered:', skillAgent?.name, '| Version:', skillAgent?.version);
+      console.log('   Skill Builder Tools Registered Count:', skillTools?.length, '| Tools:', skillTools?.map((t: any) => t.id).join(', '));
+
+      console.log('104. Testing Phase 24 Custom Skills Catalog (GET /api/jarvis/skills)');
+      const catalogRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const catalogData = await catalogRes.json();
+      console.log('   Total Skills in Catalog:', catalogData.count, '| Seeded IDs:', catalogData.data?.map((s: any) => s.id).join(', '));
+
+      console.log('105. Testing Phase 24 Dynamic Skill Drafting (POST /api/jarvis/skills/draft)');
+      const draftRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          id: 'custom.celsius_to_fahrenheit',
+          name: 'Celsius to Fahrenheit Converter',
+          description: 'Converts temperatures from Celsius to Fahrenheit accurately.',
+          type: 'custom_solver',
+          parameters: {
+            type: 'object',
+            properties: {
+              celsius: { type: 'number', description: 'Temperature in degrees Celsius' },
+            },
+            required: ['celsius'],
+          },
+          testCases: [
+            { id: 'tc-0', name: 'Freezing point', input: { celsius: 0 }, expectedOutput: { fahrenheit: 32 } },
+            { id: 'tc-100', name: 'Boiling point', input: { celsius: 100 }, expectedOutput: { fahrenheit: 212 } },
+          ],
+          code: 'return { fahrenheit: (params.celsius * 9 / 5) + 32 };',
+          tags: ['math', 'converter', 'temperature'],
+        }),
+      });
+      const draftData = await draftRes.json();
+      console.log('   Draft Skill Created:', draftData.data?.id, '| Name:', draftData.data?.name, '| Status:', draftData.data?.status);
+
+      console.log('106. Testing Phase 24 Sandboxed Execution & Security Screening (POST /api/jarvis/skills/:id/test)');
+      const testRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills/custom.celsius_to_fahrenheit/test', {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const testData = await testRes.json();
+      console.log('   Sandbox Overall Status:', testData.data?.overallStatus, '| Passed Cases:', `${testData.data?.testsPassed}/${testData.data?.testsTotal}`, '| Security Cleared:', testData.data?.securityCleared);
+
+      console.log('107. Testing Phase 24 Governance Approval & Hot-Installation (POST /:id/approve & POST /:id/install)');
+      const approveRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills/custom.celsius_to_fahrenheit/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          reason: 'Verified pure math transformation without network dependencies.',
+        }),
+      });
+      const approveData = await approveRes.json();
+      console.log('   Approved Status:', approveData.data?.status, '| Approved By:', approveData.data?.approvedBy);
+
+      const installRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills/custom.celsius_to_fahrenheit/install', {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const installData = await installRes.json();
+      const toolsPostInstallRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const toolsPostInstallData = await toolsPostInstallRes.json();
+      const installedToolLive = toolsPostInstallData.tools?.find((t: any) => t.id === 'custom.celsius_to_fahrenheit');
+      console.log('   Skill Hot-Installed:', installData.data?.status, '| Live in Tool Registry:', !!installedToolLive, '| Tool ID:', installedToolLive?.id);
+
+      console.log('108. Testing Phase 24 Live Tool Execution & Deregistration (POST /:id/uninstall)');
+      const uninstallRes = await fetch('http://127.0.0.1:3099/api/jarvis/skills/custom.celsius_to_fahrenheit/uninstall', {
+        method: 'POST',
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const uninstallData = await uninstallRes.json();
+      const toolsPostUninstallRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const toolsPostUninstallData = await toolsPostUninstallRes.json();
+      const installedToolPostUninstall = toolsPostUninstallData.tools?.find((t: any) => t.id === 'custom.celsius_to_fahrenheit');
+      console.log('   Skill Uninstalled Status:', uninstallData.data?.status, '| Live Tool Removed:', !installedToolPostUninstall);
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 24) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 22 — Goals, Personal Planning & Study Studio Active**
+> **Current Status**: **Phase 24 — Skill & Tool Builder Studio Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -220,6 +220,15 @@ http://127.0.0.1:3000
 | `GET` | `/api/jarvis/tuklas/research/cohort-data` | Phase 12 Export anonymized cohort learning metrics (RA 10173 compliant) |
 | `POST` | `/api/jarvis/tuklas/assignments` | Phase 12 Authorized teacher function to create student task assignments |
 | `GET` | `/api/jarvis/tuklas/assignments` | Phase 12 List active classroom assignments by class section |
+| `GET` | `/api/jarvis/skills` | Phase 24 Query catalog of custom skills with status filters |
+| `GET` | `/api/jarvis/skills/:id` | Phase 24 Retrieve detailed draft skill specification and test cases |
+| `POST` | `/api/jarvis/skills/draft` | Phase 24 Synthesize new custom skill draft from specification |
+| `POST` | `/api/jarvis/skills/:id/test` | Phase 24 Run isolated sandbox execution suite with AST security screening |
+| `POST` | `/api/jarvis/skills/:id/approve` | Phase 24 Human-in-the-loop operator governance review and approval |
+| `POST` | `/api/jarvis/skills/:id/install` | Phase 24 Hot-register approved skill into active ToolRegistry |
+| `POST` | `/api/jarvis/skills/:id/uninstall` | Phase 24 Safely unregister custom tool from ToolRegistry |
+| `DELETE` | `/api/jarvis/skills/:id` | Phase 24 Delete custom draft skill record |
+| `POST` | `/api/tools/:id/execute` | Phase 24 Direct live execution endpoint for registered tools |
 
 ---
 
@@ -1013,14 +1022,64 @@ JARVIS operates as a true autonomous assistant with background deadline monitori
 
 ---
 
+## 🛠️ Phase 24 Architecture: Skill & Tool Builder Studio
+
+JARVIS provides autonomous skill synthesis, safe sandboxed execution, strict governance oversight, and hot-reloadable tool installation:
+
+### 1. The Governance Invariant ("No Automatic Unrestricted Self-Modification")
+* **Strict Human-in-the-Loop Gate**: JARVIS will NEVER automatically inject or execute dynamically generated tools in production without passing sandboxed validation and receiving explicit operator review (`reviewAndApprove`).
+* **State Machine Lifecyle**:
+  $$\text{DRAFT} \longrightarrow \text{GENERATED} \longrightarrow \text{TESTING} \longrightarrow \text{TESTED} \longrightarrow \text{AWAITING\_APPROVAL} \longrightarrow \text{INSTALLED} \longleftrightarrow \text{DISABLED}$$
+* **Audit Trail**: Every draft creation, test execution, approval decision, hot-install, and unregister operation is permanently logged through `AuditLogger` with user identity and rationale.
+
+### 2. Sandbox Runner & Security Threat Screening
+* **Static AST Threat Detection**: Analyzes source code prior to compilation, blocking dangerous primitives (`child_process`, `execSync`, `spawn`, `process.exit`, `process.kill`, `eval`, `Function(`, `__proto__`, hardcoded plaintext API keys).
+* **Safe Compilation**: Wraps tool code in a strict execution harness declaring `execute(params, context)` with isolated parameter bindings.
+* **Timeout & Boundary Protection**: Test cases run under 5,000ms timeout constraints with comprehensive output substring matching and negative error case validation.
+
+### 3. Dynamic Skill Generator & Scaffolding
+* **Scaffolding for 5 Specialized Tool Types**:
+  * `custom_solver`: Pure mathematical and algorithmic solvers with input boundaries and formula evaluation.
+  * `data_transformer`: JSON data cleaners, key sorters, minifiers, and pipeline converters.
+  * `automation_script`: Local task automation, batch file processing, and safe text/crypto hashing.
+  * `api_adapter`: REST protocol adapters with query parameter encoders and header mappings.
+  * `workflow`: Multi-stage task sequences with state propagation.
+
+### 4. Hot-Loading Tool Registry & Live Execution Bench
+* **Dynamic Tool Wrapper**: Synthesizes full `ITool` instances dynamically implementing `id`, `name`, `description`, `parametersSchema`, and `execute(params, context)`.
+* **Zero-Downtime Injection**: Injects approved tools directly into the active `ToolRegistry` via `registerImplementation()`. Orchestrator and agents immediately gain access.
+* **Safe Deregistration**: `unregister(id)` cleanly drops the dynamic tool without restarting the server.
+* **Live Test Bench**: The `/api/tools/:id/execute` endpoint provides instant testing of any installed tool from the HUD interface.
+
+### 5. Security Gating, Agent & 8 Skill Builder Tools
+* Gated by `ResourceType.SYSTEM` (`READ` for catalog and draft inspection; `WRITE` for drafting and running test harness; `ADMIN` for review approval, hot-installation, uninstall, and deletion).
+* Coordinated by `SkillBuilderManager`, `SandboxRunner`, `SkillGenerator`, and `SkillBuilderAgent` (`id: 'skill-builder-agent'`, `version: '0.24.0-phase24'`).
+* 8 Registered Tools:
+  1. `skill_builder.draft_skill` — Generates a new custom tool draft from specification.
+  2. `skill_builder.generate_implementation` — Scaffolds safe JavaScript implementation code by skill type.
+  3. `skill_builder.test_skill` — Executes the test harness within the isolated security sandbox.
+  4. `skill_builder.review_and_approve` — Records operator approval or rejection with audited reviewer notes.
+  5. `skill_builder.install_skill` — Hot-loads an approved custom tool into the active ToolRegistry.
+  6. `skill_builder.uninstall_skill` — Deregisters or disables a custom tool from ToolRegistry.
+  7. `skill_builder.list_skills` — Queries custom skills catalog with status filters.
+  8. `skill_builder.get_skill_details` — Retrieves complete metadata, code, test cases, and validation reports.
+
+### 6. Interactive HUD Skill Builder Studio
+* **Skills Catalog Tab**: Displays all seeded and custom skills with interactive status badges, metadata pills, sandbox test buttons, hot-install toggles, and deletion controls.
+* **Skill Foundry & Generator Tab**: Interactive drafting form with preset templates (Fibonacci Solver, JSON Key Sorter, Markdown Table Formatter, Batch Text Hasher) and real-time schema validation.
+* **Sandboxed Test Harness Tab**: Target selector with AST screening clearance indicators, overall suite status, pass/fail breakdowns, and microsecond latency metrics.
+* **Governance & Hot-Loader Tab**: Operator review panel for approving/rejecting drafts with audit notes, plus a live interactive test bench to invoke installed custom tools with JSON parameters.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (631 automated tests across 68 test files covering all phases, plus 102 end-to-end manual verification steps):
+Run the full Vitest suite (657 automated tests across 70 test files covering all phases, plus 108 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 23
+# Run manual end-to-end verification across Phases 1 to 24
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check
