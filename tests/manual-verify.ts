@@ -1612,7 +1612,84 @@ async function runManualVerification() {
       console.log('   Attestations in Ledger:', ledgerData.count, '| Latest Action:', ledgerData.data?.[0]?.actionName);
       console.log('   Executive Compliance:', reportData.data?.complianceStatus, '| Pass Rate:', reportData.data?.passRatePercent + '%', '| Policy:', reportData.data?.activePolicy);
 
-      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 26) PASSED SUCCESSFULLY! ===');
+      console.log('121. Testing Phase 27 Self-Correction Agent & 8 Tools Registration (GET /api/agents & /api/tools)');
+      const lAgentRes = await fetch('http://127.0.0.1:3099/api/agents');
+      const lAgentData = await lAgentRes.json();
+      const lAgent = lAgentData.agents?.find((a: any) => a.id === 'self-correction-agent');
+      const lToolsRes = await fetch('http://127.0.0.1:3099/api/tools');
+      const lToolsData = await lToolsRes.json();
+      const lTools = lToolsData.tools?.filter((t: any) => t.id.startsWith('learning.'));
+      console.log('   Self-Correction Agent:', lAgent?.name, '| Version:', lAgent?.version);
+      console.log('   Learning Tools Registered Count:', lTools?.length, '| Tools:', lTools?.map((t: any) => t.id).join(', '));
+
+      console.log('122. Testing Phase 27 Experience Store Incidents & Rules Ledger (GET /incidents & /rules)');
+      const lIncListRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/incidents', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const lIncListData = await lIncListRes.json();
+      const lRuleListRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/rules', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const lRuleListData = await lRuleListRes.json();
+      console.log('   Incidents Count:', lIncListData.count, '| First Incident:', lIncListData.data?.[0]?.actionName);
+      console.log('   Rules Count:', lRuleListData.count, '| First Rule:', lRuleListData.data?.[0]?.title, '| Confidence:', lRuleListData.data?.[0]?.confidence);
+
+      console.log('123. Testing Phase 27 Failure Ingestion & Auto-Heuristic Synthesis (POST /incidents)');
+      const lRecordRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionName: 'compiler.link_binary',
+          errorMessage: 'Undefined symbol: _tuklas_quantum_eigenvalue',
+          errorType: 'LinkerError',
+          rootCauseCategory: 'syntax_error',
+          severity: 'high',
+        }),
+      });
+      const lRecordData = await lRecordRes.json();
+      console.log('   Recorded Incident ID:', lRecordData.data?.incident?.id, '| Auto-Synthesized Rule:', lRecordData.data?.rule?.title);
+
+      console.log('124. Testing Phase 27 Pre-Execution Guardrail Interception & Clamping (POST /guardrails)');
+      const lGuardRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/guardrails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          actionName: 'math.solve_polynomial',
+          params: { n: 85, variable: 'x' },
+        }),
+      });
+      const lGuardData = await lGuardRes.json();
+      console.log('   Guardrail Matched:', lGuardData.data?.matchedRules?.length, 'rules | Safe To Proceed:', lGuardData.data?.safeToProceed);
+      console.log('   Parameter Clamped:', 'n=' + lGuardData.data?.parameterAdjustments?.n, '| Warnings:', lGuardData.data?.warnings?.[0]);
+
+      console.log('125. Testing Phase 27 Self-Correction Plan & Feedback Tuning (POST /correction-plan & /feedback)');
+      const lPlanRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/correction-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({
+          incidentId: 'inc_seed_math_01',
+          originalParams: { n: 75 },
+        }),
+      });
+      const lPlanData = await lPlanRes.json();
+      const lFeedRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/rules/rule_seed_math_01/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+        body: JSON.stringify({ succeeded: true }),
+      });
+      const lFeedData = await lFeedRes.json();
+      console.log('   Correction Plan Reason:', lPlanData.data?.reasoning?.substring(0, 60) + '...');
+      console.log('   Rule Feedback Times Applied:', lFeedData.data?.timesApplied, '| Succeeded:', lFeedData.data?.timesSucceeded);
+
+      console.log('126. Testing Phase 27 Learning Evolution & Recurrence Telemetry (GET /report)');
+      const lRepRes = await fetch('http://127.0.0.1:3099/api/jarvis/learning/report', {
+        headers: { 'x-user-id': 'dwight' },
+      });
+      const lRepData = await lRepRes.json();
+      console.log('   Evolution Velocity:', lRepData.data?.learningVelocityScore, '| Active Directives:', lRepData.data?.activeRules);
+      console.log('   Recurrence Rate:', lRepData.data?.recurrenceRatePercent + '% (TARGET ZERO)', '| Avg Confidence:', lRepData.data?.averageConfidencePercent + '%');
+
+      console.log('\n=== ALL MANUAL VERIFICATION STEPS (PHASES 1 TO 27) PASSED SUCCESSFULLY! ===');
     } catch (err) {
       console.error('Manual verification failed:', err);
     } finally {

@@ -1,6 +1,6 @@
 # JARVIS — Personal AI Assistant & Second Brain
 
-> **Current Status**: **Phase 26 — Verification Engine Active**
+> **Current Status**: **Phase 27 — Self-Correction & Learning Loop Active**
 
 JARVIS is a real, modular personal AI system engineered around the core security principles:
 1. **CAPABILITY DOES NOT EQUAL PERMISSION.**
@@ -246,6 +246,15 @@ http://127.0.0.1:3000
 | `GET` | `/api/jarvis/verification/attestations` | Phase 26 List historical verification attestations with pass/fail and action filters |
 | `GET` | `/api/jarvis/verification/attestations/:id` | Phase 26 Retrieve specific attestation with evidence fingerprint |
 | `GET` | `/api/jarvis/verification/report` | Phase 26 Retrieve executive verification compliance and policy status report |
+| `GET` | `/api/jarvis/learning/incidents` | Phase 27 List failure incidents with action and resolution status filters |
+| `POST` | `/api/jarvis/learning/incidents` | Phase 27 Ingest runtime or verification failure and synthesize actionable heuristic |
+| `GET` | `/api/jarvis/learning/incidents/:id` | Phase 27 Retrieve specific failure incident record |
+| `GET` | `/api/jarvis/learning/rules` | Phase 27 List learned heuristic rules with category, status, and target filters |
+| `GET` | `/api/jarvis/learning/rules/:id` | Phase 27 Retrieve learned heuristic rule by ID |
+| `POST` | `/api/jarvis/learning/guardrails` | Phase 27 Match pre-execution guardrails and clamp parameters before execution |
+| `POST` | `/api/jarvis/learning/correction-plan` | Phase 27 Synthesize adapted parameters correction plan from incident history |
+| `POST` | `/api/jarvis/learning/rules/:id/feedback` | Phase 27 Record heuristic feedback (success/failure) to dynamically tune confidence |
+| `GET` | `/api/jarvis/learning/report` | Phase 27 Retrieve learning evolution telemetry and recurrence rate report |
 
 ---
 
@@ -1193,14 +1202,55 @@ $$\text{ACTION} \longrightarrow \text{RAW RESULT} \longrightarrow \text{VERIFICA
 
 ---
 
+## 🔁 Phase 27 Architecture: Self-Correction & Learning Loop Engine
+
+Phase 27 equips JARVIS with an autonomous, offline-first evolutionary learning loop. Whenever a tool, subagent, verification check, or external call experiences a fault, the failure is systematically ingested, classified, and transformed into an active heuristic rule. Subsequent actions are filtered through pre-execution guardrails, which clamp unbounded parameters, inject preventative preconditions, and guarantee that learned mistakes never recur:
+
+$$\text{FAULT INCIDENT} \longrightarrow \text{EXPERIENCE STORE} \longrightarrow \text{HEURISTIC SYNTHESIS} \longrightarrow \begin{cases} \text{ACTIVE GUARDRAIL} & \longrightarrow \text{PRE-EXECUTION CLAMPING} \\ \text{CORRECTION PLAN} & \longrightarrow \text{ADAPTED EXECUTION} \\ \text{FEEDBACK TUNING} & \longrightarrow \text{CONFIDENCE EVOLUTION} \end{cases}$$
+
+### 1. ExperienceStore (Incident & Heuristics Ledger)
+* **Incident Ledger**: Persists rich `FailureIncident` records capturing `actionName`, error messages, call stack traces, runtime payload snapshots, and classification categories (`tolerance_exceeded`, `schema_mismatch`, `missing_artifact`, `hallucination_detected`, `syntax_error`, `execution_fault`).
+* **Heuristics Ledger**: Maintains persistent `LearnedRule` definitions with status transitions (`probation` $\rightarrow$ `active` upon consecutive verified successes, or $\rightarrow$ `deprecated` upon low confidence), target actions, regex trigger patterns, and parameter constraint bounds.
+* **Pre-Seeded Knowledge**: Bootstrapped with verified rules covering IEEE 754 floating-point explosions in polynomial solvers, semicolon-delimited European CSV detection, and statutory PRC Philippine LET rating verification.
+
+### 2. HeuristicSynthesizer (Autonomous Rule Extraction & Guardrails)
+* Analyzes root cause categories and error signatures to dynamically derive new preventative rules and parameter clamping bounds without human intervention.
+* **Pre-Execution Guardrail Interceptor**: Inspects incoming action calls against all active heuristics before execution, clamping out-of-bounds parameters (e.g. quantum numbers $> 50 \rightarrow 50$), adjusting delimiters, and injecting critical precondition warnings.
+* **Correction Plan Generator**: Formulates end-to-end multi-step adaptation plans for previously failed incidents, providing the reasoning, prevented faults, and corrected parameter payloads.
+
+### 3. SelfCorrectionManager & Confidence Feedback Tuning
+* Coordinates the full learning lifecycle with strict `ResourceType.SYSTEM` permission gating.
+* **Adaptive Rule Feedback**: When a heuristic is successfully applied in production, its confidence score increases asymptotically toward $1.0$; when a rule fails, its confidence drops, demoting it to `probation` or `deprecated` status.
+* **Evolution Telemetry Report**: Computes real-time telemetry including total incidents recorded, active directives, learning velocity score, top failing categories, and the core **Zero Recurrence Rate Invariant** ($0.0\%$).
+
+### 4. Self-Correction Agent & 8 Registered Tools
+* `SelfCorrectionAgent` (`id: 'self-correction-agent'`, `version: '0.27.0-phase27'`) orchestrates failure analysis, heuristic synthesis, and guardrail interception.
+* 8 Registered Tools:
+  1. `learning.record_incident` — Ingests a runtime failure or verification fault and automatically synthesizes an actionable LearnedRule.
+  2. `learning.extract_heuristic` — Extracts or refines a learned rule from an existing historical failure incident.
+  3. `learning.get_guardrails` — Evaluates proposed action parameters against active heuristics and returns clamped parameters.
+  4. `learning.create_correction_plan` — Formulates an adapted execution strategy with corrected parameters based on incident history.
+  5. `learning.record_rule_feedback` — Tunes heuristic confidence score based on empirical application success or failure.
+  6. `learning.list_rules` — Enumerates learned rules with category, status, and target action filters.
+  7. `learning.list_incidents` — Lists failure incidents with resolved status and action filters.
+  8. `learning.generate_evolution_report` — Generates comprehensive learning evolution telemetry and recurrence rate report.
+
+### 5. Interactive HUD Self-Correction & Learning Studio
+* **Learning Evolution Radar Tab**: Real-time HUD telemetry displaying total incidents ingested, active directives, zero recurrence metric ($0.0\%$), learning velocity, and categorized root-cause breakdowns.
+* **Incident Ledger Tab**: Historical log of failure incidents with severity badges, status tags, and an interactive failure ingestion workbench to trigger autonomous heuristic synthesis on demand.
+* **Heuristics Foundry Tab**: Visual catalog of learned heuristics displaying confidence bars, application counts, status pills, and interactive $\blacktriangle$ Valid / $\blacktriangledown$ Invalidate feedback buttons.
+* **Guardrails & Simulator Tab**: Pre-execution sandbox testing proposed action parameters against the guardrail engine, visualizing live parameter clamping and synthesizing structured correction plans.
+
+---
+
 ## 🧪 Testing & Validation
 
-Run the full Vitest suite (709 automated tests across 74 test files covering all phases, plus 120 end-to-end manual verification steps):
+Run the full Vitest suite (750 automated tests across 76 test files covering all phases, plus 126 end-to-end manual verification steps):
 ```bash
 # Run all automated tests
 npm test
 
-# Run manual end-to-end verification across Phases 1 to 26
+# Run manual end-to-end verification across Phases 1 to 27
 npx tsx tests/manual-verify.ts
 
 # Run TypeScript compiler check

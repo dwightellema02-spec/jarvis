@@ -9443,11 +9443,356 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Phase 27: Self-Correction & Learning Loop Studio Controller
+  function initLearningStudio() {
+    const learningModal = document.getElementById('learning-modal');
+    const closeBtn = document.getElementById('close-learning-modal-btn');
+    const navLearning = document.getElementById('nav-learning');
+    const chipSelfCorrectionAgent = document.getElementById('chip-self-correction-agent');
+
+    function openModal() {
+      if (learningModal) {
+        learningModal.style.display = 'flex';
+        loadEvolutionRadar();
+        loadIncidents();
+        loadRules();
+      }
+    }
+
+    function closeModal() {
+      if (learningModal) {
+        learningModal.style.display = 'none';
+      }
+    }
+
+    if (navLearning) navLearning.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    if (chipSelfCorrectionAgent) chipSelfCorrectionAgent.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    // Tab Switching
+    const tabBtns = document.querySelectorAll('button[data-l-tab]');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach((b) => {
+          b.style.borderColor = '#334155';
+          b.style.color = '#94a3b8';
+        });
+        btn.style.borderColor = '#f59e0b';
+        btn.style.color = '#f59e0b';
+
+        const targetId = btn.getAttribute('data-l-tab');
+        document.querySelectorAll('.l-tab-content').forEach((c) => {
+          c.style.display = 'none';
+        });
+        const target = document.getElementById(targetId);
+        if (target) target.style.display = 'block';
+
+        if (targetId === 'tab-l-radar') loadEvolutionRadar();
+        if (targetId === 'tab-l-incidents') loadIncidents();
+        if (targetId === 'tab-l-rules') loadRules();
+      });
+    });
+
+    // 1. Learning Evolution Radar
+    async function loadEvolutionRadar() {
+      const incEl = document.getElementById('l-metric-incidents');
+      const rulesEl = document.getElementById('l-metric-rules');
+      const recEl = document.getElementById('l-metric-recurrence');
+      const velEl = document.getElementById('l-metric-velocity');
+      const directivesList = document.getElementById('l-directives-list');
+      const categoriesList = document.getElementById('l-categories-list');
+
+      try {
+        const res = await fetch('/api/jarvis/learning/report', { headers: { 'x-user-id': 'dwight' } });
+        const report = await res.json();
+        if (report.success && report.data) {
+          const d = report.data;
+          if (incEl) incEl.textContent = d.totalIncidents;
+          if (rulesEl) rulesEl.textContent = d.activeRules;
+          if (recEl) recEl.textContent = `${d.recurrenceRatePercent}%`;
+          if (velEl) velEl.textContent = `${d.learningVelocityScore}x`;
+
+          if (directivesList) {
+            directivesList.innerHTML = (d.activeDirectiveSummary || [])
+              .map((dir) => `
+                <div style="padding: 6px 10px; background: #070c18; border-left: 3px solid #10b981; border-radius: 4px; font-size: 0.75rem; color: #cbd5e1;">
+                  ${dir}
+                </div>
+              `)
+              .join('');
+          }
+
+          if (categoriesList) {
+            const cats = d.topFailingCategories || {};
+            const keys = Object.keys(cats);
+            if (keys.length === 0) {
+              categoriesList.innerHTML = '<div style="font-size: 0.75rem; color: #94a3b8;">No root cause categories recorded yet.</div>';
+            } else {
+              categoriesList.innerHTML = keys
+                .map((k) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #070c18; border-radius: 4px; font-size: 0.75rem;">
+                    <span style="color: #38bdf8;">${k}</span>
+                    <span style="font-weight: 600; color: #f59e0b;">${cats[k]} incident(s)</span>
+                  </div>
+                `)
+                .join('');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load evolution radar:', err);
+      }
+    }
+
+    const refreshReportBtn = document.getElementById('l-refresh-report-btn');
+    if (refreshReportBtn) refreshReportBtn.addEventListener('click', loadEvolutionRadar);
+
+    // 2. Incident Ledger
+    async function loadIncidents() {
+      const tbody = document.getElementById('l-incidents-table-body');
+      if (!tbody) return;
+
+      try {
+        const res = await fetch('/api/jarvis/learning/incidents', { headers: { 'x-user-id': 'dwight' } });
+        const data = await res.json();
+        if (data.success) {
+          if (data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="padding: 12px; text-align: center; color: #94a3b8;">No incidents recorded.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.data
+            .map((inc) => `
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 6px; font-family: monospace; color: #38bdf8;">${inc.actionName}</td>
+                <td style="padding: 6px; color: #94a3b8;">${inc.rootCauseCategory}</td>
+                <td style="padding: 6px;">
+                  <span style="color: ${inc.severity === 'critical' ? '#ef4444' : inc.severity === 'high' ? '#f59e0b' : '#10b981'}; font-weight: 600;">
+                    ${inc.severity.toUpperCase()}
+                  </span>
+                </td>
+                <td style="padding: 6px; color: ${inc.resolved ? '#10b981' : '#f59e0b'};">
+                  ${inc.resolved ? 'RESOLVED' : 'OPEN'}
+                </td>
+              </tr>
+            `)
+            .join('');
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="padding: 12px; color: #ef4444;">Failed to load incidents: ${err.message}</td></tr>`;
+      }
+    }
+
+    const refreshIncBtn = document.getElementById('l-refresh-incidents-btn');
+    if (refreshIncBtn) refreshIncBtn.addEventListener('click', loadIncidents);
+
+    const recordIncBtn = document.getElementById('l-record-incident-btn');
+    const recordResEl = document.getElementById('l-record-res');
+    if (recordIncBtn) {
+      recordIncBtn.addEventListener('click', async () => {
+        const actionName = (document.getElementById('l-inc-action') || {}).value;
+        const errorMessage = (document.getElementById('l-inc-message') || {}).value;
+        const rootCauseCategory = (document.getElementById('l-inc-rootcause') || {}).value;
+        const severity = (document.getElementById('l-inc-severity') || {}).value;
+
+        if (!actionName || !errorMessage) {
+          alert('Action Name and Error Message are required.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/jarvis/learning/incidents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ actionName, errorMessage, rootCauseCategory, severity }),
+          });
+          const result = await res.json();
+          if (result.success && recordResEl) {
+            recordResEl.style.display = 'block';
+            recordResEl.textContent = `Ingested & synthesized rule: "${result.data.rule.title}"`;
+            loadIncidents();
+            loadRules();
+            loadEvolutionRadar();
+          }
+        } catch (err) {
+          alert(`Failed to ingest incident: ${err.message}`);
+        }
+      });
+    }
+
+    // 3. Heuristics Foundry
+    async function loadRules() {
+      const container = document.getElementById('l-rules-container');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/jarvis/learning/rules', { headers: { 'x-user-id': 'dwight' } });
+        const data = await res.json();
+        if (data.success) {
+          if (data.data.length === 0) {
+            container.innerHTML = '<div style="color: #94a3b8; padding: 12px;">No heuristics synthesized yet.</div>';
+            return;
+          }
+          container.innerHTML = data.data
+            .map((rule) => `
+              <div style="background: #070c18; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="max-width: 75%;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #fff; font-size: 0.82rem;">${rule.title}</span>
+                    <span style="padding: 1px 6px; border-radius: 4px; font-size: 0.68rem; background: ${rule.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}; color: ${rule.status === 'active' ? '#10b981' : '#f59e0b'};">
+                      ${rule.status.toUpperCase()}
+                    </span>
+                    <span style="font-size: 0.72rem; color: #38bdf8; font-family: monospace;">[${rule.category}]</span>
+                  </div>
+                  <div style="font-size: 0.76rem; color: #cbd5e1; margin-bottom: 4px;">
+                    ${rule.directive}
+                  </div>
+                  <div style="font-size: 0.7rem; color: #94a3b8;">
+                    Confidence: <b style="color: #10b981;">${Math.round(rule.confidence * 100)}%</b> • Applied: <b>${rule.timesApplied}x</b> • Succeeded: <b>${rule.timesSucceeded}x</b>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="rule-feedback-btn" data-rule-id="${rule.id}" data-success="true" style="padding: 4px 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 4px; color: #10b981; cursor: pointer; font-size: 0.72rem;">
+                    &#9650; Valid
+                  </button>
+                  <button class="rule-feedback-btn" data-rule-id="${rule.id}" data-success="false" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 4px; color: #ef4444; cursor: pointer; font-size: 0.72rem;">
+                    &#9660; Invalidate
+                  </button>
+                </div>
+              </div>
+            `)
+            .join('');
+
+          // Wire feedback buttons
+          container.querySelectorAll('.rule-feedback-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const ruleId = btn.getAttribute('data-rule-id');
+              const succeeded = btn.getAttribute('data-success') === 'true';
+              try {
+                await fetch(`/api/jarvis/learning/rules/${ruleId}/feedback`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+                  body: JSON.stringify({ succeeded }),
+                });
+                loadRules();
+                loadEvolutionRadar();
+              } catch (err) {
+                console.error('Feedback error:', err);
+              }
+            });
+          });
+        }
+      } catch (err) {
+        container.innerHTML = `<div style="color: #ef4444; padding: 12px;">Failed to load heuristics: ${err.message}</div>`;
+      }
+    }
+
+    const refreshRulesBtn = document.getElementById('l-refresh-rules-btn');
+    if (refreshRulesBtn) refreshRulesBtn.addEventListener('click', loadRules);
+
+    // 4. Simulator
+    const simGuardBtn = document.getElementById('l-sim-guardrail-btn');
+    const simPlanBtn = document.getElementById('l-sim-plan-btn');
+    const simVerdict = document.getElementById('l-sim-verdict');
+    const simOutput = document.getElementById('l-sim-output');
+
+    if (simGuardBtn) {
+      simGuardBtn.addEventListener('click', async () => {
+        const actionName = (document.getElementById('l-sim-action') || {}).value;
+        let params = {};
+        try {
+          params = JSON.parse((document.getElementById('l-sim-params') || {}).value || '{}');
+        } catch {
+          alert('Invalid JSON in Proposed Parameters');
+          return;
+        }
+
+        if (simVerdict) simVerdict.innerHTML = '<span style="color: #38bdf8;">Evaluating active guardrails...</span>';
+
+        try {
+          const res = await fetch('/api/jarvis/learning/guardrails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ actionName, params }),
+          });
+          const match = await res.json();
+          if (match.success && match.data) {
+            const d = match.data;
+            if (simVerdict) {
+              simVerdict.innerHTML = d.safeToProceed
+                ? `<span style="color: #10b981; font-weight: 600;">SAFE TO PROCEED</span> — Matched ${d.matchedRules.length} guardrail(s).`
+                : `<span style="color: #ef4444; font-weight: 600;">GUARDRAIL INTERCEPTED</span> — Safety warnings raised.`;
+            }
+            if (simOutput) {
+              simOutput.textContent = JSON.stringify(
+                {
+                  actionName: d.actionName,
+                  injectedDirectives: d.injectedDirectives,
+                  parameterAdjustments: d.parameterAdjustments,
+                  warnings: d.warnings,
+                },
+                null,
+                2
+              );
+            }
+          }
+        } catch (err) {
+          if (simVerdict) simVerdict.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+
+    if (simPlanBtn) {
+      simPlanBtn.addEventListener('click', async () => {
+        let params = {};
+        try {
+          params = JSON.parse((document.getElementById('l-sim-params') || {}).value || '{}');
+        } catch {
+          alert('Invalid JSON in Proposed Parameters');
+          return;
+        }
+
+        if (simVerdict) simVerdict.innerHTML = '<span style="color: #f59e0b;">Synthesizing correction plan...</span>';
+
+        try {
+          const res = await fetch('/api/jarvis/learning/correction-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-id': 'dwight' },
+            body: JSON.stringify({ incidentId: 'inc_seed_math_01', originalParams: params }),
+          });
+          const plan = await res.json();
+          if (plan.success && plan.data) {
+            const d = plan.data;
+            if (simVerdict) {
+              simVerdict.innerHTML = `<span style="color: #10b981; font-weight: 600;">CORRECTION PLAN SYNTHESIZED</span> — ${d.reasoning}`;
+            }
+            if (simOutput) {
+              simOutput.textContent = JSON.stringify(
+                {
+                  incidentId: d.incidentId,
+                  actionName: d.actionName,
+                  adjustedParams: d.adjustedParams,
+                  appliedRules: d.appliedRules.map((r) => r.title),
+                  preventedFault: d.preventedFault,
+                },
+                null,
+                2
+              );
+            }
+          }
+        } catch (err) {
+          if (simVerdict) simVerdict.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        }
+      });
+    }
+  }
+
   // Start
   initProactiveStudio();
   initSkillBuilderStudio();
   initCollaborationStudio();
   initVerificationStudio();
+  initLearningStudio();
   initSession();
 });
+
 

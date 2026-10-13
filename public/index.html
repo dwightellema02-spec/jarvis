@@ -192,6 +192,13 @@
               </div>
               <span class="hud-nav-badge">P26</span>
             </a>
+            <a href="#" id="nav-learning" class="hud-nav-item">
+              <div class="hud-nav-icon-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/><circle cx="12" cy="12" r="4"/></svg>
+                <span>Self-Correction</span>
+              </div>
+              <span class="hud-nav-badge">P27</span>
+            </a>
           </nav>
         </div>
 
@@ -469,6 +476,14 @@
                   <span class="cyan-pulse-dot"></span>
                 </div>
                 <canvas class="agent-sparkline-canvas" data-color="#10b981"></canvas>
+                <div class="agent-status-label dot-active">&#9679; Active</div>
+              </div>
+              <div class="agent-chip" id="chip-self-correction-agent" title="Open Self-Correction & Learning Studio">
+                <div class="agent-chip-header">
+                  <span>Self-Correction Agent</span>
+                  <span class="cyan-pulse-dot"></span>
+                </div>
+                <canvas class="agent-sparkline-canvas" data-color="#f59e0b"></canvas>
                 <div class="agent-status-label dot-active">&#9679; Active</div>
               </div>
             </div>
@@ -4194,6 +4209,198 @@ To pass the LET, a candidate must obtain a general average rating of at least 75
               Ready. Press Execute to observe self-healing progression across attempts.
             </div>
             <pre id="v-retry-log" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-size: 0.72rem; color: #f59e0b; max-height: 220px; overflow-y: auto; white-space: pre-wrap;">// Recovery log will stream here</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Self-Correction & Learning Loop Studio Modal (Phase 27) -->
+  <div id="learning-modal" class="hud-modal" style="display: none;">
+    <div class="hud-modal-content" style="max-width: 1050px; width: 95%;">
+      <div class="hud-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;">
+        <div>
+          <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #f59e0b;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/><circle cx="12" cy="12" r="4"/></svg>
+            Self-Correction & Learning Loop Studio
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #f59e0b;">PHASE 27</span>
+          </h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #94a3b8;">
+            Autonomous Error Ingestion • Heuristic Rule Synthesis • Pre-Execution Guardrails • 0% Recurrence Telemetry
+          </p>
+        </div>
+        <button id="close-learning-modal-btn" class="hud-modal-close" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Studio Navigation Tabs -->
+      <div class="hud-tabs" style="display: flex; gap: 8px; margin: 1rem 0; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem;">
+        <button class="hud-tab active" data-l-tab="tab-l-radar" style="padding: 6px 14px; background: none; border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; cursor: pointer;">
+          Learning Evolution Radar
+        </button>
+        <button class="hud-tab" data-l-tab="tab-l-incidents" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Incident Ledger
+        </button>
+        <button class="hud-tab" data-l-tab="tab-l-rules" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Heuristics Foundry
+        </button>
+        <button class="hud-tab" data-l-tab="tab-l-simulator" style="padding: 6px 14px; background: none; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer;">
+          Guardrails & Simulator
+        </button>
+      </div>
+
+      <!-- Tab 1: Learning Evolution Radar -->
+      <div id="tab-l-radar" class="l-tab-content">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Total Incidents Ingested</div>
+            <div id="l-metric-incidents" style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;">--</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Active Heuristic Directives</div>
+            <div id="l-metric-rules" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">--</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Recurrence Rate (Target 0%)</div>
+            <div id="l-metric-recurrence" style="font-size: 1.4rem; font-weight: 700; color: #00f0ff;">0.0%</div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.72rem; color: #94a3b8;">Learning Velocity</div>
+            <div id="l-metric-velocity" style="font-size: 1.4rem; font-weight: 700; color: #ec4899;">--</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h4 style="margin: 0; font-size: 0.88rem; color: #e2e8f0;">Active Guardrail Directives</h4>
+              <button id="l-refresh-report-btn" style="padding: 4px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; font-size: 0.75rem; cursor: pointer;">
+                Refresh Radar
+              </button>
+            </div>
+            <div id="l-directives-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto;">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #38bdf8;">Root Cause Categorization</h4>
+            <div id="l-categories-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto;">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Incident Ledger -->
+      <div id="tab-l-incidents" class="l-tab-content" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h4 style="margin: 0; font-size: 0.88rem; color: #e2e8f0;">Historical Failure Ledger</h4>
+              <button id="l-refresh-incidents-btn" style="padding: 4px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; font-size: 0.75rem; cursor: pointer;">
+                Refresh
+              </button>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid #1e293b; color: #94a3b8;">
+                  <th style="padding: 6px;">Action</th>
+                  <th style="padding: 6px;">Root Cause</th>
+                  <th style="padding: 6px;">Severity</th>
+                  <th style="padding: 6px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="l-incidents-table-body">
+                <!-- Rendered via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #f59e0b;">Ingest Failure & Synthesize Heuristic</h4>
+            <div style="margin-bottom: 0.5rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Action Name</label>
+              <input id="l-inc-action" type="text" placeholder="e.g. data.clean_csv" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Error Message</label>
+              <input id="l-inc-message" type="text" placeholder="e.g. Delimiter mismatch in table parse" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="font-size: 0.72rem; color: #94a3b8;">Root Cause</label>
+                <select id="l-inc-rootcause" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;">
+                  <option value="tolerance_exceeded">tolerance_exceeded</option>
+                  <option value="schema_mismatch">schema_mismatch</option>
+                  <option value="missing_artifact">missing_artifact</option>
+                  <option value="hallucination_detected">hallucination_detected</option>
+                  <option value="syntax_error">syntax_error</option>
+                  <option value="execution_fault">execution_fault</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; color: #94a3b8;">Severity</label>
+                <select id="l-inc-severity" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;">
+                  <option value="low">low</option>
+                  <option value="medium" selected>medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                </select>
+              </div>
+            </div>
+            <button id="l-record-incident-btn" style="width: 100%; padding: 8px; background: #f59e0b; border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">
+              Ingest & Synthesize Heuristic
+            </button>
+            <div id="l-record-res" style="margin-top: 0.5rem; font-size: 0.75rem; color: #10b981; display: none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Heuristics Foundry -->
+      <div id="tab-l-rules" class="l-tab-content" style="display: none;">
+        <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="margin: 0; font-size: 0.88rem; color: #e2e8f0;">Learned Heuristics & Adaptive Confidence</h4>
+            <button id="l-refresh-rules-btn" style="padding: 4px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; font-size: 0.75rem; cursor: pointer;">
+              Refresh Heuristics
+            </button>
+          </div>
+          <div id="l-rules-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;">
+            <!-- Rendered via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Guardrails & Simulator -->
+      <div id="tab-l-simulator" class="l-tab-content" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #38bdf8;">Pre-Execution Guardrails Interceptor</h4>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Action To Intercept</label>
+              <input id="l-sim-action" type="text" value="math.solve_polynomial" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem;" />
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size: 0.72rem; color: #94a3b8;">Proposed Parameters (JSON)</label>
+              <textarea id="l-sim-params" rows="3" style="width: 100%; padding: 6px 10px; background: #0b1329; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.78rem; font-family: monospace;">{"n": 85, "variable": "x"}</textarea>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="l-sim-guardrail-btn" style="flex: 1; padding: 8px; background: #38bdf8; border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">
+                Evaluate Guardrails
+              </button>
+              <button id="l-sim-plan-btn" style="flex: 1; padding: 8px; background: #10b981; border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">
+                Synthesize Plan
+              </button>
+            </div>
+          </div>
+
+          <div style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 1.25rem;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.88rem; color: #10b981;">Interception & Clamping Verdict</h4>
+            <div id="l-sim-verdict" style="margin-bottom: 0.75rem; padding: 8px 12px; background: #0b1329; border-radius: 4px; font-size: 0.8rem; color: #94a3b8;">
+              Awaiting inspection... Press Evaluate Guardrails.
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">Adjusted / Clamped Output</div>
+            <pre id="l-sim-output" style="background: #070c18; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-size: 0.72rem; color: #38bdf8; max-height: 180px; overflow-y: auto; white-space: pre-wrap;">// Clamped parameters and active directives will appear here</pre>
           </div>
         </div>
       </div>

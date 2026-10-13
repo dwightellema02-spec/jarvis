@@ -174,6 +174,11 @@ import {
   VerificationAgent,
   createVerificationTools,
 } from '../verification/index.js';
+import {
+  SelfCorrectionManager,
+  SelfCorrectionAgent,
+  createLearningTools,
+} from '../learning/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface JarvisCoreConfig {
@@ -209,6 +214,7 @@ export interface JarvisCoreConfig {
   skillBuilderManager?: SkillBuilderManager;
   collaborationManager?: MultiAgentManager;
   verificationSuite?: VerificationSuiteManager;
+  selfCorrectionManager?: SelfCorrectionManager;
 }
 
 export interface JarvisChatRequest {
@@ -266,6 +272,7 @@ export class JarvisCore {
   private skillBuilderManager: SkillBuilderManager;
   private collaborationManager: MultiAgentManager;
   private verificationSuite: VerificationSuiteManager;
+  private selfCorrectionManager: SelfCorrectionManager;
 
   constructor(config: JarvisCoreConfig) {
     this.guardian = config.guardian;
@@ -633,7 +640,22 @@ export class JarvisCore {
       this.toolRegistry.registerImplementation(tool);
     }
 
-    logger.info('JARVIS Core initialized with Phase 26 Verification Suite Engine, Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
+    // Register implemented Self-Correction & Learning Loop Engine, Agent, and Tools (Phase 27)
+    this.selfCorrectionManager =
+      config.selfCorrectionManager ||
+      new SelfCorrectionManager({
+        guardian: this.guardian,
+        permissionManager: this.permissionManager,
+        auditLogger: this.auditLogger,
+      });
+    const selfCorrectionAgent = new SelfCorrectionAgent(this.selfCorrectionManager);
+    this.agentRegistry.registerImplementation(selfCorrectionAgent);
+
+    for (const tool of createLearningTools(this.selfCorrectionManager)) {
+      this.toolRegistry.registerImplementation(tool);
+    }
+
+    logger.info('JARVIS Core initialized with Phase 27 Self-Correction & Learning Loop Engine, Phase 26 Verification Suite Engine, Multi-Agent Collaboration Studio, Skill & Tool Builder Studio, Proactive Intelligence Engine, Goals & Personal Planning Studio, Hardware & Device Agent, Voice & Audio Intelligence Agent, Vision & Camera Intelligence Agent, Application Control Agent, Web & Browser Studio, Financial Research, Innovation Studio, Animation Engine, Creative Studio, Tuklas EdTech, DevEnv, Coding, Data & Statistics, Research, Mathematics, Document Intelligence, Second Brain, Memory, Profile, Orchestrator, AI Provider, Guardian, and Registries');
   }
 
   /**
@@ -1047,6 +1069,10 @@ export class JarvisCore {
 
   public getVerificationSuite(): VerificationSuiteManager {
     return this.verificationSuite;
+  }
+
+  public getSelfCorrectionManager(): SelfCorrectionManager {
+    return this.selfCorrectionManager;
   }
 
   public async orchestrate(
