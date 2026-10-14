@@ -107,18 +107,18 @@ cp .env.example .env
 
 Configure your environment variables:
 ```ini
-# Application Port & Host
-PORT=3000
+# Application Port & Host (Default: 3000; falls back to 3001 if port 3000 is occupied)
+PORT=3001
 HOST=127.0.0.1
 NODE_ENV=development
 
 # AI Provider (google, openai, or mock)
-AI_PROVIDER=google
+AI_PROVIDER=mock
 AI_MODEL=gemini-2.5-flash
 
 # API Keys (Stored server-side only; never exposed to frontend)
-GOOGLE_API_KEY=your-gemini-api-key-here
-# or OPENAI_API_KEY=your-openai-api-key-here
+GOOGLE_API_KEY=
+# or OPENAI_API_KEY=
 
 # Security & Guardian
 ENABLE_AUDIT_LOGS=true
@@ -139,7 +139,8 @@ npm run dev
 
 Open your browser to:
 ```
-http://127.0.0.1:3000
+http://127.0.0.1:3001
+(Note: Defaults to 3000; if port 3000 is in use by another local process, JARVIS automatically binds port 3001)
 ```
 
 ---
