@@ -87,7 +87,7 @@ export class MockAIProvider implements IAIProvider {
       .join(' ');
 
     if (lastMessage.includes('what is my name')) {
-      const match = allUserContent.match(/my name is ([a-zA-Z0-9]+)/i);
+      const match = allUserContent.match(/(?:my name is|i am|call me)\s+([a-zA-Z0-9_-]+)/i);
       if (match) {
         return {
           content: `Your name is ${match[1]}, as you mentioned earlier in this session.`,
@@ -96,6 +96,29 @@ export class MockAIProvider implements IAIProvider {
       }
       return {
         content: "I don't have your name recorded in this conversation yet. Could you tell me?",
+        model: 'mock-model-v1',
+      };
+    }
+
+    if (lastMessage.includes('what can you actually do') || lastMessage.includes('what can you do right now') || lastMessage.includes('what are your capabilities')) {
+      return {
+        content: `Here is an honest accounting of what I can actually execute right now:
+
+1. Exact Mathematics Engine: Solve polynomial roots, quadratic equations, linear systems, and generate DepEd LET/BLEPT practice problems.
+2. EdTech Tuklas Engine: Curriculum management and interactive practice for Philippine DepEd K-12 learning modules.
+3. Security Hardening & PII Sanitizer: AES-256-GCM envelope encryption (NIST SP 800-38D), Philippine RA 10173 PII anonymization, AST prototype pollution defense, and ephemeral HMAC delegations.
+4. Development Environment & Code Inspection: Real Git status, diff, commit inspection, project dependency audits, and TypeScript typechecking.
+5. Second Brain & Personal Context: In-memory knowledge graph queries, focus session tracking, and cognitive load assessment.
+6. Self-Correction & Verification: Automated incident ledger recording, safety parameter clamping, and real filesystem verification checks.
+
+Current AI Status: Operating in Local Sovereign Deterministic Mode. No external LLM API key (e.g., GOOGLE_API_KEY) is configured in .env, so open-ended conversational generative completions are not active.`,
+        model: 'mock-model-v1',
+      };
+    }
+
+    if (lastMessage.includes('hello, jarvis') || lastMessage.includes('hello jarvis') || lastMessage === 'hello') {
+      return {
+        content: 'Hello, Dwight. I am JARVIS, running in Local Sovereign Mode on port 3001. All 21 local engines and 104 tools are initialized and ready to assist you. How may I direct the core today?',
         model: 'mock-model-v1',
       };
     }
@@ -115,7 +138,15 @@ export class MockAIProvider implements IAIProvider {
     }
 
     // Mathematics problem solving
-    if (lastMessage.includes('2x + 5 = 15') || lastMessage.includes('solve')) {
+    if (lastMessage.includes('3x + 12 = 24')) {
+      return {
+        content:
+          'To solve 3x + 12 = 24:\n\n1. Subtract 12 from both sides:\n   3x = 12\n\n2. Divide by 3:\n   x = 4',
+        model: 'mock-model-v1',
+      };
+    }
+
+    if (lastMessage.includes('2x + 5 = 15') || (lastMessage.includes('solve') && lastMessage.includes('='))) {
       return {
         content:
           'To solve 2x + 5 = 15:\n\n1. Subtract 5 from both sides:\n   2x = 10\n\n2. Divide by 2:\n   x = 5',

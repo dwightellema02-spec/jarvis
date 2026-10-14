@@ -263,35 +263,35 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-blue)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                   <span>Memory</span>
                 </div>
-                <span class="overview-item-val" style="color: var(--hud-blue);">3,380 Stored</span>
+                <span id="overview-memories-val" class="overview-item-val" style="color: var(--hud-blue);">-- Stored</span>
               </div>
               <div class="overview-item">
                 <div class="overview-item-label">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-teal)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
                   <span>Voice</span>
                 </div>
-                <span class="overview-item-val" style="color: var(--hud-teal);">Online</span>
+                <span id="overview-voice-val" class="overview-item-val" style="color: var(--hud-teal);">Web Speech</span>
               </div>
               <div class="overview-item">
                 <div class="overview-item-label">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                   <span>Agents</span>
                 </div>
-                <span class="overview-item-val" style="color: var(--hud-purple);">18 Configured</span>
+                <span id="overview-agents-val" class="overview-item-val" style="color: var(--hud-purple);">-- Configured</span>
               </div>
               <div class="overview-item">
                 <div class="overview-item-label">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-amber)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   <span>LLMs</span>
                 </div>
-                <span class="overview-item-val" style="color: var(--hud-amber);">4 Connected</span>
+                <span id="overview-llms-val" class="overview-item-val" style="color: var(--hud-amber);">0 Connected</span>
               </div>
               <div class="overview-item">
                 <div class="overview-item-label">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hud-green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <span>System</span>
                 </div>
-                <span class="overview-item-val" style="color: var(--hud-green);">Optimal</span>
+                <span id="overview-system-val" class="overview-item-val" style="color: var(--hud-green);">Optimal</span>
               </div>
             </div>
           </div>
@@ -525,7 +525,7 @@
               <span>Mission Timeline</span>
               <span style="font-size: 0.72rem; color: var(--hud-cyan);">Today &#9662;</span>
             </div>
-            <div class="timeline-list">
+            <div class="timeline-list" id="hud-timeline-list">
               <div class="timeline-item">
                 <div class="timeline-task">
                   <div class="timeline-dot" style="background: var(--hud-green);"></div>
@@ -643,15 +643,15 @@
               <div class="memory-metrics-col">
                 <div class="metric-row">
                   <span class="metric-lbl">Memories</span>
-                  <span class="metric-num">3,380</span>
+                  <span id="insights-memories-num" class="metric-num">--</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-lbl">Session Turns</span>
-                  <span class="metric-num">22</span>
+                  <span id="insights-turns-num" class="metric-num">--</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-lbl">Tool Calls</span>
-                  <span class="metric-num">18</span>
+                  <span id="insights-tools-num" class="metric-num">--</span>
                 </div>
               </div>
             </div>
@@ -661,9 +661,9 @@
           <div class="hud-card">
             <div class="hud-card-header">
               <span>LLM Status</span>
-              <span class="hud-nav-badge">4 Connected</span>
+              <span id="llm-status-badge" class="hud-nav-badge">Local Sovereign</span>
             </div>
-            <div class="llm-grid">
+            <div class="llm-grid" id="hud-llm-grid">
               <div class="llm-provider-chip">
                 <span class="provider-name">Claude</span>
                 <span class="provider-status" style="color: var(--text-muted);">&#9679; Not Linked</span>
@@ -716,7 +716,7 @@
                 <div class="sender-name">JARVIS <span class="tag">AI</span></div>
                 <div class="bubble assistant-bubble">
                   <p>Greetings, <strong>Commander Dwight</strong>. JARVIS Command Center is fully operational.</p>
-                  <p>All 18 autonomous agent workers, Second Brain memory constellation (3,380 nodes), and anti-SSRF security shields are online. How may I direct the core?</p>
+                  <p>Local Sovereign Core with 21 autonomous agent engines and security shields is online. How may I direct the core?</p>
                 </div>
                 <div class="timestamp">Ready</div>
               </div>
@@ -752,15 +752,15 @@
           <div class="dock-left-telemetry">
             <div class="telemetry-item">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-cyan)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Bhimber, Pakistan</span>
+              <span id="dock-location-text">Localhost (Default User)</span>
             </div>
             <div class="telemetry-item">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              <span>28°C Overcast</span>
+              <span id="dock-weather-text">Weather: Offline (No API)</span>
             </div>
             <div class="telemetry-item">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--hud-teal)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>Network: Excellent</span>
+              <span id="dock-network-text">Localhost:3001 Nominal</span>
             </div>
           </div>
 
@@ -774,7 +774,7 @@
               </div>
               <div class="talk-label-group">
                 <span class="talk-main-text">TALK TO JARVIS</span>
-                <span class="talk-sub-text">I am listening...</span>
+                <span class="talk-sub-text" id="hud-talk-subtext">Click to speak</span>
               </div>
             </button>
           </div>

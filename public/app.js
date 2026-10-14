@@ -356,7 +356,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function sendMessage(text) {
+  function speakJarvisResponse(text) {
+    if ('speechSynthesis' in window && text) {
+      try {
+        window.speechSynthesis.cancel();
+        const clean = text.replace(/[*_#`[\]\\]/g, ' ').replace(/\s+/g, ' ').trim();
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('Speech synthesis error:', e);
+      }
+    }
+  }
+
+  async function sendMessage(text, speak = false) {
     const message = text.trim();
     if (!message) return;
 
@@ -386,7 +401,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showError(data.message || `Error ${res.status}: Failed to get response`);
         appendMessage('assistant', `Error: ${data.message || 'Unable to generate response'}`);
       } else {
+        if (data.sessionId && data.sessionId !== currentSessionId) {
+          currentSessionId = data.sessionId;
+          localStorage.setItem('jarvis_session_id', currentSessionId);
+          if (sessionIdDisplay) sessionIdDisplay.textContent = currentSessionId;
+        }
         appendMessage('assistant', data.response);
+        if (speak) {
+          speakJarvisResponse(data.response);
+        }
       }
     } catch (err) {
       removeTypingIndicator();
@@ -4811,9 +4834,105 @@ document.addEventListener('DOMContentLoaded', () => {
   if (navCommandCenter) navCommandCenter.addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
   if (navConversations) navConversations.addEventListener('click', (e) => { e.preventDefault(); showChatView(); });
   if (closeChatViewBtn) closeChatViewBtn.addEventListener('click', showDashboardView);
-  if (hudTalkJarvisBtn) hudTalkJarvisBtn.addEventListener('click', showChatView);
   if (cmdVoiceBtn) cmdVoiceBtn.addEventListener('click', showChatView);
-  if (hudMicBtn) hudMicBtn.addEventListener('click', showChatView);
+
+  // Real Web Speech API Controller for JARVIS
+  let speechRecognizer = null;
+  let isListening = false;
+  const hudTalkSubtext = document.getElementById('hud-talk-subtext');
+
+  function initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      return null;
+    }
+
+    const recognizer = new SpeechRecognition();
+    recognizer.continuous = false;
+    recognizer.interimResults = false;
+    recognizer.lang = 'en-US';
+
+    recognizer.onstart = () => {
+      isListening = true;
+      if (hudTalkJarvisBtn) hudTalkJarvisBtn.classList.add('listening');
+      if (hudMicBtn) hudMicBtn.classList.add('recording');
+      if (hudTalkSubtext) hudTalkSubtext.textContent = 'Listening... Speak now';
+    };
+
+    recognizer.onresult = (event) => {
+      if (event.results && event.results[0] && event.results[0][0]) {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          showChatView();
+          if (messageInput) {
+            messageInput.value = transcript;
+          }
+          sendMessage(transcript, true);
+        }
+      }
+    };
+
+    recognizer.onerror = (event) => {
+      isListening = false;
+      if (hudTalkJarvisBtn) hudTalkJarvisBtn.classList.remove('listening');
+      if (hudMicBtn) hudMicBtn.classList.remove('recording');
+      if (hudTalkSubtext) {
+        if (event.error === 'not-allowed') {
+          hudTalkSubtext.textContent = 'Mic permission denied';
+          showError('Microphone permission was denied by browser. Please enable mic access.');
+        } else if (event.error === 'no-speech') {
+          hudTalkSubtext.textContent = 'No speech detected';
+        } else {
+          hudTalkSubtext.textContent = `Mic: ${event.error}`;
+        }
+      }
+    };
+
+    recognizer.onend = () => {
+      isListening = false;
+      if (hudTalkJarvisBtn) hudTalkJarvisBtn.classList.remove('listening');
+      if (hudMicBtn) hudMicBtn.classList.remove('recording');
+      if (hudTalkSubtext && !hudTalkSubtext.textContent.includes('denied')) {
+        hudTalkSubtext.textContent = 'Click to speak';
+      }
+    };
+
+    return recognizer;
+  }
+
+  function toggleSpeechLink() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showChatView();
+      showError('Web Speech Recognition API is not supported in this browser. Please use text chat.');
+      if (hudTalkSubtext) hudTalkSubtext.textContent = 'Speech API unavailable';
+      return;
+    }
+
+    if (!speechRecognizer) {
+      speechRecognizer = initSpeechRecognition();
+    }
+
+    if (!speechRecognizer) {
+      showChatView();
+      return;
+    }
+
+    if (isListening) {
+      try {
+        speechRecognizer.stop();
+      } catch (e) {}
+    } else {
+      try {
+        speechRecognizer.start();
+      } catch (e) {
+        console.warn('Speech recognizer start error:', e);
+      }
+    }
+  }
+
+  if (hudTalkJarvisBtn) hudTalkJarvisBtn.addEventListener('click', toggleSpeechLink);
+  if (hudMicBtn) hudMicBtn.addEventListener('click', toggleSpeechLink);
 
   // 7. Interactive Studio & Modal Linkers
   const chipCodingAgent = document.getElementById('chip-coding-agent');
@@ -4851,9 +4970,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. Executive Briefing Handler
   const hudBriefingBtn = document.getElementById('hud-briefing-btn');
   if (hudBriefingBtn) {
-    hudBriefingBtn.addEventListener('click', () => {
+    hudBriefingBtn.addEventListener('click', async () => {
       showChatView();
       if (messagesContainer) {
+        let stats = { cpu: 0, ram: 0, agents: 21, nodes: 12 };
+        try {
+          const res = await fetch('/api/jarvis/dashboard');
+          const json = await res.json();
+          if (json && json.data) {
+            stats.cpu = json.data.systemMonitor.cpuPercent;
+            stats.ram = json.data.systemMonitor.ramPercent;
+            stats.agents = json.data.aiCore.activeAgentsCount;
+            stats.nodes = json.data.aiCore.memoriesStored;
+          }
+        } catch (e) {}
+
         const briefingMsg = document.createElement('div');
         briefingMsg.className = 'message-wrapper assistant-wrapper';
         briefingMsg.innerHTML = `
@@ -4861,15 +4992,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="message-content">
             <div class="sender-name">JARVIS <span class="tag" style="background:#00f0ff;color:#000;">EXECUTIVE BRIEFING</span></div>
             <div class="bubble assistant-bubble">
-              <h4 style="color:#00f0ff;margin:0 0 6px 0;">Executive Briefing — System Status Optimal</h4>
-              <p><strong>Commander Dwight</strong>, all 18 autonomous agent workers are operational. System CPU utilization is nominal at 15%, RAM at 54%, and Disk storage at 40%.</p>
+              <h4 style="color:#00f0ff;margin:0 0 6px 0;">Executive Briefing — System Status Nominal</h4>
+              <p><strong>Commander Dwight</strong>, all ${stats.agents} autonomous agent engines are operational in Local Sovereign Mode. System CPU utilization is ${stats.cpu}%, RAM is ${stats.ram}%, and port 3001 is active.</p>
               <ul style="margin:6px 0 6px 18px;font-size:0.85rem;color:#cbd5e1;">
-                <li><strong>Active Projects:</strong> JARVIS Assistant (Command Center Active), Tuklas EdTech Platform.</li>
-                <li><strong>Curriculum & Study Tracks:</strong> Higher Mathematics & Licensure Examination for Teachers (LET) Review modules loaded.</li>
-                <li><strong>Second Brain:</strong> 3,380 persistent knowledge nodes indexed and ready.</li>
-                <li><strong>Security Guardian:</strong> Anti-SSRF and malware shields enforced with default-deny gating.</li>
+                <li><strong>Active Architecture:</strong> Local Sovereign Deterministic Mode (no external LLM API key configured).</li>
+                <li><strong>Curriculum & Study Tracks:</strong> Higher Mathematics & Licensure Examination for Teachers (LET) Review modules ready.</li>
+                <li><strong>Second Brain:</strong> ${stats.nodes} verified knowledge nodes indexed in memory graph.</li>
+                <li><strong>Security Guardian:</strong> Anti-SSRF, RA 10173 PII sanitizer, and AES-256-GCM shields enforced.</li>
               </ul>
-              <p style="margin:0;">Ready to execute your next directive.</p>
+              <p style="margin:0;">Ready to execute your directives.</p>
             </div>
             <div class="timestamp">Live Briefing</div>
           </div>
@@ -4887,15 +5018,97 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data && data.success && data.data) {
         const d = data.data;
+
+        // System monitor gauges
         const gauges = document.querySelectorAll('.gauge-val-text');
         if (gauges.length >= 3) {
           gauges[0].textContent = `${d.systemMonitor.cpuPercent}%`;
           gauges[1].textContent = `${d.systemMonitor.ramPercent}%`;
           gauges[2].textContent = `${d.systemMonitor.diskPercent}%`;
         }
+
+        // Overview items
+        const overviewMemories = document.getElementById('overview-memories-val');
+        if (overviewMemories) overviewMemories.textContent = `${d.aiCore.memoriesStored} Stored`;
+
+        const overviewVoice = document.getElementById('overview-voice-val');
+        if (overviewVoice) overviewVoice.textContent = d.aiCore.voiceStatus.includes('Web Speech') ? 'Web Speech' : d.aiCore.voiceStatus;
+
+        const overviewAgents = document.getElementById('overview-agents-val');
+        if (overviewAgents) overviewAgents.textContent = `${d.aiCore.activeAgentsCount} Active`;
+
+        const overviewLlms = document.getElementById('overview-llms-val');
+        if (overviewLlms) overviewLlms.textContent = `${d.aiCore.connectedLlmsCount} Connected`;
+
+        const overviewSystem = document.getElementById('overview-system-val');
+        if (overviewSystem) overviewSystem.textContent = d.aiCore.systemHealth;
+
+        // Memory insights card
+        const insightsMemories = document.getElementById('insights-memories-num');
+        if (insightsMemories) insightsMemories.textContent = d.memoryInsights.memories;
+
+        const insightsTurns = document.getElementById('insights-turns-num');
+        if (insightsTurns) insightsTurns.textContent = d.memoryInsights.sessionTurns;
+
+        const insightsTools = document.getElementById('insights-tools-num');
+        if (insightsTools) insightsTools.textContent = d.memoryInsights.toolCalls;
+
+        // LLM status badge & grid
+        const llmBadge = document.getElementById('llm-status-badge');
+        if (llmBadge) {
+          llmBadge.textContent = d.aiCore.connectedLlmsCount > 0 ? `${d.aiCore.connectedLlmsCount} Connected` : 'Local Sovereign';
+        }
+
+        const llmGrid = document.getElementById('hud-llm-grid');
+        if (llmGrid && Array.isArray(d.llmProviders)) {
+          llmGrid.innerHTML = d.llmProviders.map((p) => `
+            <div class="llm-provider-chip">
+              <span class="provider-name">${p.name}</span>
+              <span class="provider-status" style="color: ${p.status.includes('Active') || p.status.includes('Connected') ? 'var(--hud-cyan)' : 'var(--text-muted)'}; font-weight: ${p.primary ? '700' : '400'};">&#9679; ${p.status}</span>
+            </div>
+          `).join('');
+        }
+
+        // Intelligence feed
+        const feedContainer = document.getElementById('hud-intelligence-feed');
+        if (feedContainer && Array.isArray(d.intelligenceFeed)) {
+          feedContainer.innerHTML = d.intelligenceFeed.map((item) => `
+            <div class="feed-item ${item.type.toLowerCase()}">
+              <div style="font-weight: 600; color: #fff;">${item.title}</div>
+              <div class="feed-meta">
+                <span style="color: var(--text-muted);">${item.category}</span>
+                <span class="feed-badge ${item.type.toLowerCase()}">${item.type}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Mission timeline
+        const timelineList = document.getElementById('hud-timeline-list');
+        if (timelineList && Array.isArray(d.missionTimeline)) {
+          timelineList.innerHTML = d.missionTimeline.map((item) => `
+            <div class="timeline-item">
+              <div class="timeline-task">
+                <div class="timeline-dot" style="background: ${item.status === 'Active' || item.status === 'Done' ? 'var(--hud-green)' : 'var(--hud-cyan)'};"></div>
+                <span>${item.title}</span>
+              </div>
+              <span class="timeline-time" style="color: ${item.status === 'Active' || item.status === 'Done' ? 'var(--hud-green)' : 'var(--text-muted)'};">${item.time}</span>
+            </div>
+          `).join('');
+        }
+
+        // Dock location & weather
+        const dockLocation = document.getElementById('dock-location-text');
+        if (dockLocation) dockLocation.textContent = 'Localhost (Dwight)';
+
+        const dockWeather = document.getElementById('dock-weather-text');
+        if (dockWeather) dockWeather.textContent = 'Weather: Offline (No API)';
+
+        const dockNetwork = document.getElementById('dock-network-text');
+        if (dockNetwork) dockNetwork.textContent = 'Localhost:3001 Nominal';
       }
     } catch (e) {
-      // Keep static defaults on error
+      console.warn('Dashboard telemetry sync error:', e);
     }
   }
   syncDashboardTelemetry();
@@ -5775,7 +5988,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmdVoiceBtn = document.getElementById('cmd-voice-btn');
   const navVoiceBtn = document.getElementById('nav-voice');
   const chipVoiceAgent = document.getElementById('chip-voice-agent');
-  const hudMicBtn = document.getElementById('hud-mic-btn');
 
   function openVoiceModal() {
     if (voiceModal) {
@@ -5794,7 +6006,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cmdVoiceBtn) cmdVoiceBtn.addEventListener('click', openVoiceModal);
   if (navVoiceBtn) navVoiceBtn.addEventListener('click', (e) => { e.preventDefault(); openVoiceModal(); });
   if (chipVoiceAgent) chipVoiceAgent.addEventListener('click', openVoiceModal);
-  if (hudMicBtn) hudMicBtn.addEventListener('click', openVoiceModal);
   if (closeVoiceModalBtn) closeVoiceModalBtn.addEventListener('click', closeVoiceModal);
   if (voiceModal) {
     voiceModal.addEventListener('click', (e) => {

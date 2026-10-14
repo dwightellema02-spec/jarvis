@@ -38,8 +38,8 @@ export class SessionManager {
     this.store = store || new InMemorySessionStore();
   }
 
-  public createSession(userId = 'default_user', metadata?: Record<string, unknown>): Session {
-    const id = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  public createSession(userId = 'default_user', metadata?: Record<string, unknown>, customId?: string): Session {
+    const id = customId || `sess_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     const now = new Date().toISOString();
     const session: Session = {
       id,
@@ -65,6 +65,7 @@ export class SessionManager {
       if (existing) {
         return existing;
       }
+      return this.createSession(userId, undefined, sessionId);
     }
     return this.createSession(userId);
   }
